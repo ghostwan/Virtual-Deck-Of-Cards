@@ -21,6 +21,10 @@ io.on('connection', function(socket) {
      io.sockets.in(data['room']).emit('giveDeck', deck);
    })
 
+   socket.on('clearPlayingArea', function(data){
+    io.sockets.in(data['room']).emit('areaCleared', {});
+  })
+
    socket.on('takeCards', function(data){
      cards = takeCards(data[0]['numCards'], data[0]['deck'], data[0]['mycards']);
      console.log(cards);

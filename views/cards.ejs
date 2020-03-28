@@ -100,6 +100,7 @@
         var col1 = "<div class = 'col-6'><h1>Main Deck</h1><br><button onclick = 'shuffleDeck()' class = 'btn btn-outline-dark btn-lg btn-block'>Shuffle Cards</button><br>";
         col1 += "<button class = 'btn btn-outline-dark btn-lg btn-block' onclick = 'takeOne()'>Take 1 Card</button><br>"
         col1 += "<div class = 'form-group row'><label class = 'col-sm-5 col-form-label'>Take from deck:</label><input type = 'number' id = 'take_card' class = 'col-sm-6 form-control' placeholder = 'number of cards'></div>"
+        // col1 += "<button class = 'btn btn-outline-dark btn-lg btn-block' onclick = 'takeOne()'>Take 1 Card</button><br>"
         var col2 = "<div class = 'col-6'><span>🂠</span></div>"
         $("#mainDeck").append(col1);
         $("#mainDeck").append(col2);
@@ -112,9 +113,23 @@
         drawCards();
       })
 
+      socket.on('areaCleared', function(data) {
+        console.log("Clearing area ....");
+        $("#playArea").empty()
+        var content = "<h1>Playing Area</h1>";
+        var content = content +  "<button class = 'btn btn-outline-dark btn-lg btn-block get_deck' onclick = 'clearPlayingArea()''>Clear</button>"
+        $("#playArea").append(content)
+      })
+
       socket.on('movedCard', function(data){
         piles = data['pile'];
-        drawCardsinPile(data['card']);
+        card = data['card']
+        if(card != undefined){
+          console.log("Drawing a card from the pile")
+          drawCardsinPile(card);
+        } else {
+          console.log("Card already draw from the pile")
+        }
         console.log(piles);
       })
 
@@ -129,6 +144,7 @@
          <div id = "mainrow" class = "row">
            <div id = "playArea" class = "col-4">
              <h1>Playing Area</h1>
+             <button class = "btn btn-outline-dark btn-lg btn-block get_deck" onclick = "clearPlayingArea()">Clear</button>
            </div>
            <div class = "col-7">
              <div id = "mainDeck" class = "row">
@@ -161,6 +177,11 @@
         socket.emit('getDeck', {'room' : '<%= data %>', 'jokers' : '0'});
       }
 
+      function clearPlayingArea() {
+        data = {"room" : "<%= data %>"}
+        socket.emit('clearPlayingArea', data);
+      }
+
       function shuffleDeck() {
         data = {"room" : "<%= data %>", "deck" : deck}
         socket.emit('shuffleDeck', data);
@@ -183,18 +204,17 @@
                        ['🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻', '🂽', '🂾'], ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫', '🂭', '🂮']];
         $("#cardDisplay").empty();
         for(var i = 0; i < my_deck.length; i++) {
-          if(my_deck[i]['reveal'] == '1'){
-            console.log(unicode[suit.indexOf(my_deck[i]['suit'])][rank.indexOf(my_deck[i]['rank'])]);
-            var $item = $('<div class="card"/>').text(unicode[suit.indexOf(my_deck[i]['suit'])][rank.indexOf(my_deck[i]['rank'])]);
-            //$item.append("<button class = 'card'>" + unicode[suit.indexOf(my_deck[i]['suit'])][rank.indexOf(my_deck[i]['rank'])] + "</button>");
-            $item.draggable({revert : "invalid"});
-            $("#cardDisplay").append($item);
-            //$("#cardDisplay").append("<button class = 'card'>" + unicode[suit.indexOf(my_deck[i]['suit'])][rank.indexOf(my_deck[i]['rank'])] + "</button>");
+          card = my_deck[i]
+          card['reveal'] = 1
+          console.log(unicode[suit.indexOf(card['suit'])][rank.indexOf(card['rank'])]);
+          var $item = $('<div class="card"/>').text(unicode[suit.indexOf(card['suit'])][rank.indexOf(card['rank'])]);
+          $item.draggable({revert : "invalid"});
+          if(card['suit'] == "Hearts" || card['suit'] == "Diamonds" ) {
+            $item.css({ 'color': 'red'});
           } else {
-            var $item = $('<div class="card"/>').text("🂠");
-            $item.draggable({revert : "invalid"});
-            $("#cardDisplay").append($item);
+            $item.css({'position' : 'relative'});
           }
+          $("#cardDisplay").append($item);
           $(".card:eq(" + i + ")").draggable();
         }
       }
@@ -204,56 +224,42 @@
         var suit = ['Clubs', 'Diamonds', 'Hearts', 'Spades'];
         var unicode = [['🃑', '🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛', '🃝', '🃞'], ['🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋', '🃍', '🃎'],
                        ['🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻', '🂽', '🂾'], ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫', '🂭', '🂮']];
-        if(card['reveal'] == '1'){
-          console.log(unicode[suit.indexOf(card['suit'])][rank.indexOf(card['rank'])]);
-          var $item = $('<div class="cardinPile"/>').text(unicode[suit.indexOf(card['suit'])][rank.indexOf(card['rank'])]);
-          //$item.append("<button class = 'card'>" + unicode[suit.indexOf(my_deck[i]['suit'])][rank.indexOf(my_deck[i]['rank'])] + "</button>");
-          $item.draggable({revert : "invalid"});
-          var posx = ($("#playArea").width() * 0.2 + Math.random()*$("#playArea").width()*0.5);
-          var posy = ($("#playArea").height() * 0.2 + Math.random()*$("#playArea").height()*0.3);
+        console.log(unicode[suit.indexOf(card['suit'])][rank.indexOf(card['rank'])]);
+        var $item = $('<div class="cardinPile"/>').text(unicode[suit.indexOf(card['suit'])][rank.indexOf(card['rank'])]);
+        if(card['suit'] == "Hearts" || card['suit'] == "Diamonds" ) {
           $item.css({
-            'position' : 'relative',
-            'right': posx,
-            'top': posy
+          'position' : 'relative',
+          'color': 'red'
           });
-          $("#playArea").append($item);
-             //$("#cardDisplay").append("<button class = 'card'>" + unicode[suit.indexOf(my_deck[i]['suit'])][rank.indexOf(my_deck[i]['rank'])] + "</button>");
-          } else {
-             var $item = $('<div class="cardinPile"/>').text("🂠");
-             $item.draggable({revert : "invalid"});
-             var posx = ($("#playArea").width() * 0.3 + Math.random()*$("#playArea").width()*0.5);
-             var posy = ($("#playArea").height() * 0.2 + Math.random()*$("#playArea").height()*0.3);
-             $item.css({
-               'position' : 'absolute',
-               'right': posx,
-               'top': posy
-             });
-             $("#playArea").append($item);
-          }
+        } else {
+          $item.css({'position' : 'relative'});
+        }
+        
+        $("#playArea").append($item);
       }
 
-      $('body').on('click', '.card', function() {
-        if(my_deck[$(".card").index($(this))]['reveal'] == '0'){
-          my_deck[$(".card").index($(this))]['reveal'] = '1';
-        } else {
-          my_deck[$(".card").index($(this))]['reveal'] = '0';
-        }
-        drawCards();
-      })
+      // $('body').on('click', '.card', function() {
+      //   if(my_deck[$(".card").index($(this))]['reveal'] == '0'){
+      //     my_deck[$(".card").index($(this))]['reveal'] = '1';
+      //   } else {
+      //     my_deck[$(".card").index($(this))]['reveal'] = '0';
+      //   }
+      //   drawCards();
+      // })
 
-      $('body').on('click', '.cardinPile', function() {
-        var rank = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
-        var suit = ['Clubs', 'Diamonds', 'Hearts', 'Spades'];
-        var unicode = [['🃑', '🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛', '🃝', '🃞'], ['🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋', '🃍', '🃎'],
-                       ['🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻', '🂽', '🂾'], ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫', '🂭', '🂮']];
-        if(piles[0][$(".cardinPile").index($(this))]['reveal'] == '0'){
-          piles[0][$(".cardinPile").index($(this))]['reveal'] = '1';
-          $(this).html(unicode[suit.indexOf(piles[0][$(".cardinPile").index($(this))]['suit'])][rank.indexOf(piles[0][$(".cardinPile").index($(this))]['rank'])])
-        } else {
-          piles[0][$(".cardinPile").index($(this))]['reveal'] = '0';
-          $(this).html("🂠");
-        }
-      })
+      // $('body').on('click', '.cardinPile', function() {
+      //   var rank = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+      //   var suit = ['Clubs', 'Diamonds', 'Hearts', 'Spades'];
+      //   var unicode = [['🃑', '🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛', '🃝', '🃞'], ['🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋', '🃍', '🃎'],
+      //                  ['🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻', '🂽', '🂾'], ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫', '🂭', '🂮']];
+      //   if(piles[0][$(".cardinPile").index($(this))]['reveal'] == '0'){
+      //     piles[0][$(".cardinPile").index($(this))]['reveal'] = '1';
+      //     $(this).html(unicode[suit.indexOf(piles[0][$(".cardinPile").index($(this))]['suit'])][rank.indexOf(piles[0][$(".cardinPile").index($(this))]['rank'])])
+      //   } else {
+      //     piles[0][$(".cardinPile").index($(this))]['reveal'] = '0';
+      //     $(this).html("🂠");
+      //   }
+      // })
 
       $("#move_card").submit(function() {
         data = {"room" : "<%= data %>", "card" : my_deck[$("#move_cardindex").val()], "pile" : piles, "pileIndex" : $("#move_topile").val()};
