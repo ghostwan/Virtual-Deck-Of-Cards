@@ -83,25 +83,46 @@
       </style>
    </head>
    <script>
+      var DECK_LENGTH = 52
       var deck = [];
       var piles = [[]];
       var my_deck = [];
       var socket = io();
+      var users = 
       socket.emit('connectRoom', '<%= data %>');
 
       socket.on('connectToRoom', function(data){
-        $('#numPlayers').text(data);
+        users = data
+        $('#numPlayers').text('Players: ' + users.length);
       });
 
       socket.on('giveDeck', function(data){
         deck = data;
         $("#mainDeck").empty();
         var title = "<h1>Main Deck</h1>";
-        var col1 = "<div class = 'col-6'><h1>Main Deck</h1><br><button onclick = 'shuffleDeck()' class = 'btn btn-outline-dark btn-lg btn-block'>Shuffle Cards</button><br>";
-        col1 += "<button class = 'btn btn-outline-dark btn-lg btn-block' onclick = 'takeOne()'>Take 1 Card</button><br>"
-        col1 += "<div class = 'form-group row'><label class = 'col-sm-5 col-form-label'>Take from deck:</label><input type = 'number' id = 'take_card' class = 'col-sm-6 form-control' placeholder = 'number of cards'></div>"
+        if(deck.length) {
+          var col1 = "<div class = 'col-6'><h1>Main Deck</h1><br>";
+          if(deck.length != DECK_LENGTH) {
+            col1 += "<button onclick = 'reclaimCards()' class = 'btn btn-outline-dark btn-lg btn-block'>Reclaim Cards</button><br>"
+          } else {
+            col1 += "<button onclick = 'shuffleDeck()' class = 'btn btn-outline-dark btn-lg btn-block'>Shuffle Cards</button><br>"
+          }
+          
+          col1 += "<button class = 'btn btn-outline-dark btn-lg btn-block' onclick = 'takeOne()'>Take 1 Card</button><br>"
+          col1 += "<div class = 'form-group row'>Distribute to each player </label> "
+            col1 += "<input type = 'number' id = 'take_card' placeholder = 'number of cards'>"
+            col1 += "All card <input type='checkbox' id='all_cards' onclick='disableCardNumbers()'>"
+            col1 += "<button onclick = 'distribute()'>Distribute</button>"
+          col1 += "</div>"
+          var col2 = "<div class = 'col-6'><span>🂠</span></div>"
+        } else {
+          var col1 = "<div class = 'col-6'><h1>Deck is empty</h1>";
+          col1 += "<button onclick = 'reclaimCards()' class = 'btn btn-outline-dark btn-lg btn-block'>Reclaim Cards</button><br></div>"
+          var col2 = "<div class = 'col-6'><span>∅</span></div>"
+        }
+        
         // col1 += "<button class = 'btn btn-outline-dark btn-lg btn-block' onclick = 'takeOne()'>Take 1 Card</button><br>"
-        var col2 = "<div class = 'col-6'><span>🂠</span></div>"
+        
         $("#mainDeck").append(col1);
         $("#mainDeck").append(col2);
         console.log(deck);
@@ -113,7 +134,7 @@
         drawCards();
       })
 
-      socket.on('areaCleared', function(data) {
+      socket.on('areaCleared', function() {
         console.log("Clearing area ....");
         $("#playArea").empty()
         var content = "<h1>Playing Area</h1>";
@@ -187,6 +208,11 @@
         socket.emit('shuffleDeck', data);
       }
 
+      function reclaimCards() {
+        data = {"room" : "<%= data %>"}
+        socket.emit('reclaimCards', data);
+      }
+
       function addPile() {
         data = {"room" : "<%= data %>", "pile" : piles};
         socket.emit('addPile', data);
@@ -238,6 +264,17 @@
         $("#playArea").append($item);
       }
 
+      function distribute() {
+        var numCards = $('#take_card').val()
+        if ($('#all_cards').is(':checked')) {
+          numCards = -1          
+        } 
+        console.log("Num card: "+numCards)
+        console.log($('#all_cards').is(':checked'))
+        data = [{"room" : "<%= data %>", "numCards" : numCards, "deck" : deck, "mycards" : my_deck, "users" : users}];
+        socket.emit('distribute', data);
+      }
+
       // $('body').on('click', '.card', function() {
       //   if(my_deck[$(".card").index($(this))]['reveal'] == '0'){
       //     my_deck[$(".card").index($(this))]['reveal'] = '1';
@@ -261,6 +298,14 @@
       //   }
       // })
 
+      function disableCardNumbers() {
+        if ($('#all_cards').is(':checked')) {
+          $('#take_card').prop("disabled", true);
+        } else {
+          $('#take_card').prop("disabled", false);
+        }
+      }
+
       $("#move_card").submit(function() {
         data = {"room" : "<%= data %>", "card" : my_deck[$("#move_cardindex").val()], "pile" : piles, "pileIndex" : $("#move_topile").val()};
         my_deck.splice($("#move_cardindex").val(), 1);
@@ -282,12 +327,5 @@
         })
       })
 
-      $(document).on('keypress', function(event) {
-      var keycode = (event.keyCode ? event.keyCode : event.which);
-      if (keycode == '13') {
-        data = [{"room" : "<%= data %>", "numCards" : $('#take_card').val(), "deck" : deck, "mycards" : my_deck, "user" : socket.id}];
-        socket.emit('takeCards', data);
-      }
-    });
    </script>
 </html>

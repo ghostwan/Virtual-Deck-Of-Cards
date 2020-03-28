@@ -13,16 +13,17 @@ app.get('/connectroom/', function(req, res){
 io.on('connection', function(socket) {
    socket.on('connectRoom', function(room){
      socket.join(room);
-     io.sockets.in(room).emit('connectToRoom', 'Players: ' + io.sockets.adapter.rooms[room].length);
+     var users = Object.keys(io.sockets.adapter.rooms[room].sockets)
+     io.sockets.in(room).emit('connectToRoom', users);
    })
 
    socket.on('getDeck', function(data){
-     var deck = newDeck(data['jokers']);
+     var deck = newDeck();
      io.sockets.in(data['room']).emit('giveDeck', deck);
    })
 
    socket.on('clearPlayingArea', function(data){
-    io.sockets.in(data['room']).emit('areaCleared', {});
+    io.sockets.in(data['room']).emit('areaCleared');
   })
 
    socket.on('takeCards', function(data){
@@ -32,9 +33,38 @@ io.on('connection', function(socket) {
      io.sockets.in(data[0]['room']).emit('giveDeck', cards['deck']);
    })
 
+
+   socket.on('distribute', function(data){
+    deck = data[0]['deck']
+    numCards = data[0]['numCards']
+    users = data[0]['users']
+
+    if(numCards == -1) {
+      numCards = Math.trunc(deck.length / users.length)
+    }
+
+    for(var u = 0; u < users.length; u++) {
+      myCards = []
+      result = takeCards(numCards, deck, myCards);
+      deck = result['deck']
+      myCards = result['mycards']
+
+      io.to(users[u]).emit('getCards', myCards);
+    }
+    io.sockets.in(data[0]['room']).emit('giveDeck', deck);
+  })
+
+
    socket.on('shuffleDeck', function(data){
      io.sockets.in(data['room']).emit('giveDeck', shuffleDeck(data['deck'], data['deck'].length));
    })
+
+   socket.on('reclaimCards', function(data){
+    var deck = newDeck();
+    io.sockets.in(data['room']).emit('giveDeck', deck);
+    io.sockets.in(data['room']).emit('areaCleared');
+    io.sockets.in(data['room']).emit('getCards', []);
+  })
 
    socket.on('addPile', function(data){
      data['pile'].push([]);
@@ -50,7 +80,7 @@ io.on('connection', function(socket) {
    })
 });
 
-function newDeck(jokers) {
+function newDeck() {
   var rank = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
   var suit = ['Clubs', 'Diamonds', 'Hearts', 'Spades'];
   var cards = [];
@@ -59,10 +89,6 @@ function newDeck(jokers) {
       var card = {"rank" : rank[j], "suit" : suit[i], "reveal" : '0'};
       cards.push(card);
     }
-  }
-  if (jokers == '1') {
-    cards.push({'rank' : 'Joker', "suit" : "red", "reveal" : '0'});
-    cards.push({'rank' : 'Joker', "suit" : "black", "reveal" : '0'});
   }
   return cards;
 }
