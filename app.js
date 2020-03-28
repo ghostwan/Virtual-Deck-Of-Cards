@@ -74,7 +74,7 @@ io.on('connection', function(socket) {
 
    socket.on('moveCard', function(data){
      console.log(data);
-     data['pile'][data['pileIndex']].push(data['card']);
+     data['pile'][0].push(data['card']);
      console.log(data['card']);
      io.sockets.in(data['room']).emit('movedCard', {"pile" : data['pile'], "card" : data['card']});
    })

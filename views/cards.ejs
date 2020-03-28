@@ -234,14 +234,14 @@
           card['reveal'] = 1
           console.log(unicode[suit.indexOf(card['suit'])][rank.indexOf(card['rank'])]);
           var $item = $('<div class="card"/>').text(unicode[suit.indexOf(card['suit'])][rank.indexOf(card['rank'])]);
-          $item.draggable({revert : "invalid"});
+          // $item.draggable({revert : "invalid"});
           if(card['suit'] == "Hearts" || card['suit'] == "Diamonds" ) {
             $item.css({ 'color': 'red'});
           } else {
             $item.css({'position' : 'relative'});
           }
           $("#cardDisplay").append($item);
-          $(".card:eq(" + i + ")").draggable();
+          // $(".card:eq(" + i + ")").draggable();
         }
       }
 
@@ -275,28 +275,28 @@
         socket.emit('distribute', data);
       }
 
-      // $('body').on('click', '.card', function() {
-      //   if(my_deck[$(".card").index($(this))]['reveal'] == '0'){
-      //     my_deck[$(".card").index($(this))]['reveal'] = '1';
-      //   } else {
-      //     my_deck[$(".card").index($(this))]['reveal'] = '0';
-      //   }
-      //   drawCards();
-      // })
 
-      // $('body').on('click', '.cardinPile', function() {
-      //   var rank = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
-      //   var suit = ['Clubs', 'Diamonds', 'Hearts', 'Spades'];
-      //   var unicode = [['🃑', '🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛', '🃝', '🃞'], ['🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋', '🃍', '🃎'],
-      //                  ['🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻', '🂽', '🂾'], ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫', '🂭', '🂮']];
-      //   if(piles[0][$(".cardinPile").index($(this))]['reveal'] == '0'){
-      //     piles[0][$(".cardinPile").index($(this))]['reveal'] = '1';
-      //     $(this).html(unicode[suit.indexOf(piles[0][$(".cardinPile").index($(this))]['suit'])][rank.indexOf(piles[0][$(".cardinPile").index($(this))]['rank'])])
-      //   } else {
-      //     piles[0][$(".cardinPile").index($(this))]['reveal'] = '0';
-      //     $(this).html("🂠");
-      //   }
-      // })
+      // Move card from you deck to the pile
+      $('body').on('click', '.card', function() {
+        var cardIndex = $(".card").index($(this))
+        var card = my_deck[cardIndex]
+        console.log("Click on your card on "+card)
+
+        my_deck.splice(cardIndex, 1);
+        $(".card:eq(" + cardIndex +")").remove();
+
+        data = {"room" : "<%= data %>", "card" : card, "pile" : piles };
+        socket.emit('moveCard', data);
+      })
+
+
+      // Move card from the pile to your deck
+      $('body').on('click', '.cardinPile', function() {
+        var card = piles[0][$(".cardinPile").index($(this))]
+
+        console.log("Click on the pile card on ")
+        console.log(card)
+      })
 
       function disableCardNumbers() {
         if ($('#all_cards').is(':checked')) {
@@ -306,26 +306,24 @@
         }
       }
 
-      $("#move_card").submit(function() {
-        data = {"room" : "<%= data %>", "card" : my_deck[$("#move_cardindex").val()], "pile" : piles, "pileIndex" : $("#move_topile").val()};
-        my_deck.splice($("#move_cardindex").val(), 1);
-        socket.emit('moveCard', data);
-        $("#move_cardindex").val("");
-        $("#move_topile").val("");
-        return false;
-      })
+      //   data = {"room" : "<%= data %>", "card" : my_deck[$("#move_cardindex").val()], "pile" : piles };
+      //   my_deck.splice($("#move_cardindex").val(), 1);
+      //   socket.emit('moveCard', data);
+      //   $("#move_cardindex").val("");
+      //   return false;
+      // })
 
-      $(function(){
-        $("#playArea").droppable({
-          drop: function(event, ui){
-            console.log($(ui.draggable));
-            data = {"room" : "<%= data %>", "card" : my_deck[$(".card").index($(ui.draggable))], "pile" : piles, "pileIndex" : 0};
-            my_deck.splice($(".card").index($(ui.draggable)), 1);
-            $(".card:eq(" + $(".card").index($(ui.draggable)) +")").remove();
-            socket.emit('moveCard', data);
-          }
-        })
-      })
+      // $(function(){
+      //   $("#playArea").droppable({
+      //     drop: function(event, ui){
+      //       console.log($(ui.draggable));
+      //       data = {"room" : "<%= data %>", "card" : my_deck[$(".card").index($(ui.draggable))], "pile" : piles, "pileIndex" : 0};
+      //       my_deck.splice($(".card").index($(ui.draggable)), 1);
+      //       $(".card:eq(" + $(".card").index($(ui.draggable)) +")").remove();
+      //       socket.emit('moveCard', data);
+      //     }
+      //   })
+      // })
 
    </script>
 </html>
