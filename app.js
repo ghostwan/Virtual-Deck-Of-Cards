@@ -3,7 +3,7 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
 app.get('/', function(req, res) {
-   res.sendFile(__dirname + '\\views\\index.html');
+   res.sendFile(__dirname + '/views/index.html');
 });
 
 app.get('/connectroom/', function(req, res){
