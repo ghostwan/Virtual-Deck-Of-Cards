@@ -112,6 +112,7 @@ function shuffleDeck(deck, num) {
   return shuffledDeck
 }
 
-http.listen(3000, function() {
-   console.log('listening on localhost:3000');
+const PORT = process.env.PORT || 3000;
+http.listen(PORT, function() {
+   console.log(`Virtual desk of cards listenning on ${ PORT }`);
 });
