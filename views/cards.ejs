@@ -88,7 +88,8 @@
       var piles = [[]];
       var my_deck = [];
       var socket = io();
-      var users = 
+      var users = []
+
       socket.emit('connectRoom', '<%= data %>');
 
       socket.on('connectToRoom', function(data){
@@ -229,19 +230,61 @@
         var unicode = [['🃑', '🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛', '🃝', '🃞'], ['🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋', '🃍', '🃎'],
                        ['🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻', '🂽', '🂾'], ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫', '🂭', '🂮']];
         $("#cardDisplay").empty();
+        $("#cardDisplay").sortable({
+            start: function(event, ui) {
+              ui.item.data('originIndex', ui.item.index());
+            },
+            change: function (event, ui) { 
+                var originIndex = ui.item.data('originIndex');
+                var currentIndex = ui.placeholder.index()-1;
+
+                ui.item.data('swapIndex', currentIndex); 
+              },
+              stop: function (event, ui) { 
+                console.log("From >> ")
+                var originElement = my_deck[ui.item.data('originIndex')]
+                
+                // console.log(ui.item.data('originIndex'))
+                // console.log(ui.item.data('swapIndex'))
+                if (ui.item.data('originIndex') < ui.item.data('swapIndex')) {
+                  my_deck.splice(ui.item.data('originIndex'), 1);
+                  my_deck.splice(ui.item.data('swapIndex'), 0, originElement);
+                } else  {
+                  /// ???
+                  console.log(ui.item.data('originIndex'))
+                  console.log(ui.item.data('swapIndex'))
+                }
+                
+              }
+            
+            // },
+            // update: function(event, ui) {
+            //     var currentOrder = $(this).sortable('toArray');
+            //     var first = ui.item[0].id;
+            //     var second = currentOrder[prevPagesOrder.indexOf(first)];
+            //     // swapOnServer(first, second);
+            //     var second = prevPagesOrder[currentOrder.indexOf(first)];
+            //     console.log("first")
+            //     console.log(first)
+            //     console.log($(".card").index($(first)))
+
+            //     console.log("second")
+            //     console.log(second)
+            //     console.log($(".card").index($(second)))
+            // }
+        });
+
         for(var i = 0; i < my_deck.length; i++) {
           card = my_deck[i]
           card['reveal'] = 1
           console.log(unicode[suit.indexOf(card['suit'])][rank.indexOf(card['rank'])]);
           var $item = $('<div class="card"/>').text(unicode[suit.indexOf(card['suit'])][rank.indexOf(card['rank'])]);
-          // $item.draggable({revert : "invalid"});
           if(card['suit'] == "Hearts" || card['suit'] == "Diamonds" ) {
             $item.css({ 'color': 'red'});
           } else {
             $item.css({'position' : 'relative'});
           }
           $("#cardDisplay").append($item);
-          // $(".card:eq(" + i + ")").draggable();
         }
       }
 
