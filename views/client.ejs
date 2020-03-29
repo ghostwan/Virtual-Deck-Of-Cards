@@ -103,6 +103,11 @@
 
       socket.emit('connectRoom', '<%= data %>');
 
+      window.onbeforeunload = function(event) {
+            event.returnValue = "Refreshing the page will make you disconnect from the game!";
+        }
+
+
       socket.on('connectToRoom', function(data){
         users = data
         $('#numPlayers').text('Players: ' + users.length);
@@ -184,14 +189,14 @@
            <div class = "col-7">
              <div id = "mainDeck" class = "row">
                <div class = "col-6 form-group">
-                 <h1 class = "startText">Everyone in?</h1><br><br>
+                 <h1 class = "startText">Everyone in? </h1><br><br>
                  <button class = "btn btn-outline-dark btn-lg btn-block get_deck" onclick = "start()">Start</button>
                  <br/>
                  <input type='checkbox' class='form-check-input' id='with_cavalier'>
                  <label class="form-check-label" for="with_cavalier">With cavaliers ? </label>
                </div>
                <div class = "col-6">
-                 <h1 class = "deckDesc">Deck <%= data %></h1>
+                 <h1 class = "deckDesc">Room <%= data %></h1>
                  <h1 id = "numPlayers" class = "deckDesc">Players: 1</h1>
                </div>
              </div>
