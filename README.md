@@ -9,7 +9,7 @@ You are a fan of cards game as :
 - Escalier
 - [Barbu](https://www.wikiwand.com/en/Barbu_(card_game))
 - Ratatouille
-....
+...
 
 Covid-19 is here, you are lockdown at home and want to play remotely with your friends ?
 
