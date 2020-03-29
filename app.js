@@ -18,7 +18,7 @@ io.on('connection', function(socket) {
    })
 
    socket.on('getDeck', function(data){
-     var deck = newDeck();
+     var deck = newDeck(data['withCavaliers']);
      io.sockets.in(data['room']).emit('giveDeck', shuffleDeck(deck, deck.length));
    })
 
@@ -60,7 +60,7 @@ io.on('connection', function(socket) {
    })
 
    socket.on('reclaimCards', function(data){
-    var deck = newDeck();
+    var deck = newDeck(data['withCavaliers']);
     io.sockets.in(data['room']).emit('giveDeck', shuffleDeck(deck, deck.length));
     io.sockets.in(data['room']).emit('areaCleared');
     io.sockets.in(data['room']).emit('getCards', []);
@@ -80,13 +80,16 @@ io.on('connection', function(socket) {
    })
 });
 
-function newDeck() {
+function newDeck(withCavaliers) {
   var rank = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+  if(withCavaliers == 1) {
+      rank = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J','C','Q', 'K'];
+  }
   var suit = ['Clubs', 'Diamonds', 'Hearts', 'Spades'];
   var cards = [];
-  for (var i = 0; i < 4; i++) {
-    for (var j = 0; j < 13; j++) {
-      var card = {"rank" : rank[j], "suit" : suit[i], "reveal" : '0'};
+  for (var i = 0; i < suit.length; i++) {
+    for (var j = 0; j < rank.length; j++) {
+      var card = {"rank" : rank[j], "suit" : suit[i]};
       cards.push(card);
     }
   }

@@ -83,12 +83,18 @@
       </style>
    </head>
    <script>
-      var DECK_LENGTH = 52
+      var rank = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+      var suit = ['Clubs', 'Diamonds', 'Hearts', 'Spades'];
+      var unicode = [ ['🃑', '🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛', '🃝', '🃞'],  //  Clubs (trefle)
+                      ['🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋', '🃍', '🃎'],  //  Diamonds (carreau)
+                      ['🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻', '🂽', '🂾'],  //  Hearts (coeur)
+                      ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫', '🂭', '🂮']]; // Spades (pique)
       var deck = [];
       var piles = [[]];
       var my_deck = [];
       var socket = io();
-      var users = []
+      var users = [];
+      var withCavaliers = 0;
 
       socket.emit('connectRoom', '<%= data %>');
 
@@ -102,11 +108,11 @@
         $("#mainDeck").empty();
         var title = "<h1>Main Deck</h1>";
         if(deck.length) {
-          var col1 = "<div class = 'col-6'><h1>Main Deck</h1><br>";
-          if(deck.length != DECK_LENGTH) {
-            col1 += "<button onclick = 'reclaimCards()' class = 'btn btn-outline-dark btn-lg btn-block'>Reclaim Cards</button><br>"
-          } else {
+          var col1 = "<div class = 'col-6'><h1>Main Deck: "+deck.length+"</h1><br>";
+          if((withCavaliers == 1 && deck.length==56) || (withCavaliers == 0 && deck.length == 52)) {
             col1 += "<button onclick = 'shuffleDeck()' class = 'btn btn-outline-dark btn-lg btn-block'>Shuffle Cards</button><br>"
+          } else {
+            col1 += "<button onclick = 'reclaimCards()' class = 'btn btn-outline-dark btn-lg btn-block'>Reclaim Cards</button><br>"
           }
           
           col1 += "<button class = 'btn btn-outline-dark btn-lg btn-block' onclick = 'takeOne()'>Take 1 Card</button><br>"
@@ -123,15 +129,12 @@
         }
         
         // col1 += "<button class = 'btn btn-outline-dark btn-lg btn-block' onclick = 'takeOne()'>Take 1 Card</button><br>"
-        
         $("#mainDeck").append(col1);
         $("#mainDeck").append(col2);
-        console.log(deck);
       })
 
       socket.on('getCards', function(data){
         my_deck = data;
-        console.log(my_deck);
         drawCards();
       })
 
@@ -152,7 +155,6 @@
         } else {
           console.log("Card already draw from the pile")
         }
-        console.log(piles);
       })
 
       socket.on('addedPile', function(data){
@@ -172,7 +174,8 @@
              <div id = "mainDeck" class = "row">
                <div class = "col-6">
                  <h1 class = "startText">Everyone in?</h1><br><br>
-                 <button class = "btn btn-outline-dark btn-lg btn-block get_deck" onclick = "getDeck()">Start</button>
+                 <button class = "btn btn-outline-dark btn-lg btn-block get_deck" onclick = "start()">Start</button>
+                 With cavaliers ? <input type='checkbox' id='with_cavalier'>
                </div>
                <div class = "col-6">
                  <h1 class = "deckDesc">Deck <%= data %></h1>
@@ -192,11 +195,26 @@
    </body>
    <script>
 
-      function getDeckJokers() {
-        socket.emit('getDeck', {'room' : '<%= data %>', 'jokers' : '1'});
+     function start(){
+      if ($('#with_cavalier').is(':checked')) {
+        getDeckWithCavaliers()
+      } else {
+        getDeck()
+      }
+     }
+
+      function getDeckWithCavaliers() {
+        withCavaliers = 1
+        rank = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'C', 'Q', 'K'];
+        unicode = [ ['🃑', '🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛','🃜','🃝', '🃞'],     //  Clubs (trefle)
+                      ['🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋','🃌', '🃍', '🃎'],  //  Diamonds (carreau)
+                      ['🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻','🂼', '🂽', '🂾'],  //  Hearts (coeur)
+                      ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫','🂬', '🂭', '🂮']];     // Spades (pique)
+        socket.emit('getDeck', {'room' : '<%= data %>', 'withCavaliers' : '1'});
       }
       function getDeck() {
-        socket.emit('getDeck', {'room' : '<%= data %>', 'jokers' : '0'});
+        withCavaliers = 0
+        socket.emit('getDeck', {'room' : '<%= data %>', 'withCavaliers' : '0'});
       }
 
       function clearPlayingArea() {
@@ -210,7 +228,7 @@
       }
 
       function reclaimCards() {
-        data = {"room" : "<%= data %>"}
+        data = {'room' : '<%= data %>', 'withCavaliers' : withCavaliers}
         socket.emit('reclaimCards', data);
       }
 
@@ -225,10 +243,6 @@
       }
 
       function drawCards(){
-        var rank = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
-        var suit = ['Clubs', 'Diamonds', 'Hearts', 'Spades'];
-        var unicode = [['🃑', '🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛', '🃝', '🃞'], ['🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋', '🃍', '🃎'],
-                       ['🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻', '🂽', '🂾'], ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫', '🂭', '🂮']];
         $("#cardDisplay").empty();
         $("#cardDisplay").sortable({
             start: function(event, ui) {
@@ -257,27 +271,10 @@
                 my_deck.splice(swapIndex, 0, originElement);
                 
               }
-            
-            // },
-            // update: function(event, ui) {
-            //     var currentOrder = $(this).sortable('toArray');
-            //     var first = ui.item[0].id;
-            //     var second = currentOrder[prevPagesOrder.indexOf(first)];
-            //     // swapOnServer(first, second);
-            //     var second = prevPagesOrder[currentOrder.indexOf(first)];
-            //     console.log("first")
-            //     console.log(first)
-            //     console.log($(".card").index($(first)))
-
-            //     console.log("second")
-            //     console.log(second)
-            //     console.log($(".card").index($(second)))
-            // }
         });
 
         for(var i = 0; i < my_deck.length; i++) {
           card = my_deck[i]
-          card['reveal'] = 1
           console.log(unicode[suit.indexOf(card['suit'])][rank.indexOf(card['rank'])]);
           var $item = $('<div class="card"/>').text(unicode[suit.indexOf(card['suit'])][rank.indexOf(card['rank'])]);
           if(card['suit'] == "Hearts" || card['suit'] == "Diamonds" ) {
@@ -290,10 +287,6 @@
       }
 
       function drawCardsinPile(card) {
-        var rank = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
-        var suit = ['Clubs', 'Diamonds', 'Hearts', 'Spades'];
-        var unicode = [['🃑', '🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛', '🃝', '🃞'], ['🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋', '🃍', '🃎'],
-                       ['🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻', '🂽', '🂾'], ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫', '🂭', '🂮']];
         console.log(unicode[suit.indexOf(card['suit'])][rank.indexOf(card['rank'])]);
         var $item = $('<div class="cardinPile"/>').text(unicode[suit.indexOf(card['suit'])][rank.indexOf(card['rank'])]);
         if(card['suit'] == "Hearts" || card['suit'] == "Diamonds" ) {
@@ -356,25 +349,6 @@
         distribute()
       }
     });
-
-      //   data = {"room" : "<%= data %>", "card" : my_deck[$("#move_cardindex").val()], "pile" : piles };
-      //   my_deck.splice($("#move_cardindex").val(), 1);
-      //   socket.emit('moveCard', data);
-      //   $("#move_cardindex").val("");
-      //   return false;
-      // })
-
-      // $(function(){
-      //   $("#playArea").droppable({
-      //     drop: function(event, ui){
-      //       console.log($(ui.draggable));
-      //       data = {"room" : "<%= data %>", "card" : my_deck[$(".card").index($(ui.draggable))], "pile" : piles, "pileIndex" : 0};
-      //       my_deck.splice($(".card").index($(ui.draggable)), 1);
-      //       $(".card:eq(" + $(".card").index($(ui.draggable)) +")").remove();
-      //       socket.emit('moveCard', data);
-      //     }
-      //   })
-      // })
 
    </script>
 </html>
