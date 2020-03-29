@@ -236,24 +236,25 @@
             },
             change: function (event, ui) { 
                 var originIndex = ui.item.data('originIndex');
-                var currentIndex = ui.placeholder.index()-1;
-
+                var currentIndex = ui.placeholder.index();
                 ui.item.data('swapIndex', currentIndex); 
               },
               stop: function (event, ui) { 
                 console.log("From >> ")
-                var originElement = my_deck[ui.item.data('originIndex')]
+                var originIndex = ui.item.data('originIndex')
+                var swapIndex = ui.item.data('swapIndex')
+                var originElement = my_deck[originIndex]
                 
-                // console.log(ui.item.data('originIndex'))
-                // console.log(ui.item.data('swapIndex'))
-                if (ui.item.data('originIndex') < ui.item.data('swapIndex')) {
-                  my_deck.splice(ui.item.data('originIndex'), 1);
-                  my_deck.splice(ui.item.data('swapIndex'), 0, originElement);
-                } else  {
-                  /// ???
-                  console.log(ui.item.data('originIndex'))
-                  console.log(ui.item.data('swapIndex'))
-                }
+                console.log("Raw from: "+ originIndex)
+                console.log("Raw to: "+swapIndex)
+
+                if (originIndex < swapIndex) {
+                  swapIndex -= 1
+                  if(swapIndex < 0)
+                    swapIndex = 0
+                } 
+                my_deck.splice(originIndex, 1);
+                my_deck.splice(swapIndex, 0, originElement);
                 
               }
             
@@ -348,6 +349,13 @@
           $('#take_card').prop("disabled", false);
         }
       }
+
+      $(document).on('keypress', function(event) {
+      var keycode = (event.keyCode ? event.keyCode : event.which);
+      if (keycode == '13') {
+        distribute()
+      }
+    });
 
       //   data = {"room" : "<%= data %>", "card" : my_deck[$("#move_cardindex").val()], "pile" : piles };
       //   my_deck.splice($("#move_cardindex").val(), 1);

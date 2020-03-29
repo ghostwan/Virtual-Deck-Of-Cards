@@ -61,7 +61,7 @@ io.on('connection', function(socket) {
 
    socket.on('reclaimCards', function(data){
     var deck = newDeck();
-    io.sockets.in(data['room']).emit('giveDeck', deck);
+    io.sockets.in(data['room']).emit('giveDeck', shuffleDeck(deck, deck.length));
     io.sockets.in(data['room']).emit('areaCleared');
     io.sockets.in(data['room']).emit('getCards', []);
   })
