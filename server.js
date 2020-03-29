@@ -7,7 +7,7 @@ app.get('/', function(req, res) {
 });
 
 app.get('/connectroom/', function(req, res){
-  res.render('cards.ejs', {data: req.query['roomID']});
+  res.render('client.ejs', {data: req.query['roomID']});
 });
 
 io.on('connection', function(socket) {
