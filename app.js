@@ -19,7 +19,7 @@ io.on('connection', function(socket) {
 
    socket.on('getDeck', function(data){
      var deck = newDeck();
-     io.sockets.in(data['room']).emit('giveDeck', deck);
+     io.sockets.in(data['room']).emit('giveDeck', shuffleDeck(deck, deck.length));
    })
 
    socket.on('clearPlayingArea', function(data){
