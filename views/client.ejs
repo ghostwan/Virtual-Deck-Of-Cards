@@ -72,34 +72,36 @@
           margin-top: 10px;
         }
         #cardDisplay{
-          font-size: 7em;
+          font-size: 8em;
+          line-height: 105%;
         }
         .card{
           display: inline-block;
           border: none;
-          background-color: transparent;
+          background-color: white;
         }
         .cardinPile{
-          font-size: 15em;
+          font-size: 10em;
           background-color: white;
           display: inline-block;
-          line-height: 100%;
+          line-height: 105%;
         }
       </style>
    </head>
    <script>
       const suit = ['Clubs', 'Diamonds', 'Hearts', 'Spades'];      
-      const rank_normal =       ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'C', 'Q', 'K'];
-      const unicode_normal =  [ ['🃑', '🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛','🃜', '🃝', '🃞'],  //  Clubs (trefle)
-                                ['🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋','🃌', '🃍', '🃎'],  //  Diamonds (carreau)
-                                ['🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻','🂼', '🂽', '🂾'],  //  Hearts (coeur)
-                                ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫','🂬', '🂭', '🂮']]; // Spades (pique)
 
-      const rank_cavaliers =      ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
-      const unicode_cavaliers = [ ['🃑', '🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛', '🃝', '🃞'],  //  Clubs (trefle)
-                                  ['🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋', '🃍', '🃎'],  //  Diamonds (carreau)
-                                  ['🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻', '🂽', '🂾'],  //  Hearts (coeur)
-                                  ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫', '🂭', '🂮']]; // Spades (pique)
+      const rank_normal =           ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+      const unicode_normal =      [ ['🃑', '🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛', '🃝', '🃞'],  //  Clubs (trefle)
+                                    ['🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋', '🃍', '🃎'],  //  Diamonds (carreau)
+                                    ['🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻', '🂽', '🂾'],  //  Hearts (coeur)
+                                    ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫', '🂭', '🂮']]; // Spades (pique)
+
+      const rank_cavaliers  =       ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'C', 'Q', 'K'];
+      const unicode_cavaliers  =  [ ['🃑', '🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛','🃜', '🃝', '🃞'],  //  Clubs (trefle)
+                                    ['🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋','🃌', '🃍', '🃎'],  //  Diamonds (carreau)
+                                    ['🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻','🂼', '🂽', '🂾'],  //  Hearts (coeur)
+                                    ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫','🂬', '🂭', '🂮']]; // Spades (pique)
                            
       var name = -1;
       var deck = [];
@@ -214,7 +216,7 @@
                </div>
              </div>
              <div id = "myCards" class = "row">
-               <div class = "col-10">
+               <div class = "col-12">
                  <h1 id="your_cards">Your Cards</h1>
                  <div id = "cardDisplay"></div>
                </div>
@@ -236,8 +238,10 @@
      }
 
       function clearPlayingArea() {
-        data = {"room" : "<%= data %>"}
-        socket.emit('clearPlayingArea', data);
+        if (confirm('Are you sure you want to clear the playing area?')) {
+          data = {"room" : "<%= data %>"}
+          socket.emit('clearPlayingArea', data);
+        } 
       }
 
       function shuffleDeck() {
@@ -261,6 +265,7 @@
       }
 
       function drawMyCards(){
+        $('#your_cards').text('Your Cards '+name+" : "+my_deck.length)
         $("#cardDisplay").empty();
         $("#cardDisplay").sortable({
             start: function(event, ui) {
