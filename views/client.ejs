@@ -88,18 +88,18 @@
       </style>
    </head>
    <script>
-      var rank = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
-      var suit = ['Clubs', 'Diamonds', 'Hearts', 'Spades'];
-      var unicode = [ ['🃑', '🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛', '🃝', '🃞'],  //  Clubs (trefle)
-                      ['🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋', '🃍', '🃎'],  //  Diamonds (carreau)
-                      ['🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻', '🂽', '🂾'],  //  Hearts (coeur)
-                      ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫', '🂭', '🂮']]; // Spades (pique)
+      const DECK_LENGTH = 52;
+      const DECK_LENGTH_CAVALIERS = 56
+
+      var rank;
+      var unicode;
+      var suit = ['Clubs', 'Diamonds', 'Hearts', 'Spades'];      
       var deck = [];
       var piles = [[]];
       var my_deck = [];
       var socket = io();
       var users = [];
-      var withCavaliers = 0;
+      var options = {'cavaliers' : false, 'deck_length' : 52}
 
       socket.emit('connectRoom', '<%= data %>');
 
@@ -119,10 +119,10 @@
         var title = "<h1>Main Deck</h1>";
         if(deck.length) {
           var col1 = "<div class = 'col-6'><h1>Main Deck: "+deck.length+"</h1><br>";
-          if((withCavaliers == 1 && deck.length==56) || (withCavaliers == 0 && deck.length == 52)) {
+          if(options['deck_length'] == deck.length) {
             col1 += "<button onclick = 'shuffleDeck()' class = 'btn btn-outline-dark btn-lg btn-block'>Shuffle Cards</button><br>"
           } else {
-            col1 += "<button onclick = 'reclaimCards()' class = 'btn btn-outline-dark btn-lg btn-block'>Reclaim Cards</button><br>"
+            col1 += "<button onclick = 'resetGame()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>"
           }
           
           col1 += "<button class = 'btn btn-outline-dark btn-lg btn-block' onclick = 'takeOne()'>Take 1 Card</button><br>"
@@ -140,7 +140,7 @@
           col2 += '</div>'
         } else {
           var col1 = "<div class = 'col-6'><h1>Deck is empty</h1>";
-          col1 += "<button onclick = 'reclaimCards()' class = 'btn btn-outline-dark btn-lg btn-block'>Reclaim Cards</button><br></div>"
+          col1 += "<button onclick = 'resetGame()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br></div>"
           var col2 = "<div class = 'col-6'><span>∅</span></div>"
         }
         
@@ -184,7 +184,7 @@
          <div id = "mainrow" class = "row">
            <div id = "playArea" class = "col-4">
              <h1>Playing Area</h1>
-             <button class = "btn btn-outline-dark btn-lg btn-block get_deck" onclick = "clearPlayingArea()">Clear</button>
+             <button id="are_button" class = "btn btn-outline-dark btn-lg btn-block get_deck" onclick = "clearPlayingArea()">Clear</button>
            </div>
            <div class = "col-7">
              <div id = "mainDeck" class = "row">
@@ -222,17 +222,25 @@
      }
 
       function getDeckWithCavaliers() {
-        withCavaliers = 1
+        options["cavaliers"] = true;
+        options["deck_length"] = DECK_LENGTH_CAVALIERS;
         rank = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'C', 'Q', 'K'];
         unicode = [ ['🃑', '🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛','🃜','🃝', '🃞'],     //  Clubs (trefle)
                       ['🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋','🃌', '🃍', '🃎'],  //  Diamonds (carreau)
                       ['🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻','🂼', '🂽', '🂾'],  //  Hearts (coeur)
                       ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫','🂬', '🂭', '🂮']];     // Spades (pique)
-        socket.emit('getDeck', {'room' : '<%= data %>', 'withCavaliers' : '1'});
+        socket.emit('getDeck', {'room' : '<%= data %>', 'options' : options});
       }
       function getDeck() {
-        withCavaliers = 0
-        socket.emit('getDeck', {'room' : '<%= data %>', 'withCavaliers' : '0'});
+        options["cavaliers"] = false;
+        options["deck_length"] = DECK_LENGTH;
+        rank = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+        unicode = [ ['🃑', '🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛', '🃝', '🃞'],  //  Clubs (trefle)
+                      ['🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋', '🃍', '🃎'],  //  Diamonds (carreau)
+                      ['🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻', '🂽', '🂾'],  //  Hearts (coeur)
+                      ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫', '🂭', '🂮']]; // Spades (pique)
+
+        socket.emit('getDeck', {'room' : '<%= data %>', 'options' : options});
       }
 
       function clearPlayingArea() {
@@ -245,9 +253,9 @@
         socket.emit('shuffleDeck', data);
       }
 
-      function reclaimCards() {
-        data = {'room' : '<%= data %>', 'withCavaliers' : withCavaliers}
-        socket.emit('reclaimCards', data);
+      function resetGame() {
+        data = {'room' : '<%= data %>', 'options' : options}
+        socket.emit('resetGame', data);
       }
 
       function addPile() {
@@ -293,7 +301,7 @@
 
         for(var i = 0; i < my_deck.length; i++) {
           card = my_deck[i]
-          console.log(unicode[suit.indexOf(card['suit'])][rank.indexOf(card['rank'])]);
+          // console.log(unicode[suit.indexOf(card['suit'])][rank.indexOf(card['rank'])]);
           var $item = $('<div class="card"/>').text(unicode[suit.indexOf(card['suit'])][rank.indexOf(card['rank'])]);
           if(card['suit'] == "Hearts" || card['suit'] == "Diamonds" ) {
             $item.css({ 'color': 'red'});
@@ -305,7 +313,7 @@
       }
 
       function drawCardsinPile(card) {
-        console.log(unicode[suit.indexOf(card['suit'])][rank.indexOf(card['rank'])]);
+        // console.log(unicode[suit.indexOf(card['suit'])][rank.indexOf(card['rank'])]);
         var $item = $('<div class="cardinPile"/>').text(unicode[suit.indexOf(card['suit'])][rank.indexOf(card['rank'])]);
         if(card['suit'] == "Hearts" || card['suit'] == "Diamonds" ) {
           $item.css({
