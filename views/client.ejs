@@ -98,19 +98,20 @@
       </style>
    </head>
    <script>
-      const suit = ['Clubs', 'Diamonds', 'Hearts', 'Spades'];      
+      const suit = ['Clubs', 'Diamonds', 'Spades', 'Hearts'];      
 
       const rank_normal =           ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
       const unicode_normal =      [ ['🃑', '🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛', '🃝', '🃞'],  //  Clubs (trefle)
                                     ['🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋', '🃍', '🃎'],  //  Diamonds (carreau)
-                                    ['🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻', '🂽', '🂾'],  //  Hearts (coeur)
-                                    ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫', '🂭', '🂮']]; // Spades (pique)
+                                    ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫', '🂭', '🂮'],   //  Spades (pique)
+                                    ['🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻', '🂽', '🂾']];  //  Hearts (coeur)
+                                     
 
       const rank_cavaliers  =       ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'C', 'Q', 'K'];
       const unicode_cavaliers  =  [ ['🃑', '🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛','🃜', '🃝', '🃞'],  //  Clubs (trefle)
-                                    ['🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋','🃌', '🃍', '🃎'],  //  Diamonds (carreau)
-                                    ['🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻','🂼', '🂽', '🂾'],  //  Hearts (coeur)
-                                    ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫','🂬', '🂭', '🂮']]; // Spades (pique)
+                                    ['🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋','🃌', '🃍', '🃎'],  //  Diamonds (carreau)                                    
+                                    ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫','🂬', '🂭', '🂮'],  //  Spades (pique)
+                                    ['🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻','🂼', '🂽', '🂾']]; //  Hearts (coeur)
                            
       var name = -1;
       var deck = [];
@@ -298,7 +299,13 @@
       }
 
       function drawMyCards(){
-        $('#your_cards').text('Your Cards '+name+" : "+my_deck.length)
+        $('#your_cards').empty()
+        if(my_deck.length > 1) {
+          $('#your_cards').append('Your Cards '+name+": "+my_deck.length
+          +' cards <button class = "btn btn-secondary" onclick = "onSortCard()"> sort </button>')
+        } else {
+          $('#your_cards').append('Your Card '+name)
+        }
         $("#instruction").hide();
         $("#cardDisplay").empty();
         $("#cardDisplay").sortable({
@@ -340,6 +347,16 @@
         }
       }
 
+      function onSortCard() {
+          my_deck.sort(function(a, b) {
+          if (suit.indexOf(a.suit) < suit.indexOf(b.suit)) return -1;
+          if (suit.indexOf(a.suit) > suit.indexOf(b.suit)) return 1;
+
+          return rank_cavaliers.indexOf(a.rank) - rank_cavaliers.indexOf(b.rank);
+        });
+          console.log(my_deck)
+          drawMyCards()
+      }
       function onOptionStack() {
         options["stack_visible"] = $('#option_stack').is(':checked')
         updatePile()
