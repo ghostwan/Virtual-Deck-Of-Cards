@@ -89,6 +89,7 @@
         .card_owner {
           text-align: center; 
           vertical-align: middle;
+          background-color: white;
         }
         .card_layer {
           margin: 0 auto; 
@@ -134,7 +135,6 @@
         }
 
         $('#numPlayers').text('Players: ' + users.length);
-        console.log(data)
       });
 
       socket.on('onUpdateDeck', function(data){
@@ -164,12 +164,12 @@
             col1 += '<input class= "mb-2" type = "number" id = "distribute_card" placeholder = "number of cards" disabled>'
             col1 += '<div class="mx-sm-3 mb-2"> Or </div>'
             col1 += '<label class="form-check-label mb-2" for="all_cards">All cards</label>'
-            col1 += "<input type='checkbox' class='form-check-input mb-2' id='all_cards' checked onclick='disableCardNumbers()'>"
+            col1 += "<input type='checkbox' class='form-check-input mb-2' id='all_cards' checked onclick='onOptionDistributeAllCard()'>"
           col1 += "</div>"
 
             
           var col2 = "<div class = 'col-6' ><span>🂠</span>"
-          col2 += "<button class='col-6 distrib-btn btn btn-primary ' onclick = 'distribute()'>Distribute</button>"
+          col2 += "<button class='col-6 distrib-btn btn btn-primary ' onclick = 'distributeCards()'>Distribute</button>"
           col2 += '</div>'
         } else {
           var col1 = "<div class = 'col-6'><h1>Deck is empty</h1>";
@@ -193,7 +193,8 @@
       })
 
       socket.on('onUpdatePile', function(data){
-        pile = data;
+        pile = data['pile'];
+        options = data['options']
         drawPile();
         drawMyCards();
       })
@@ -213,10 +214,10 @@
                  <button class = "btn btn-outline-dark btn-lg btn-block get_deck" onclick = "start()">Start</button>
                  <br/>
                  <input type='checkbox' class='form-check-input' id='option_cavaliers'>
-                 <label class="form-check-label" for="option_cavaliers">With cavaliers ? </label>
+                 <label class="form-check-label" for="option_cavaliers">Include cavaliers (56 cards) </label>
                  <br/>
                  <input type='checkbox' class='form-check-input' id='option_tricks'>
-                 <label class="form-check-label" for="option_tricks">With tricks ? </label>
+                 <label class="form-check-label" for="option_tricks">Can we claim tricks (as for tarot)</label>
                </div>
                <div class = "col-6">
                  <h1 class = "deckDesc">Room <%= data %></h1>
@@ -282,6 +283,20 @@
         socket.emit('takeCards', data);
       }
 
+      function updatePile() {
+        data = {"room" : "<%= data %>", "pile" : pile, "options" : options };
+        socket.emit('updatePile', data);
+      }
+
+      function distributeCards() {
+        var numCards = $('#distribute_card').val()
+        if ($('#all_cards').is(':checked')) {
+          numCards = -1          
+        } 
+        data = [{"room" : "<%= data %>", "numCards" : numCards, "deck" : deck, "mycards" : my_deck, "users" : users}];
+        socket.emit('distribute', data);
+      }
+
       function drawMyCards(){
         $('#your_cards').text('Your Cards '+name+" : "+my_deck.length)
         $("#instruction").hide();
@@ -296,14 +311,10 @@
                 ui.item.data('swapIndex', currentIndex); 
               },
               stop: function (event, ui) { 
-                console.log("From >> ")
                 var originIndex = ui.item.data('originIndex')
                 var swapIndex = ui.item.data('swapIndex')
                 var originElement = my_deck[originIndex]
                 
-                console.log("Raw from: "+ originIndex)
-                console.log("Raw to: "+swapIndex)
-
                 if (originIndex < swapIndex) {
                   swapIndex -= 1
                   if(swapIndex < 0)
@@ -331,7 +342,15 @@
 
       function onOptionStack() {
         options["stack_visible"] = $('#option_stack').is(':checked')
-        drawPile()
+        updatePile()
+      }
+
+      function onOptionDistributeAllCard() {
+        if ($('#all_cards').is(':checked')) {
+          $('#distribute_card').prop("disabled", true);
+        } else {
+          $('#distribute_card').prop("disabled", false);
+        }
       }
 
       function drawPile() {
@@ -351,8 +370,6 @@
         
         for(var i = 0; i < pile.length; i++) {
           var j = options["stack_visible"] ? pile.length-1-i : i ;
-          console.log(options["stack_visible"])
-          console.log(j)
           card = pile[j]
           var $item = $('<div class="cardinPile"/>').text(unicode[suit.indexOf(card['suit'])][rank.indexOf(card['rank'])]);
           if(card['suit'] == "Hearts" || card['suit'] == "Diamonds" ) {
@@ -372,16 +389,6 @@
         }
       }
 
-      function distribute() {
-        var numCards = $('#distribute_card').val()
-        if ($('#all_cards').is(':checked')) {
-          numCards = -1          
-        } 
-        data = [{"room" : "<%= data %>", "numCards" : numCards, "deck" : deck, "mycards" : my_deck, "users" : users}];
-        socket.emit('distribute', data);
-      }
-
-
       // Move card from you deck to the pile
       $('body').on('click', '.card', function() {
         var cardIndex = $(".card").index($(this))
@@ -393,8 +400,7 @@
         card['username']=name
         pile.push(card);
 
-        data = {"room" : "<%= data %>", "pile" : pile };
-        socket.emit('updatePile', data);
+        updatePile()
       })
 
 
@@ -408,26 +414,16 @@
         my_deck.push(card)
         pile.splice(cardIndex, 1)
         
-        data = {"room" : "<%= data %>", "pile" : pile };
-        socket.emit('updatePile', data);
+        updatePile()
       })
 
-      function disableCardNumbers() {
-        if ($('#all_cards').is(':checked')) {
-          $('#distribute_card').prop("disabled", true);
-        } else {
-          $('#distribute_card').prop("disabled", false);
-        }
-      }
       
       $(document).on('keypress', function(event) {
         var keycode = (event.keyCode ? event.keyCode : event.which);
         if (keycode == '13') {
-          distribute()
+          distributeCards()
         }
       });
-
-
 
    </script>
 </html>

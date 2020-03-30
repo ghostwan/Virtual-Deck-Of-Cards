@@ -69,7 +69,7 @@ io.on('connection', function(socket) {
   })
 
    socket.on('updatePile', function(data){
-    io.sockets.in(data['room']).emit('onUpdatePile', data['pile']);
+    io.sockets.in(data['room']).emit('onUpdatePile', {'pile' : data['pile'], 'options' : data['options']});
   })
 });
 
