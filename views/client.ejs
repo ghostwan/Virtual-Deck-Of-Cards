@@ -86,6 +86,14 @@
           display: inline-block;
           line-height: 105%;
         }
+        .card_owner {
+          text-align: center; 
+          vertical-align: middle;
+        }
+        .card_layer {
+          margin: 0 auto; 
+          display: inline-block
+        }
       </style>
    </head>
    <script>
@@ -219,6 +227,13 @@
                <div class = "col-12">
                  <h1 id="your_cards">Your Cards</h1>
                  <div id = "cardDisplay"></div>
+                 <div id = "instruction">
+                    After the game started and after the dealer give you cards.
+                    <br/>Click on a card from your hand (this area) to play it.
+                    <br/>Click on a card from the playing area to take it back to your hand (yaniv or if you did a mistake).
+                    <br/>You can drag and drop a card from your hand to rearrange them. 
+                    <br/>You can move the card from the pile to see them.
+                 </div> 
                </div>
              </div>
            </div>
@@ -228,13 +243,12 @@
    </body>
    <script>
 
-     function start(){
-
-      options["cavaliers"] = $('#option_cavaliers').is(':checked')
-      options["tricks"] = $('#option_tricks').is(':checked')
-      options["stack_visible"] = true
-        
-      socket.emit('getDeck', {'room' : '<%= data %>', 'options' : options});
+      function start(){
+        options["cavaliers"] = $('#option_cavaliers').is(':checked')
+        options["tricks"] = $('#option_tricks').is(':checked')
+        options["stack_visible"] = true
+          
+        socket.emit('getDeck', {'room' : '<%= data %>', 'options' : options});
      }
 
       function clearPlayingArea() {
@@ -242,6 +256,10 @@
           data = {"room" : "<%= data %>"}
           socket.emit('clearPlayingArea', data);
         } 
+      }
+
+      function getUserID() {
+        return users.indexOf(socket.id)
       }
 
       function shuffleDeck() {
@@ -266,6 +284,7 @@
 
       function drawMyCards(){
         $('#your_cards').text('Your Cards '+name+" : "+my_deck.length)
+        $("#instruction").hide();
         $("#cardDisplay").empty();
         $("#cardDisplay").sortable({
             start: function(event, ui) {
@@ -318,15 +337,13 @@
       function drawPile() {
         var rank = options["cavaliers"] ? rank_cavaliers : rank_normal;
         var unicode = options["cavaliers"] ? unicode_cavaliers : unicode_normal;
-        var checked = options["stack_visible"] ? "checked" : ""
-        var position = options["stack_visible"] ? 'relative' : 'absolute'
-        console.log("Draw the pile "+position)
         
         $("#playArea").empty()
         var content = "<h1>Playing Area</h1>";
         content += '<div class = "col-6 form-group">'
+        var checked = options["stack_visible"] ? "checked" : ""
         content += "<input type='checkbox' class='form-check-input' id='option_stack' onclick = 'onOptionStack()' "+checked+">"
-        content += '<label class="form-check-label" for="option_stack">Stack visible</label>'
+        content += '<label class="form-check-label" for="option_stack">View all cards</label>'
         content += '</div>'
         content += '<button id="are_button" class = "btn btn-outline-dark btn-lg btn-block get_deck" onclick = "clearPlayingArea()">Clear</button>'
         $("#playArea").append(content)
@@ -340,14 +357,18 @@
           var $item = $('<div class="cardinPile"/>').text(unicode[suit.indexOf(card['suit'])][rank.indexOf(card['rank'])]);
           if(card['suit'] == "Hearts" || card['suit'] == "Diamonds" ) {
             $item.css({
-            'position' : position,
             'color': 'red'
             });
-          } else {
-            $item.css({'position' : position});
+          } 
+          var $layer = $('<div class="card_layer"/>')
+          var $owner = $('<div class="card_owner"/>').text(card['username'])
+          $layer.append($item)
+          $layer.append($owner)
+          if(!options["stack_visible"]) {
+            $layer.draggable({ containment: "parent" });
+            $layer.css({'position' : 'absolute'});
           }
-          $item.draggable(true);
-          $("#playArea").append($item);
+          $("#playArea").append($layer);
         }
       }
 
@@ -369,6 +390,7 @@
 
         my_deck.splice(cardIndex, 1);
         $(".card:eq(" + cardIndex +")").remove();
+        card['username']=name
         pile.push(card);
 
         data = {"room" : "<%= data %>", "pile" : pile };
@@ -397,13 +419,15 @@
           $('#distribute_card').prop("disabled", false);
         }
       }
-
+      
       $(document).on('keypress', function(event) {
-      var keycode = (event.keyCode ? event.keyCode : event.which);
-      if (keycode == '13') {
-        distribute()
-      }
-    });
+        var keycode = (event.keyCode ? event.keyCode : event.which);
+        if (keycode == '13') {
+          distribute()
+        }
+      });
+
+
 
    </script>
 </html>
