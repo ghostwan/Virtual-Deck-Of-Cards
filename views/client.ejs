@@ -88,26 +88,26 @@
       </style>
    </head>
    <script>
-      const rank_normal = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'C', 'Q', 'K'];
-      const unicode_normal = [ ['🃑', '🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛','🃜','🃝', '🃞'],  //  Clubs (trefle)
-                      ['🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋','🃌', '🃍', '🃎'],  //  Diamonds (carreau)
-                      ['🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻','🂼', '🂽', '🂾'],  //  Hearts (coeur)
-                      ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫','🂬', '🂭', '🂮']]; // Spades (pique)
+      const suit = ['Clubs', 'Diamonds', 'Hearts', 'Spades'];      
+      const rank_normal =       ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'C', 'Q', 'K'];
+      const unicode_normal =  [ ['🃑', '🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛','🃜', '🃝', '🃞'],  //  Clubs (trefle)
+                                ['🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋','🃌', '🃍', '🃎'],  //  Diamonds (carreau)
+                                ['🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻','🂼', '🂽', '🂾'],  //  Hearts (coeur)
+                                ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫','🂬', '🂭', '🂮']]; // Spades (pique)
 
-      const rank_cavaliers = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+      const rank_cavaliers =      ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
       const unicode_cavaliers = [ ['🃑', '🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛', '🃝', '🃞'],  //  Clubs (trefle)
-                      ['🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋', '🃍', '🃎'],  //  Diamonds (carreau)
-                      ['🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻', '🂽', '🂾'],  //  Hearts (coeur)
-                      ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫', '🂭', '🂮']]; // Spades (pique)
+                                  ['🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋', '🃍', '🃎'],  //  Diamonds (carreau)
+                                  ['🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻', '🂽', '🂾'],  //  Hearts (coeur)
+                                  ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫', '🂭', '🂮']]; // Spades (pique)
                            
       var name = -1;
-      var suit = ['Clubs', 'Diamonds', 'Hearts', 'Spades'];      
       var deck = [];
-      var piles = [[]];
+      var pile = [];
       var my_deck = [];
       var socket = io();
       var users = [];
-      var options = {'cavaliers' : false}
+      var options = {}
 
       socket.emit('connectRoom', '<%= data %>');
 
@@ -127,8 +127,7 @@
         console.log(data)
       });
 
-      socket.on('giveDeck', function(data){
-        console.log(data)
+      socket.on('onUpdateDeck', function(data){
         if(data['options'] != undefined) {
           options = data['options']
           deck = data['deck']
@@ -173,34 +172,26 @@
         $("#mainDeck").append(col2);
       })
 
-      socket.on('getCards', function(data){
+      socket.on('onUpdateMyCards', function(data){
         my_deck = data;
-        drawCards();
+        drawMyCards();
       })
 
-      socket.on('areaCleared', function() {
+      socket.on('onAreaCleared', function() {
         console.log("Clearing area ...");
+        pile = []
         $("#playArea").empty()
         var content = "<h1>Playing Area</h1>";
         var content = content +  "<button class = 'btn btn-outline-dark btn-lg btn-block get_deck' onclick = 'clearPlayingArea()''>Clear</button>"
         $("#playArea").append(content)
       })
 
-      socket.on('movedCard', function(data){
-        piles = data['pile'];
-        card = data['card']
-        if(card != undefined){
-          console.log("Drawing a card from the pile")
-          drawCardsinPile(card);
-        } else {
-          console.log("Card already draw from the pile")
-        }
+      socket.on('onUpdatePile', function(data){
+        pile = data;
+        drawPile();
+        drawMyCards();
       })
 
-      socket.on('addedPile', function(data){
-        piles = data;
-        console.log(piles);
-      })
    </script>
    <body>
      <div class = "jumbotron jumbotron-fluid">
@@ -219,7 +210,7 @@
                  <input type='checkbox' class='form-check-input' id='option_cavaliers'>
                  <label class="form-check-label" for="option_cavaliers">With cavaliers ? </label>
                  <br/>
-                 <input type='checkbox' class='form-check-input' id='option_claim'>
+                 <input type='checkbox' class='form-check-input' id='option_tricks'>
                  <label class="form-check-label" for="option_tricks">With tricks ? </label>
                </div>
                <div class = "col-6">
@@ -242,6 +233,7 @@
 
      function start(){
       options["cavaliers"] = $('#option_cavaliers').is(':checked')
+      options["tricks"] = $('#option_tricks').is(':checked')
         
       socket.emit('getDeck', {'room' : '<%= data %>', 'options' : options});
      }
@@ -262,7 +254,7 @@
       }
 
       function addPile() {
-        data = {"room" : "<%= data %>", "pile" : piles};
+        data = {"room" : "<%= data %>", "pile" : pile};
         socket.emit('addPile', data);
       }
 
@@ -271,7 +263,7 @@
         socket.emit('takeCards', data);
       }
 
-      function drawCards(){
+      function drawMyCards(){
         $("#cardDisplay").empty();
         $("#cardDisplay").sortable({
             start: function(event, ui) {
@@ -316,21 +308,28 @@
         }
       }
 
-      function drawCardsinPile(card) {
+      function drawPile() {
         var rank = options["cavaliers"] ? rank_cavaliers : rank_normal;
         var unicode = options["cavaliers"] ? unicode_cavaliers : unicode_normal;
 
-        var $item = $('<div class="cardinPile"/>').text(unicode[suit.indexOf(card['suit'])][rank.indexOf(card['rank'])]);
-        if(card['suit'] == "Hearts" || card['suit'] == "Diamonds" ) {
-          $item.css({
-          'position' : 'relative',
-          'color': 'red'
-          });
-        } else {
-          $item.css({'position' : 'relative'});
+        $("#playArea").empty()
+        var content = "<h1>Playing Area</h1>";
+        var content = content +  "<button class = 'btn btn-outline-dark btn-lg btn-block get_deck' onclick = 'clearPlayingArea()''>Clear</button>"
+        $("#playArea").append(content)
+
+        for(var i = 0; i < pile.length; i++) {
+          card = pile[i]
+          var $item = $('<div class="cardinPile"/>').text(unicode[suit.indexOf(card['suit'])][rank.indexOf(card['rank'])]);
+          if(card['suit'] == "Hearts" || card['suit'] == "Diamonds" ) {
+            $item.css({
+            'position' : 'relative',
+            'color': 'red'
+            });
+          } else {
+            $item.css({'position' : 'relative'});
+          }
+          $("#playArea").append($item);
         }
-        
-        $("#playArea").append($item);
       }
 
       function distribute() {
@@ -338,8 +337,6 @@
         if ($('#all_cards').is(':checked')) {
           numCards = -1          
         } 
-        console.log("Num card: "+numCards)
-        console.log($('#all_cards').is(':checked'))
         data = [{"room" : "<%= data %>", "numCards" : numCards, "deck" : deck, "mycards" : my_deck, "users" : users}];
         socket.emit('distribute', data);
       }
@@ -353,18 +350,24 @@
 
         my_deck.splice(cardIndex, 1);
         $(".card:eq(" + cardIndex +")").remove();
+        pile.push(card);
 
-        data = {"room" : "<%= data %>", "card" : card, "pile" : piles };
-        socket.emit('moveCard', data);
+        data = {"room" : "<%= data %>", "pile" : pile };
+        socket.emit('updatePile', data);
       })
 
 
       // Move card from the pile to your deck
       $('body').on('click', '.cardinPile', function() {
-        var card = piles[0][$(".cardinPile").index($(this))]
+        var cardIndex = $(".cardinPile").index($(this))
+        var card = pile[cardIndex]
+        console.log("Click on the pile card on "+card)
 
-        console.log("Click on the pile card on ")
-        console.log(card)
+        my_deck.push(card)
+        pile.splice(cardIndex, 1)
+        
+        data = {"room" : "<%= data %>", "pile" : pile };
+        socket.emit('updatePile', data);
       })
 
       function disableCardNumbers() {

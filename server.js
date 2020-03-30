@@ -20,25 +20,25 @@ io.on('connection', function(socket) {
    socket.on('getDeck', function(data){
      var deck = newDeck(data['options']);
      deck = shuffleDeck(deck, deck.length);
-     io.sockets.in(data['room']).emit('giveDeck', {'deck' : deck, 'options' : data['options']});
+     io.sockets.in(data['room']).emit('onUpdateDeck', {'deck' : deck, 'options' : data['options']});
    })
 
    socket.on('clearPlayingArea', function(data){
-    io.sockets.in(data['room']).emit('areaCleared');
+    io.sockets.in(data['room']).emit('onAreaCleared');
   })
 
    socket.on('takeCards', function(data){
      cards = takeCards(data[0]['numCards'], data[0]['deck'], data[0]['mycards']);
      console.log(cards);
-     io.to(data[0]['user']).emit('getCards', cards['mycards']);
-     io.sockets.in(data[0]['room']).emit('giveDeck', cards['deck']);
+     io.to(data[0]['user']).emit('onUpdateMyCards', cards['mycards']);
+     io.sockets.in(data[0]['room']).emit('onUpdateDeck', cards['deck']);
    })
 
 
    socket.on('distribute', function(data){
     deck = data[0]['deck']
     numCards = data[0]['numCards']
-    users = data[0]['users']
+    var users = data[0]['users']
 
     if(numCards == -1) {
       numCards = Math.trunc(deck.length / users.length)
@@ -50,36 +50,27 @@ io.on('connection', function(socket) {
       deck = result['deck']
       myCards = result['mycards']
 
-      io.to(users[u]).emit('getCards', myCards);
+      io.to(users[u]).emit('onUpdateMyCards', myCards);
     }
-    io.sockets.in(data[0]['room']).emit('giveDeck', deck);
+    io.sockets.in(data[0]['room']).emit('onUpdateDeck', deck);
   })
 
 
    socket.on('shuffleDeck', function(data){
-     io.sockets.in(data['room']).emit('giveDeck', shuffleDeck(data['deck'], data['deck'].length));
+     io.sockets.in(data['room']).emit('onUpdateDeck', shuffleDeck(data['deck'], data['deck'].length));
    })
 
    socket.on('resetGame', function(data){
     var deck = newDeck(data['options']);
     deck = shuffleDeck(deck, deck.length)
-    io.sockets.in(data['room']).emit('giveDeck', deck);
-    io.sockets.in(data['room']).emit('areaCleared');
-    io.sockets.in(data['room']).emit('getCards', []);
+    io.sockets.in(data['room']).emit('onUpdateDeck', deck);
+    io.sockets.in(data['room']).emit('onAreaCleared');
+    io.sockets.in(data['room']).emit('onUpdateMyCards', []);
   })
 
-   socket.on('addPile', function(data){
-     data['pile'].push([]);
-     console.log(data);
-     io.sockets.in(data['room']).emit('addedPile', data['pile']);
-   })
-
-   socket.on('moveCard', function(data){
-     console.log(data);
-     data['pile'][0].push(data['card']);
-     console.log(data['card']);
-     io.sockets.in(data['room']).emit('movedCard', {"pile" : data['pile'], "card" : data['card']});
-   })
+   socket.on('updatePile', function(data){
+    io.sockets.in(data['room']).emit('onUpdatePile', data['pile']);
+  })
 });
 
 function newDeck(options) {
