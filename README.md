@@ -14,3 +14,49 @@ You are a fan of cards game as :
 Covid-19 is here, you are lockdown at home and want to play remotely with your friends ?
 
 Fear no more, as the virtual deck of cards is here! Simply create or sign into a deck, and play any game with anyone.
+
+# How to play locally
+
+### 1)  Install Node JS 
+
+Follow for your platform instruction [here](https://nodejs.org/en/download/package-manager)
+
+### 2) Clone repository
+
+in a console:
+
+> git clone https://github.com/ghostwan/Virtual-Deck-Of-Cards.git
+
+### 3) Start node package 
+
+in a console:
+- go to where you cloned the virtual deck
+
+> npm start
+
+### 4) Open a navigator
+
+> http://localhost:3000/
+
+Fro other computer on the local network use computer IP
+
+# How to deploy remotely
+
+## Use Heroku
+
+Heroku is a platform as a service (PaaS) that enables developers to build, run, and operate applications entirely in the cloud. 
+It as a free plan enough for this app needs.
+
+https://www.heroku.com/
+
+### 1) Install CLI
+
+Follow for your platform instruction [here](https://devcenter.heroku.com/articles/getting-started-with-nodejs#set-up)
+
+### 2) Get Heroku logs
+
+> heroku logs -t -a project_name
+
+### 3) Deploy the app
+
+https://devcenter.heroku.com/articles/getting-started-with-nodejs#deploy-the-app
