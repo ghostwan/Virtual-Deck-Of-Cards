@@ -2,32 +2,32 @@ var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
-app.get('/', function(req, res) {
+app.get('/', (req, res) => {
    res.sendFile(__dirname + '/views/index.html');
 });
 
-app.get('/connectroom/', function(req, res){
+app.get('/connectroom/', (req, res) => {
   res.render('client.ejs', {data: req.query['roomID']});
 });
 
-io.on('connection', function(socket) {
-   socket.on('connectRoom', function(room){
+io.on('connection', (socket) => {
+   socket.on('connectRoom', (room) => {
      socket.join(room);
      var users = Object.keys(io.sockets.adapter.rooms[room].sockets)
      io.sockets.in(room).emit('connectToRoom', users);
    })
 
-   socket.on('getDeck', function(data){
+   socket.on('getDeck', (data) => {
      var deck = newDeck(data['options']);
      deck = shuffleDeck(deck, deck.length);
      io.sockets.in(data['room']).emit('onUpdateDeck', {'deck' : deck, 'options' : data['options']});
    })
 
-   socket.on('clearPlayingArea', function(data){
+   socket.on('clearPlayingArea', (data) => {
     io.sockets.in(data['room']).emit('onAreaCleared');
   })
 
-   socket.on('takeCards', function(data){
+   socket.on('takeCards', (data) => {
      cards = takeCards(data[0]['numCards'], data[0]['deck'], data[0]['mycards']);
      console.log(cards);
      io.to(data[0]['user']).emit('onUpdateMyCards', cards['mycards']);
@@ -35,7 +35,7 @@ io.on('connection', function(socket) {
    })
 
 
-   socket.on('distribute', function(data){
+   socket.on('distribute', (data) => {
     deck = data[0]['deck']
     numCards = data[0]['numCards']
     var users = data[0]['users']
@@ -56,11 +56,11 @@ io.on('connection', function(socket) {
   })
 
 
-   socket.on('shuffleDeck', function(data){
+   socket.on('shuffleDeck', (data) => {
      io.sockets.in(data['room']).emit('onUpdateDeck', shuffleDeck(data['deck'], data['deck'].length));
    })
 
-   socket.on('resetGame', function(data){
+   socket.on('resetGame', (data) => {
     var deck = newDeck(data['options']);
     deck = shuffleDeck(deck, deck.length)
     io.sockets.in(data['room']).emit('onUpdateDeck', deck);
@@ -68,7 +68,7 @@ io.on('connection', function(socket) {
     io.sockets.in(data['room']).emit('onUpdateMyCards', []);
   })
 
-   socket.on('updatePile', function(data){
+   socket.on('updatePile', (data) => {
     io.sockets.in(data['room']).emit('onUpdatePile', {'pile' : data['pile'], 'options' : data['options']});
   })
 });
@@ -109,6 +109,6 @@ function shuffleDeck(deck, num) {
 }
 
 const PORT = process.env.PORT || 3000;
-http.listen(PORT, function() {
+http.listen(PORT, () => {
    console.log(`Virtual desk of cards listenning on ${ PORT }`);
 });
