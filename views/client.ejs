@@ -16,7 +16,7 @@
           background-color: white;
         }
         #main{
-          height: 80vh;
+          height: 90vh;
           padding: 20px 10%;
         }
         #mainrow{
@@ -47,7 +47,7 @@
         }
         .col-7 > .row {
           padding: 20px;
-          height: 47%;
+          height: 48%;
           box-shadow: 1px 1px 5px 1px #888888;
         }
         #myCards{
@@ -88,18 +88,26 @@
       </style>
    </head>
    <script>
-      const DECK_LENGTH = 52;
-      const DECK_LENGTH_CAVALIERS = 56
+      const rank_normal = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'C', 'Q', 'K'];
+      const unicode_normal = [ ['🃑', '🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛','🃜','🃝', '🃞'],  //  Clubs (trefle)
+                      ['🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋','🃌', '🃍', '🃎'],  //  Diamonds (carreau)
+                      ['🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻','🂼', '🂽', '🂾'],  //  Hearts (coeur)
+                      ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫','🂬', '🂭', '🂮']]; // Spades (pique)
 
-      var rank;
-      var unicode;
+      const rank_cavaliers = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+      const unicode_cavaliers = [ ['🃑', '🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛', '🃝', '🃞'],  //  Clubs (trefle)
+                      ['🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋', '🃍', '🃎'],  //  Diamonds (carreau)
+                      ['🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻', '🂽', '🂾'],  //  Hearts (coeur)
+                      ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫', '🂭', '🂮']]; // Spades (pique)
+                           
+      var name = -1;
       var suit = ['Clubs', 'Diamonds', 'Hearts', 'Spades'];      
       var deck = [];
       var piles = [[]];
       var my_deck = [];
       var socket = io();
       var users = [];
-      var options = {'cavaliers' : false, 'deck_length' : 52}
+      var options = {'cavaliers' : false}
 
       socket.emit('connectRoom', '<%= data %>');
 
@@ -110,24 +118,40 @@
 
       socket.on('connectToRoom', function(data){
         users = data
+        if ( name == -1) {
+          name = prompt("What's your name ?", "roger"+Math.floor(Math.random() * 100));
+          $('#your_cards').text('Your Cards '+name)
+        }
+
         $('#numPlayers').text('Players: ' + users.length);
+        console.log(data)
       });
 
       socket.on('giveDeck', function(data){
-        deck = data;
+        console.log(data)
+        if(data['options'] != undefined) {
+          options = data['options']
+          deck = data['deck']
+        } else {
+          deck = data;
+        }
         $("#mainDeck").empty();
-        var title = "<h1>Main Deck</h1>";
+
+        var originalLength = options["cavaliers"] ? 56 : 52;
+
         if(deck.length) {
-          var col1 = "<div class = 'col-6'><h1>Main Deck: "+deck.length+"</h1><br>";
-          if(options['deck_length'] == deck.length) {
-            col1 += "<button onclick = 'shuffleDeck()' class = 'btn btn-outline-dark btn-lg btn-block'>Shuffle Cards</button><br>"
-          } else {
-            col1 += "<button onclick = 'resetGame()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>"
-          }
           
-          col1 += "<button class = 'btn btn-outline-dark btn-lg btn-block' onclick = 'takeOne()'>Take 1 Card</button><br>"
-          col1 += '<div class="control-group form-inline">'
-            col1 += '<label class="mb-2" for="distribute_card">Distribute for each player</label>'
+          var col1 = "<div class = 'col-6'><h1>Deck: "+deck.length+" / "+originalLength+" cards</h1><br>";
+            if(originalLength == deck.length) {
+              col1 += "<button onclick = 'shuffleDeck()' class = 'btn btn-outline-dark btn-lg btn-block'>Shuffle Cards</button><br>"
+            } else {
+              col1 += "<button onclick = 'resetGame()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>"
+            }
+            col1 += "<button class = 'btn btn-outline-dark btn-lg btn-block' onclick = 'takeOne()'>Take 1 Card</button><br>"
+            col1 += '<div class="control-group form-inline">'
+
+            var message = users.length == 1 ? "Your are the only player connected! " : "Card to distribute to each player ("+users.length+" players)";
+            col1 += '<label class="mb-2" for="distribute_card">'+message+'</label>'
             col1 += '<input class= "mb-2" type = "number" id = "distribute_card" placeholder = "number of cards" disabled>'
             col1 += '<div class="mx-sm-3 mb-2"> Or </div>'
             col1 += '<label class="form-check-label mb-2" for="all_cards">All cards</label>'
@@ -192,8 +216,11 @@
                  <h1 class = "startText">Everyone in? </h1><br><br>
                  <button class = "btn btn-outline-dark btn-lg btn-block get_deck" onclick = "start()">Start</button>
                  <br/>
-                 <input type='checkbox' class='form-check-input' id='with_cavalier'>
-                 <label class="form-check-label" for="with_cavalier">With cavaliers ? </label>
+                 <input type='checkbox' class='form-check-input' id='option_cavaliers'>
+                 <label class="form-check-label" for="option_cavaliers">With cavaliers ? </label>
+                 <br/>
+                 <input type='checkbox' class='form-check-input' id='option_claim'>
+                 <label class="form-check-label" for="option_tricks">With tricks ? </label>
                </div>
                <div class = "col-6">
                  <h1 class = "deckDesc">Room <%= data %></h1>
@@ -202,7 +229,7 @@
              </div>
              <div id = "myCards" class = "row">
                <div class = "col-10">
-                 <h1>Your Cards</h1>
+                 <h1 id="your_cards">Your Cards</h1>
                  <div id = "cardDisplay"></div>
                </div>
              </div>
@@ -214,34 +241,10 @@
    <script>
 
      function start(){
-      if ($('#with_cavalier').is(':checked')) {
-        getDeckWithCavaliers()
-      } else {
-        getDeck()
-      }
+      options["cavaliers"] = $('#option_cavaliers').is(':checked')
+        
+      socket.emit('getDeck', {'room' : '<%= data %>', 'options' : options});
      }
-
-      function getDeckWithCavaliers() {
-        options["cavaliers"] = true;
-        options["deck_length"] = DECK_LENGTH_CAVALIERS;
-        rank = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'C', 'Q', 'K'];
-        unicode = [ ['🃑', '🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛','🃜','🃝', '🃞'],     //  Clubs (trefle)
-                      ['🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋','🃌', '🃍', '🃎'],  //  Diamonds (carreau)
-                      ['🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻','🂼', '🂽', '🂾'],  //  Hearts (coeur)
-                      ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫','🂬', '🂭', '🂮']];     // Spades (pique)
-        socket.emit('getDeck', {'room' : '<%= data %>', 'options' : options});
-      }
-      function getDeck() {
-        options["cavaliers"] = false;
-        options["deck_length"] = DECK_LENGTH;
-        rank = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
-        unicode = [ ['🃑', '🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛', '🃝', '🃞'],  //  Clubs (trefle)
-                      ['🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋', '🃍', '🃎'],  //  Diamonds (carreau)
-                      ['🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻', '🂽', '🂾'],  //  Hearts (coeur)
-                      ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫', '🂭', '🂮']]; // Spades (pique)
-
-        socket.emit('getDeck', {'room' : '<%= data %>', 'options' : options});
-      }
 
       function clearPlayingArea() {
         data = {"room" : "<%= data %>"}
@@ -298,10 +301,11 @@
                 
               }
         });
-
+        var rank = options["cavaliers"] ? rank_cavaliers : rank_normal;
+        var unicode = options["cavaliers"] ? unicode_cavaliers : unicode_normal;
+        
         for(var i = 0; i < my_deck.length; i++) {
           card = my_deck[i]
-          // console.log(unicode[suit.indexOf(card['suit'])][rank.indexOf(card['rank'])]);
           var $item = $('<div class="card"/>').text(unicode[suit.indexOf(card['suit'])][rank.indexOf(card['rank'])]);
           if(card['suit'] == "Hearts" || card['suit'] == "Diamonds" ) {
             $item.css({ 'color': 'red'});
@@ -313,7 +317,9 @@
       }
 
       function drawCardsinPile(card) {
-        // console.log(unicode[suit.indexOf(card['suit'])][rank.indexOf(card['rank'])]);
+        var rank = options["cavaliers"] ? rank_cavaliers : rank_normal;
+        var unicode = options["cavaliers"] ? unicode_cavaliers : unicode_normal;
+
         var $item = $('<div class="cardinPile"/>').text(unicode[suit.indexOf(card['suit'])][rank.indexOf(card['rank'])]);
         if(card['suit'] == "Hearts" || card['suit'] == "Diamonds" ) {
           $item.css({
