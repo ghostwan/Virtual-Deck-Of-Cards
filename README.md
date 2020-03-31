@@ -1,7 +1,7 @@
 # Virtual Deck Of Cards
 ![alt text](icon.png)
 
-A virtual deck of cards! Play anything anywhere, with anyone,
+A virtual deck of cards! Play anything anywhere, with anyone!
 
 You are a fan of cards game as :
 - [Yaniv](https://www.wikiwand.com/en/Yaniv_(card_game))
@@ -14,6 +14,17 @@ You are a fan of cards game as :
 Covid-19 is here, you are lockdown at home and want to play remotely with your friends ?
 
 Fear no more, as the virtual deck of cards is here! Simply create or sign into a deck, and play any game with anyone.
+
+# What next ?
+
+- GAME PLAY - Gestion des plies
+- GAME PLAY - Ordre du tour
+- GAME PLAY - Prise en compte des annonces
+- GAME PLAY - Locker la partie pour que plus personnes ne puisse rentrer
+- GAME PLAY - Mettre une carte de coté pour les jeux comme l'Escalier
+- GAME PLAY - Pour la yaniv permettre de nettoyer les cartes poser par le joueur d'avant
+- GAME PLAY - Gestion des scores
+- UI - Passer les checkbox en toggle
 
 # How to play locally
 
