@@ -4,8 +4,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <link rel="icon" type="image/png" href="https://www.goodfreephotos.com/albums/vector-images/two-cards-vector-file.png"/>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+      integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+      crossorigin="anonymous"
+    />
+    <link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css" rel="stylesheet" />  
+    
     <script src="/socket.io/socket.io.js"></script>
-    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+      integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+      crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" 
       integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
@@ -15,10 +23,8 @@
       integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
       crossorigin="anonymous"
     ></script>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
-      integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
-      crossorigin="anonymous"
-    />
+    <script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js"></script>
+
     <title>Virtual Deck - Play Anywhere with Anyone</title>
     <style>
       .jumbotron-fluid {
@@ -43,7 +49,7 @@
       .get_deck {
         font-size: 30px;
       }
-      h1 {
+      h2 {
         color: grey;
       }
       .startText {
@@ -104,6 +110,20 @@
         margin: 0 auto;
         display: inline-block;
       }
+      #button_sort {
+        vertical-align: middle;
+      }
+      #option_reorder{
+        vertical-align: middle;
+      }
+      #hand_header {
+        line-height: 60px;
+      }
+      #cards_control {
+        visibility: hidden; 
+        margin-left: 1em;
+      }
+
     </style>
   </head>
   <script>
@@ -152,10 +172,7 @@
       options = {};
 
       // Redraw everything at each connection
-      drawDeck()
-      drawPile()
-      drawHand()
-      $("#instruction").show();
+      initThePage()
 
       var newData = { room: "<%= data %>", name: name, id: socket.id };
       socket.emit("userConnected", newData )
@@ -202,13 +219,23 @@
       <div id="main" class="container-fluid">
         <div id="mainrow" class="row">
           <div id="playArea" class="col-4">
-            <h1>Playing Area</h1>
+            <h2>Playing Area</h2>
           </div>
           <div class="col-7">
             <div id="mainDeck" class="row"></div>
             <div id="hand" class="row">
               <div class="col-12">
-                <h1 id="your_hand">Your Hand</h1>
+                <div id="hand_header">
+                  <h2 style="vertical-align: middle;" class="d-inline-block" id="your_hand"> Your Hand </h2>  
+                  <div id="cards_control" class="d-inline-block">
+                    <button class = "d-inline-block btn btn-info" onclick = "onSortCard()"> Sort </button>
+                    <input  id="option_reorder" class ="d-inline-block" type="checkbox" data-toggle="toggle" 
+                            data-width="90"
+                            data-on="Reorder" 
+                            onclick="drawHand()"
+                            data-off="Play"/>
+                  </div>
+                </div>
                 <div id="cardDisplay"></div>
                 <div id="instruction">
                   After the game started and after the dealer give you cards.
@@ -230,6 +257,13 @@
       options["stack_visible"] = true;
 
       socket.emit("getDeck", { room: "<%= data %>", options: options });
+    }
+
+    function initThePage() {
+      drawDeck()
+      drawPile()
+      drawHand()
+      $("#instruction").show();
     }
 
     function clearPlayingArea() {
@@ -296,7 +330,7 @@
       if (deck == undefined) {
         content = `
         <div class="col-6 form-group">
-            <h1 class="startText">Everyone in?</h1>
+            <h2 class="startText">Everyone in?</h2>
             <br /><br />
             <button class="btn btn-outline-dark btn-lg btn-block get_deck" onclick="start()">Start</button>
             <br />
@@ -307,13 +341,13 @@
             <label class="form-check-label" for="option_tricks">Can we claim tricks (as for tarot)</label>
           </div>
           <div class="col-6">
-            <h1 class="deckDesc">Room <%= data %></h1>
-            <h1 id="numPlayers" class="deckDesc">Players: 1</h1>
+            <h2 class="deckDesc">Room <%= data %></h2>
+            <h2 id="numPlayers" class="deckDesc">Players: 1</h2>
         </div>
         `
       } else if (deck.length == 0) {
         content = `
-        <div class = 'col-6'><h1>Deck is empty</h1>
+        <div class = 'col-6'><h2>Deck is empty</h2>
           <button onclick = 'resetGame()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>
         </div>
         <div class = 'col-6'><span>∅</span></div>
@@ -321,7 +355,7 @@
       } else  {
         var originalLength = options["cavaliers"] ? 56 : 52;
 
-        content = "<div class = 'col-6'><h1>Deck: " + deck.length + " / " + originalLength + " cards</h1><br>";
+        content = "<div class = 'col-6'><h2>Deck: " + deck.length + " / " + originalLength + " cards</h2><br>";
         if (originalLength == deck.length) {
           content +="<button onclick = 'shuffleDeck()' class = 'btn btn-outline-dark btn-lg btn-block'>Shuffle Cards</button><br>";
         } else {
@@ -352,39 +386,50 @@
     }
 
     function drawHand() {
-      $("#your_hand").empty();
 
-      if (my_hand.length > 1) {
-        $("#your_hand").append("Your Hand " +name +": " +my_hand.length +
-            ' cards <button class = "btn btn-secondary" onclick = "onSortCard()"> sort </button>'
-        );
-      } else {
-        $("#your_hand").append("Your Hand " + name);
-      }
       $("#instruction").hide();
-      $("#cardDisplay").empty();
-      $("#cardDisplay").sortable({
-        start: function(event, ui) {
-          ui.item.data("originIndex", ui.item.index());
-        },
-        change: function(event, ui) {
-          var originIndex = ui.item.data("originIndex");
-          var currentIndex = ui.placeholder.index();
-          ui.item.data("swapIndex", currentIndex);
-        },
-        stop: function(event, ui) {
-          var originIndex = ui.item.data("originIndex");
-          var swapIndex = ui.item.data("swapIndex");
-          var originElement = my_hand[originIndex];
+      $("#your_hand").empty();
+      var content = ""
+      if (my_hand.length > 1) {
+        content = `Your Hand ${name} : ${my_hand.length} cards`
+        $("#cards_control").visible()
+      }else {
+        content = `Your Hand ${name}`
+        $("#cards_control").invisible()
+      }
+      $("#your_hand").append(content);
 
-          if (originIndex < swapIndex) {
-            swapIndex -= 1;
-            if (swapIndex < 0) swapIndex = 0;
+      $("#cardDisplay").empty();
+
+      $("#cardDisplay").sortable({disabled: true})
+      $("#cardDisplay").sortable({
+          start: function(event, ui) {
+            ui.item.data("originIndex", ui.item.index());
+          },
+          change: function(event, ui) {
+            var originIndex = ui.item.data("originIndex");
+            var currentIndex = ui.placeholder.index();
+            ui.item.data("swapIndex", currentIndex);
+          },
+          stop: function(event, ui) {
+            var originIndex = ui.item.data("originIndex");
+            var swapIndex = ui.item.data("swapIndex");
+            var originElement = my_hand[originIndex];
+  
+            if (originIndex < swapIndex) {
+              swapIndex -= 1;
+              if (swapIndex < 0) swapIndex = 0;
+            }
+            my_hand.splice(originIndex, 1);
+            my_hand.splice(swapIndex, 0, originElement);
           }
-          my_hand.splice(originIndex, 1);
-          my_hand.splice(swapIndex, 0, originElement);
-        }
-      });
+        });
+
+      if($("#option_reorder").prop("checked")) {
+        $('#cardDisplay').sortable('enable');
+      } else {
+        $('#cardDisplay').sortable('disable');
+      } 
       var rank = options["cavaliers"] ? rank_cavaliers : rank_normal;
       var unicode = options["cavaliers"] ? unicode_cavaliers : unicode_normal;
 
@@ -403,13 +448,13 @@
     function drawPile() {
       var rank = options["cavaliers"] ? rank_cavaliers : rank_normal;
       var unicode = options["cavaliers"] ? unicode_cavaliers : unicode_normal;
-      var checked = options["stack_visible"] ? "checked" : "";
+      var isChecked = options["stack_visible"]
       
       $("#playArea").empty();
       var content = `
-        <h1>Playing Area</h1>
+        <h2>Playing Area</h2>
         <div class = "col-6 form-group">
-          <input type='checkbox' class='form-check-input' id='option_stack' onclick = 'onOptionStack()' ${checked} />
+          <input type='checkbox' class='form-check-input' id='option_stack' onclick = 'onOptionStack()' ${isChecked ? "checked" : ""} />
           <label class="form-check-label" for="option_stack">View all cards</label>
         </div>
         <button id="are_button" class = "btn btn-outline-dark btn-lg btn-block get_deck onclick = "clearPlayingArea()">Clear</button>
@@ -468,6 +513,12 @@
 
     // Move card from you deck to the pile
     $("body").on("click", ".card", function() {
+      
+      // If reorder possible do nothing
+      if($("#option_reorder").prop("checked")) {
+        return
+      }
+
       var cardIndex = $(".card").index($(this));
       var card = my_hand[cardIndex];
       console.log("Click on your card on " + card);
@@ -501,5 +552,17 @@
         distributeCards();
       }
     });
+
+    $('#option_reorder').change(function() {
+        drawHand()
+    })
+    
+    jQuery.fn.visible = function() {
+      return this.css('visibility', 'visible');
+    };
+
+    jQuery.fn.invisible = function() {
+      return this.css('visibility', 'hidden');
+    };
   </script>
 </html>
