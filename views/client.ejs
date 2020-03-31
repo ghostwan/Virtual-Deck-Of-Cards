@@ -162,8 +162,14 @@
     };
 
     socket.on("connectToRoom", function() {
+
       if (name == -1) {
-        name = prompt("What's your name ?", "roger" + Math.floor(Math.random() * 100));
+        var randomRoger = "roger" + Math.floor(Math.random() * 100);
+        var nameTemp = prompt("What's your name ?", randomRoger);
+        if (nameTemp == null) {
+          nameTemp = randomRoger
+        }
+        name = nameTemp
         $("#your_hand").text("Your Hand " + name);
       }
       deck = undefined;
@@ -556,7 +562,7 @@
     $('#option_reorder').change(function() {
         drawHand()
     })
-    
+
     jQuery.fn.visible = function() {
       return this.css('visibility', 'visible');
     };
