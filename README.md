@@ -15,8 +15,24 @@ Covid-19 is here, you are lockdown at home and want to play remotely with your f
 
 Fear no more, as the virtual deck of cards is here! Simply create or sign into a deck, and play any game with anyone.
 
-# What next ?
+# What you can currently do
+- Create a room to play any cards game with your friends!
+- Share the room url to invite people into the game!
+- Choose your name roger!
+- Choose to play with cavaliers or not (52 vs 56 cards)
+- Distribute all the deck or a specific number of cards among all players 
+- Take a card from the deck
+- Play a card from your hand
+- Take a card from the playing area (for some game as yaniv or if you did a mistake)
+- Rearange cards in your hand or sort them
+- See who play a card
+- Clear the playing area
+- Configure playing area style
 
+# What's next 
+
+- GAME PLAY - Afficher utilisateurs connectés
+- UI - Passer les checkbox en toggle
 - GAME PLAY - Gestion des plies
 - GAME PLAY - Ordre du tour
 - GAME PLAY - Prise en compte des annonces
@@ -24,7 +40,11 @@ Fear no more, as the virtual deck of cards is here! Simply create or sign into a
 - GAME PLAY - Mettre une carte de coté pour les jeux comme l'Escalier
 - GAME PLAY - Pour la yaniv permettre de nettoyer les cartes poser par le joueur d'avant
 - GAME PLAY - Gestion des scores
-- UI - Passer les checkbox en toggle
+- GAME PLAY - Preset de configuration pour des jeux existants
+- GAME PLAY - Rajouter les cartes les atouts de tarot
+- UX - Chat écrit
+- UX - Chat oral / video
+
 
 # How to play locally
 
