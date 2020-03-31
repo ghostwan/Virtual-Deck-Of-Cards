@@ -1,6 +1,6 @@
 var app = require("express")();
 var http = require("http").Server(app);
-var io = require("socket.io")(http);
+var io = require("socket.io")(http, {'pingTimeout': 7000, 'pingInterval': 3000});
 
 const PORT = process.env.PORT || 3000;
 http.listen(PORT, () => {
@@ -13,16 +13,21 @@ app.get("/", (req, res) => {
 });
 
 app.get("/connectroom/", (req, res) => {
-  console.log(`Connecting to room ${req.query["roomID"]}`);
   res.render("client.ejs", { data: req.query["roomID"] });
 });
 
 io.on("connection", socket => {
   socket.on("connectRoom", room => {
-    // console.log(`User ${} connected to room ${room} `);
+    console.log(`[${room}] ==> User is connecting...`);
     socket.join(room);
-    var users = Object.keys(io.sockets.adapter.rooms[room].sockets);
-    io.sockets.in(room).emit("connectToRoom", users);
+    io.sockets.in(room).emit("connectToRoom");
+  });
+
+  socket.on("userConnected", data => {
+    console.log(data)
+    console.log(`[${data["room"]}] <===  User ${data["name"]} connected!`)
+    var socketUsers = Object.keys(io.sockets.adapter.rooms[data["room"]].sockets);
+    io.sockets.in(data["room"]).emit("addUser", {id: data["id"], name: data["name"], socketUsers: socketUsers});
   });
 
   socket.on("getDeck", data => {
@@ -36,15 +41,15 @@ io.on("connection", socket => {
   });
 
   socket.on("takeCards", data => {
-    cards = takeCards(data[0]["numCards"], data[0]["deck"], data[0]["hand"]);
-    io.to(data[0]["user"]).emit("onUpdateHand", cards["hand"]);
-    io.sockets.in(data[0]["room"]).emit("onUpdateData", {deck: cards["deck"]});
+    cards = takeCards(data["numCards"], data["deck"], data["hand"]);
+    io.to(data["user"]).emit("onUpdateHand", cards["hand"]);
+    io.sockets.in(data["room"]).emit("onUpdateData", {deck: cards["deck"]});
   });
 
   socket.on("distribute", data => {
-    deck = data[0]["deck"];
-    numCards = data[0]["numCards"];
-    var users = data[0]["users"];
+    deck = data["deck"];
+    numCards = data["numCards"];
+    var users = Object.keys(io.sockets.adapter.rooms[data["room"]].sockets);
 
     if (numCards == -1) {
       numCards = Math.trunc(deck.length / users.length);
@@ -55,10 +60,12 @@ io.on("connection", socket => {
       result = takeCards(numCards, deck, hand);
       deck = result["deck"];
       hand = result["hand"];
+      
+      console.log(result)
 
       io.to(users[u]).emit("onUpdateHand", hand);
     }
-    io.sockets.in(data[0]["room"]).emit("onUpdateData", {deck: deck});
+    io.sockets.in(data["room"]).emit("onUpdateData", {deck: deck});
   });
 
   socket.on("shuffleDeck", data => {
@@ -69,7 +76,7 @@ io.on("connection", socket => {
   socket.on("resetGame", data => {
     var deck = newDeck(data["options"]);
     deck = shuffleDeck(deck, deck.length);
-    io.sockets.in(data["room"]).emit("onUpdateData", {deck: deck, hand: []});
+    io.sockets.in(data["room"]).emit("onUpdateData", {deck: deck, hand: [], pile: []});
   });
 
   // Broadcast function, sync datas a cross all client from a room
@@ -112,5 +119,4 @@ function shuffleDeck(deck, num) {
   }
   return shuffledDeck;
 }
-
 

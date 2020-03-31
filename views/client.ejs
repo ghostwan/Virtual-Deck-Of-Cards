@@ -127,12 +127,12 @@
       ["🂱", "🂲", "🂳", "🂴", "🂵", "🂶", "🂷", "🂸", "🂹", "🂺", "🂻", "🂼", "🂽", "🂾"]  //  Hearts (coeur)
     ]; 
 
+    var users = new Map();
     var name = -1;
     var deck = [];
     var pile = [];
     var my_hand = [];
     var socket = io();
-    var users = [];
     var options = {};
 
     socket.emit("connectRoom", "<%= data %>");
@@ -141,16 +141,30 @@
       event.returnValue = "Refreshing the page will make you disconnect from the game!";
     };
 
-    socket.on("connectToRoom", function(data) {
-      users = data;
-      console.log(users);
+    socket.on("connectToRoom", function() {
       if (name == -1) {
         name = prompt("What's your name ?", "roger" + Math.floor(Math.random() * 100));
         $("#your_hand").text("Your Hand " + name);
       }
-      $("#numPlayers").text("Players: " + users.length);
-      socket.emit("updateUsersInfos", users);
+      deck = undefined;
+      pile = [];
+      my_hand = [];
+      options = {};
+
+      // Redraw everything at each connection
+      drawDeck()
+      drawPile()
+      drawHand()
+      $("#instruction").show();
+
+      var newData = { room: "<%= data %>", name: name, id: socket.id };
+      socket.emit("userConnected", newData )
     });
+
+    socket.on("addUser", function(data) {
+        users.set(data.id, {name: data.name})
+        updateUserList(data["socketUsers"])
+    })
 
     socket.on("onUpdateHand", function(data) {
       console.log("===== Update Hand =====");
@@ -177,10 +191,10 @@
         pile = data["pile"];
         drawPile();
       }
-      if (data["users"] != undefined) {
-        users = data["users"];
-        drawUsersInfos();
-      }
+      // if (data["user"] != undefined) {
+      //   // users[] = data["user"];
+      //   drawUsersInfos();
+      // }
     });
   </script>
   <body>
@@ -191,23 +205,7 @@
             <h1>Playing Area</h1>
           </div>
           <div class="col-7">
-            <div id="mainDeck" class="row">
-              <div class="col-6 form-group">
-                <h1 class="startText">Everyone in?</h1>
-                <br /><br />
-                <button class="btn btn-outline-dark btn-lg btn-block get_deck" onclick="start()">Start</button>
-                <br />
-                <input type="checkbox" class="form-check-input" id="option_cavaliers" />
-                <label class="form-check-label" for="option_cavaliers">Include cavaliers (56 cards) </label>
-                <br />
-                <input type="checkbox" class="form-check-input" id="option_tricks" />
-                <label class="form-check-label" for="option_tricks">Can we claim tricks (as for tarot)</label>
-              </div>
-              <div class="col-6">
-                <h1 class="deckDesc">Room <%= data %></h1>
-                <h1 id="numPlayers" class="deckDesc">Players: 1</h1>
-              </div>
-            </div>
+            <div id="mainDeck" class="row"></div>
             <div id="hand" class="row">
               <div class="col-12">
                 <h1 id="your_hand">Your Hand</h1>
@@ -241,8 +239,17 @@
       }
     }
 
+    function updateUserList(socketUsers){
+      users.forEach( (user, key) => {
+        if (!socketUsers.includes(key)) {
+          console.log(`User ${key} doesn't exist anymore, removing...`)
+          users.delete(key)
+        }
+      })
+      drawUsersInfos()
+    }
     function getUserID() {
-      return users.indexOf(socket.id);
+      return users.get(socket.id);
     }
 
     function shuffleDeck() {
@@ -261,7 +268,7 @@
     }
 
     function takeOne() {
-      data = [{ room: "<%= data %>", numCards: 1, deck: deck, hand: my_hand, user: socket.id }];
+      data = { room: "<%= data %>", numCards: 1, deck: deck, hand: my_hand, user: socket.id };
       socket.emit("takeCards", data);
     }
 
@@ -275,59 +282,80 @@
       if ($("#all_cards").is(":checked")) {
         numCards = -1;
       }
-      data = [{ room: "<%= data %>", numCards: numCards, deck: deck, hand: my_hand, users: users }];
+      data = { room: "<%= data %>", numCards: numCards, deck: deck, hand: my_hand};
       socket.emit("distribute", data);
+    }
+
+    function drawUsersInfos(){
+      $("#numPlayers").text("Players: " + users.size);
     }
 
     function drawDeck() {
       $("#mainDeck").empty();
+      var content = ""
+      if (deck == undefined) {
+        content = `
+        <div class="col-6 form-group">
+            <h1 class="startText">Everyone in?</h1>
+            <br /><br />
+            <button class="btn btn-outline-dark btn-lg btn-block get_deck" onclick="start()">Start</button>
+            <br />
+            <input type="checkbox" class="form-check-input" id="option_cavaliers" />
+            <label class="form-check-label" for="option_cavaliers">Include cavaliers (56 cards) </label>
+            <br />
+            <input type="checkbox" class="form-check-input" id="option_tricks" />
+            <label class="form-check-label" for="option_tricks">Can we claim tricks (as for tarot)</label>
+          </div>
+          <div class="col-6">
+            <h1 class="deckDesc">Room <%= data %></h1>
+            <h1 id="numPlayers" class="deckDesc">Players: 1</h1>
+        </div>
+        `
+      } else if (deck.length == 0) {
+        content = `
+        <div class = 'col-6'><h1>Deck is empty</h1>
+          <button onclick = 'resetGame()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>
+        </div>
+        <div class = 'col-6'><span>∅</span></div>
+        `
+      } else  {
+        var originalLength = options["cavaliers"] ? 56 : 52;
 
-      var originalLength = options["cavaliers"] ? 56 : 52;
+        content = "<div class = 'col-6'><h1>Deck: " + deck.length + " / " + originalLength + " cards</h1><br>";
+        if (originalLength == deck.length) {
+          content +="<button onclick = 'shuffleDeck()' class = 'btn btn-outline-dark btn-lg btn-block'>Shuffle Cards</button><br>";
+        } else {
+          content +="<button onclick = 'resetGame()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>";
+        }
 
-      if (deck.length) {
-        var col1 = "<div class = 'col-6'><h1>Deck: " + deck.length + " / " + originalLength + " cards</h1><br>";
-          if (originalLength == deck.length) {
-            col1 +="<button onclick = 'shuffleDeck()' class = 'btn btn-outline-dark btn-lg btn-block'>Shuffle Cards</button><br>";
-          } else {
-            col1 +="<button onclick = 'resetGame()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>";
-          }
-          col1 +="<button class = 'btn btn-outline-dark btn-lg btn-block' onclick = 'takeOne()'>Take 1 Card</button><br>";
-          col1 += '<div class="control-group form-inline">';
+        var message = users.size == 1 ? "Your are the only player connected! "
+                                        : "Card to distribute to each player (" + users.size + " players)";
 
-            var message = users.length == 1 ? "Your are the only player connected! "
-                                            : "Card to distribute to each player (" + users.length + " players)";
-
-            col1 += '<label class="mb-2" for="distribute_card">' + message + "</label>";
-            col1 += '<input class= "mb-2" type = "number" id = "distribute_card" placeholder = "number of cards" disabled />';
-            col1 += '<div class="mx-sm-3 mb-2"> Or </div>';
-            col1 += '<label class="form-check-label mb-2" for="all_cards">All cards</label>';
-            col1 += "<input type='checkbox' class='form-check-input mb-2' id='all_cards' checked onclick='onOptionDistributeAllCard()'>"
-          col1 += "</div>";
-        col1 += "</div>";
-
-        var col2 = "<div class = 'col-6' ><span>🂠</span>";
-          col2 += "<button class='col-6 distrib-btn btn btn-primary ' onclick = 'distributeCards()'>Distribute</button>";
-        col2 += "</div>";
-      } else {
-        var col1 = "<div class = 'col-6'><h1>Deck is empty</h1>";
-          col1 +="<button onclick = 'resetGame()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>";
-        col1 += "</div>"
-        var col2 = "<div class = 'col-6'><span>∅</span></div>";
+        content += ` 
+          <button class = 'btn btn-outline-dark btn-lg btn-block' onclick = 'takeOne()'>Take 1 Card</button><br>
+          <div class="control-group form-inline">
+            <label class="mb-2" for="distribute_card">${message}</label>
+            <input class= "mb-2" type = "number" id = "distribute_card" placeholder = "number of cards" disabled />
+            <div class="mx-sm-3 mb-2"> Or </div>'
+            <label class="form-check-label mb-2" for="all_cards">All cards</label>
+            <input type='checkbox' class='form-check-input mb-2' id='all_cards' checked onclick='onOptionDistributeAllCard()'>
+          </div>
+              `
+        content += "</div>";
+        content += `
+          <div class = 'col-6' ><span>🂠</span>
+            <button class='col-6 distrib-btn btn btn-primary ' onclick = 'distributeCards()'>Distribute</button>
+          </div>
+        `
       }
-
-      $("#mainDeck").append(col1);
-      $("#mainDeck").append(col2);
+      $("#mainDeck").append(content);
     }
 
     function drawHand() {
       $("#your_hand").empty();
 
       if (my_hand.length > 1) {
-        $("#your_hand").append(
-          "Your Hand " +
-            name +
-            ": " +
-            my_hand.length +
+        $("#your_hand").append("Your Hand " +name +": " +my_hand.length +
             ' cards <button class = "btn btn-secondary" onclick = "onSortCard()"> sort </button>'
         );
       } else {
@@ -375,15 +403,17 @@
     function drawPile() {
       var rank = options["cavaliers"] ? rank_cavaliers : rank_normal;
       var unicode = options["cavaliers"] ? unicode_cavaliers : unicode_normal;
-
+      var checked = options["stack_visible"] ? "checked" : "";
+      
       $("#playArea").empty();
-      var content = "<h1>Playing Area</h1>";
-      content += '<div class = "col-6 form-group">';
-        var checked = options["stack_visible"] ? "checked" : "";
-        content +="<input type='checkbox' class='form-check-input' id='option_stack' onclick = 'onOptionStack()' " + checked +">";
-        content += '<label class="form-check-label" for="option_stack">View all cards</label>';
-      content += "</div>";
-      content += '<button id="are_button" class = "btn btn-outline-dark btn-lg btn-block get_deck" onclick = "clearPlayingArea()">Clear</button>';
+      var content = `
+        <h1>Playing Area</h1>
+        <div class = "col-6 form-group">
+          <input type='checkbox' class='form-check-input' id='option_stack' onclick = 'onOptionStack()' ${checked} />
+          <label class="form-check-label" for="option_stack">View all cards</label>
+        </div>
+        <button id="are_button" class = "btn btn-outline-dark btn-lg btn-block get_deck onclick = "clearPlayingArea()">Clear</button>
+      `
       $("#playArea").append(content);
 
       for (var i = 0; i < pile.length; i++) {
@@ -393,9 +423,7 @@
           unicode[suit.indexOf(card["suit"])][rank.indexOf(card["rank"])]
         );
         if (card["suit"] == "Hearts" || card["suit"] == "Diamonds") {
-          $item.css({
-            color: "red"
-          });
+          $item.css({ color: "red" });
         }
         var $layer = $('<div class="card_layer"/>');
         var $owner = $('<div class="card_owner"/>').text(card["username"]);
@@ -416,7 +444,6 @@
 
         return rank_cavaliers.indexOf(a.rank) - rank_cavaliers.indexOf(b.rank);
       });
-      console.log(my_hand);
       drawHand();
     }
 
@@ -431,6 +458,12 @@
       } else {
         $("#distribute_card").prop("disabled", false);
       }
+    }
+
+    function debug(object) {
+        console.log("=== DEBUG ===")
+        console.log(object)
+        console.log("=============")
     }
 
     // Move card from you deck to the pile
