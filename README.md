@@ -45,6 +45,12 @@ Fear no more, as the virtual deck of cards is here! Simply create or sign into a
 - UX - Chat écrit
 - UX - Chat oral / video
 
+# Bugs
+
+- Si on distribue plus de cartes que de personnes ça foire les comptes
+- Quand quelqu'un se déconnecte on ne vois pas le nombre de personne changer
+  
+
 
 # How to play locally
 
