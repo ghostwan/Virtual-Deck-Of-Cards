@@ -1,11 +1,12 @@
 var app = require("express")();
 var http = require("http").Server(app);
-var io = require("socket.io")(http, {'pingTimeout': 7000, 'pingInterval': 3000});
+var io = require("socket.io")(http, {'pingTimeout': 20000, 'pingInterval': 3000});
 
 const PORT = process.env.PORT || 3000;
 http.listen(PORT, () => {
   console.log(`VDOC server listenning on ${PORT}`);
 });
+
 
 app.get("/", (req, res) => {
   console.log('Requesting index.html');
@@ -17,10 +18,15 @@ app.get("/connectroom/", (req, res) => {
 });
 
 io.on("connection", socket => {
+
   socket.on("connectRoom", room => {
-    console.log(`[${room}] ==> User is connecting...`);
+    console.log(`[${room}] ==> User is ${socket.id} connecting...`);
     socket.join(room);
     io.sockets.in(room).emit("connectToRoom");
+  });
+
+  socket.on('disconnect',function(reason) {
+    console.log(`${socket.id} client disconnect because ${reason}`)
   });
 
   socket.on("userConnected", data => {
