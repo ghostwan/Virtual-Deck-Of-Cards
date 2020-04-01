@@ -18,55 +18,61 @@ app.get("/connectroom/", (req, res) => {
 });
 
 io.on("connection", socket => {
-
   socket.on("connectRoom", room => {
     console.log(`[${room}] ==> User is ${socket.id} connecting...`);
     socket.join(room);
+    socket.room = room
     io.sockets.in(room).emit("connectToRoom");
   });
 
   socket.on('disconnect',function(reason) {
-    console.log(`${socket.id} client disconnect because ${reason}`)
+    if(socket.room != undefined ) {
+      log(`${socket.id} client disconnect because ${reason}`)
+      emitToRoom("removeUser", socket.id)
+    } else {
+      console.log(`!! Can't retrieve room ID !! ${socket.id} client disconnect because ${reason}`)
+    }
   });
 
   socket.on("userConnected", data => {
     console.log(data)
-    var room = data.room
-    console.log(`[${room}] <===  User ${data.user.name} connected!`)
-    var socketUsers = Object.keys(io.sockets.adapter.rooms[room].sockets);
-    io.sockets.in(room).emit("addUser", { id: data.id, user: data.user, socketUsers: socketUsers});
+    console.log(`[${socket.room}] <===  User ${data.user.name} connected!`)
+    var socketUsers = Object.keys(io.sockets.adapter.rooms[socket.room].sockets);
+
+    emitToRoom("addUser", { id: data.id, user: data.user, socketUsers: socketUsers})
   });
 
-  socket.on("getDeck", data => {
-    log(data.room, "get new deck")
-    var deck = newDeck(data.options);
+  socket.on("getDeck", options => {
+    log("get new deck")
+    var deck = newDeck(options);
     deck = shuffleDeck(deck, deck.length);
-    io.sockets.in(data.room).emit("onUpdateData", { deck: deck, options: data.options });
+    
+    emitToRoom("onUpdateData", { deck: deck, options: options })
   });
 
-  socket.on("clearPlayingArea", data => {
-    log(data.room, "clear playing area")
-    io.sockets.in(data.room).emit("onUpdateData", {pile: []});
+  socket.on("clearPlayingArea", function() {
+    log("clear playing area")
+
+    emitToRoom("onUpdateData", {pile: []});
   });
 
   socket.on("takeCards", data => {
-    log(data.room, `${data.user} ask for ${data.numCards} cards`)
-
+    log(`${data.user} ask for ${data.numCards} cards`)
     cards = takeCards(data.numCards, data.deck, data.hand);
-    io.to(data.user).emit("onUpdateHand", cards.hand);
-    io.sockets.in(data.room).emit("onUpdateData", {deck: cards.deck});
+
+    emitToUser(data.user, "onUpdateHand", cards.hand)
+    emitToRoom("onUpdateData", {deck: cards.deck});
   });
 
   socket.on("distribute", data => {
     var deck = data.deck;
     var numCards = data.numCards;
-    var room = data.room
-    var users = Object.keys(io.sockets.adapter.rooms[room].sockets);
+    var users = Object.keys(io.sockets.adapter.rooms[socket.room].sockets);
     
     if (numCards == -1) {
       numCards = Math.trunc(deck.length / users.length);
     }
-    log(room, `distribute ${numCards} cards`)
+    log(`distribute ${numCards} cards`)
 
     for (var u = 0; u < users.length; u++) {
       hand = [];
@@ -74,32 +80,42 @@ io.on("connection", socket => {
       deck = result["deck"];
       hand = result["hand"];
       
-      io.to(users[u]).emit("onUpdateHand", hand);
+      emitToUser(users[u], "onUpdateHand", hand);
     }
-    io.sockets.in(room).emit("onUpdateData", {deck: deck});
+    emitToRoom("onUpdateData", {deck: deck});
   });
 
-  socket.on("shuffleDeck", data => {
-    log(data.room, `shuffle the deck`)
+  socket.on("shuffleDeck", deck => {
+    log(`shuffle the deck`)
 
-    data = {deck: shuffleDeck(data.deck, data.deck.length)}
-    io.sockets.in(data.room).emit("onUpdateData", data);
+    deck = shuffleDeck(deck, deck.length)
+    emitToRoom("onUpdateData", {deck : deck});
   });
 
-  socket.on("resetGame", data => {
-    log(data.room, `reset the game`)
+  socket.on("resetGame", options => {
+    log(`reset the game`)
 
-    var deck = newDeck(data.options);
+    var deck = newDeck(options);
     deck = shuffleDeck(deck, deck.length);
-    io.sockets.in(data.room).emit("onUpdateData", {deck: deck, hand: [], pile: []});
+    emitToRoom("onUpdateData", {deck: deck, hand: [], pile: []});
   });
 
   // Broadcast function, sync datas a cross all client from a room
   socket.on("updateData", data => {
-    log(data.room, "<)))")
+    log("<)))")
 
-    io.sockets.in(data.room).emit("onUpdateData", data );
+    emitToRoom("onUpdateData", data );
   });
+
+  function log(info) {
+    console.log(`[${socket.room}] ${info}`)
+  }
+  function emitToRoom(event, data) {
+    io.sockets.in(socket.room).emit(event, data)
+  }
+  function emitToUser(user, event, data) {
+    io.to(user).emit(event, data);
+  }
 });
 
 function newDeck(options) {
@@ -137,6 +153,3 @@ function shuffleDeck(deck, num) {
   return shuffledDeck;
 }
 
-function log(room, info) {
-  console.log(`[${room}] ${info}`)
-}

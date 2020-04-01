@@ -214,7 +214,6 @@
       initThePage()
 
       var newData = { 
-        room: "<%= data %>",
         id: socket.id,
         user: {
           name: name, 
@@ -226,7 +225,13 @@
 
     socket.on("addUser", function(data) {
         users.set(data.id, data.user)
-        updateUserList(data.socketUsers)
+        drawUsersInfos(data.socketUsers)
+    })
+
+    socket.on("removeUser", function(userID) {
+        users.delete(userID)
+        drawUsersInfos(null)
+        drawDeck();
     })
 
     socket.on("onUpdateHand", function(data) {
@@ -254,10 +259,6 @@
         pile = data["pile"];
         drawPile();
       }
-      // if (data["user"] != undefined) {
-      //   // users[] = data["user"];
-      //   drawUsersInfos();
-      // }
     });
   </script>
   <body>
@@ -308,7 +309,7 @@
       options["tricks"] = $("#option_tricks").is(":checked");
       options["stack_visible"] = true;
 
-      socket.emit("getDeck", { room: "<%= data %>", options: options });
+      socket.emit("getDeck", options );
     }
 
     function initThePage() {
@@ -321,46 +322,29 @@
     function clearPlayingArea() {
       console.log("clearPlayingArea")
       if (confirm("Are you sure you want to clear the playing area?")) {
-        data = { room: "<%= data %>" };
-        socket.emit("clearPlayingArea", data);
+        socket.emit("clearPlayingArea");
       }
     }
 
-    function updateUserList(socketUsers){
-      users.forEach( (user, key) => {
-        if (!socketUsers.includes(key)) {
-          console.log(`User ${key} doesn't exist anymore, removing...`)
-          users.delete(key)
-        }
-      })
-      drawUsersInfos()
-    }
     function getUserID() {
       return users.get(socket.id);
     }
 
     function shuffleDeck() {
-      data = { room: "<%= data %>", deck: deck };
-      socket.emit("shuffleDeck", data);
+      socket.emit("shuffleDeck", deck);
     }
 
     function resetGame() {
-      data = { room: "<%= data %>", options: options };
-      socket.emit("resetGame", data);
-    }
-
-    function addPile() {
-      data = { room: "<%= data %>", pile: pile };
-      socket.emit("addPile", data);
+      socket.emit("resetGame", options);
     }
 
     function takeOne() {
-      data = { room: "<%= data %>", numCards: 1, deck: deck, hand: my_hand, user: socket.id };
+      var data = { numCards: 1, deck: deck, hand: my_hand, user: socket.id };
       socket.emit("takeCards", data);
     }
 
     function updatePile() {
-      data = { room: "<%= data %>", pile: pile, options: options };
+      var data = { pile: pile, options: options };
       socket.emit("updateData", data);
     }
 
@@ -369,23 +353,29 @@
       if ($("#all_cards").is(":checked")) {
         numCards = -1;
       }
-      data = { room: "<%= data %>", numCards: numCards, deck: deck, hand: my_hand};
+      data = { numCards: numCards, deck: deck, hand: my_hand};
       socket.emit("distribute", data);
     }
 
-    function drawUsersInfos(){
-      $("#numPlayers").text("Players: " + users.size);
+    function drawUsersInfos(connectedUsersID){
       $("#user_container").empty()
 
       users.forEach( (user, key) => {
+        if (connectedUsersID != null && !connectedUsersID.includes(key)) {
+          console.log(`User ${key} doesn't exist anymore, removing...`)
+          users.delete(key)
+        }
+        else {
           var content = `
               <div class="user_profil">
                 <p class="user_emoji">${user.emoji}</p>
                 <p>${user.name}</p>
               </div>
-        `
-        $("#user_container").append(content)
+          `
+          $("#user_container").append(content)
+        }
       })
+      $("#numPlayers").text("Players: " + users.size);
     }
 
     function drawDeck() {
