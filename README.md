@@ -18,6 +18,7 @@ Fear no more, as the virtual deck of cards is here! Simply create or sign into a
 # What you can currently do
 - Create a room to play any cards game with your friends!
 - Share the room url to invite people into the game!
+- See who's connected to the room
 - Choose your name roger!
 - Choose to play with cavaliers or not (52 vs 56 cards)
 - Distribute all the deck or a specific number of cards among all players 
@@ -31,7 +32,6 @@ Fear no more, as the virtual deck of cards is here! Simply create or sign into a
 
 # What's next 
 
-- GAME PLAY - Afficher utilisateurs connectés
 - UI - Passer les checkbox en toggle
 - GAME PLAY - Gestion des plies
 - GAME PLAY - Ordre du tour
@@ -47,9 +47,7 @@ Fear no more, as the virtual deck of cards is here! Simply create or sign into a
 
 # Bugs
 
-- Si on distribue plus de cartes que de personnes ça foire les comptes
-- Quand quelqu'un se déconnecte on ne vois pas le nombre de personne changer
-  
+- Si on distribue plus de cartes que de personnes ça foire les comptes  
 
 
 # How to play locally

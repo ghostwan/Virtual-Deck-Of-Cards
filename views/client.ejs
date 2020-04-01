@@ -89,10 +89,8 @@
       .card_deck {
         font-size: 15em;
         line-height: 100%;
-        margin-left: 23%;
       }
       .distrib-btn {
-        margin-left: 25%;
         margin-top: 10px;
       }
       #cardDisplay {
@@ -265,7 +263,7 @@
     <div id="screen" class="jumbotron jumbotron-fluid">
       <div id="main" class="container-fluid">
         <div id="playersArea" class="col-11">
-          <h2 style="display:inline;">Players</h2>
+          <h2 class="player_number" style="display:inline;">Players</h2>
           <div id="user_container"></div>
         </div>
         <div id="mainrow" class="row">
@@ -375,7 +373,7 @@
           $("#user_container").append(content)
         }
       })
-      $("#numPlayers").text("Players: " + users.size);
+      $(".player_number").text("Players: " + users.size);
     }
 
     function drawDeck() {
@@ -394,9 +392,10 @@
             <!-- <input type="checkbox" class="form-check-input" id="option_tricks" />
             <label class="form-check-label" for="option_tricks">Can we claim tricks (as for tarot)</label> --!>
           </div>
-          <div class="col-6">
-            <h2 class="deckDesc">Room <%= data %></h2>
-            <h2 id="numPlayers" class="deckDesc">Players: 1</h2>
+          <div class="col-6 container h-100">
+            <div class="row h-100 justify-content-center align-items-center">
+                <h2>Room <%= data %></h2>
+            </div>
           </div>
         `
       } else if (deck.length == 0) {
@@ -404,7 +403,11 @@
         <div class = 'col-6'><h2>Deck is empty</h2>
           <button onclick = 'resetGame()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>
         </div>
-        <div class = 'col-6'><span class="card_deck">∅</span></div>
+        <div class="col-6 container h-100">
+          <div class="row h-100 justify-content-center align-items-center">
+            <span class="card_deck">∅</span>
+          </div>
+        </div>
         `
       } else  {
         var originalLength = options["cavaliers"] ? 56 : 52;
@@ -431,8 +434,9 @@
               `
         content += "</div>";
         content += `
-          <div class = 'col-6' ><span class="card_deck">🂠</span>
-            <button class='col-6 distrib-btn btn btn-primary ' onclick = 'distributeCards()'>Distribute</button>
+          <div class = 'col-6'>
+            <span style="margin-left:25%" class="card_deck">🂠</span>
+            <button style="margin-left:25%" class='col-6 distrib-btn btn btn-primary ' onclick = 'distributeCards()'>Distribute</button>
           </div>
         `
       }
