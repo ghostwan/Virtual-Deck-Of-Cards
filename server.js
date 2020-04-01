@@ -25,9 +25,10 @@ io.on("connection", socket => {
 
   socket.on("userConnected", data => {
     console.log(data)
-    console.log(`[${data["room"]}] <===  User ${data["name"]} connected!`)
-    var socketUsers = Object.keys(io.sockets.adapter.rooms[data["room"]].sockets);
-    io.sockets.in(data["room"]).emit("addUser", {id: data["id"], name: data["name"], socketUsers: socketUsers});
+    var room = data.room
+    console.log(`[${room}] <===  User ${data.user.name} connected!`)
+    var socketUsers = Object.keys(io.sockets.adapter.rooms[room].sockets);
+    io.sockets.in(room).emit("addUser", { id: data.id, user: data.user, socketUsers: socketUsers});
   });
 
   socket.on("getDeck", data => {

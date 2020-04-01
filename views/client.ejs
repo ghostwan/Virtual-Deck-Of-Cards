@@ -29,6 +29,7 @@
     <style>
       .jumbotron-fluid {
         background-color: white;
+        padding-top: 0px;
       }
       #main {
         height: 90vh;
@@ -45,6 +46,14 @@
         box-shadow: 1px 1px 5px 1px #888888;
         height: 100%;
         padding: 20px 20px;
+      }
+      #playersArea {
+        box-shadow: 1px 1px 5px 1px #888888;
+        width: 100%;
+        height: 60px;
+        margin-bottom: 20px;
+        padding: 5px 5px;
+        line-height: 50px;
       }
       .get_deck {
         font-size: 30px;
@@ -77,7 +86,7 @@
       .col-form-label {
         font-size: 20px;
       }
-      span {
+      .card_deck {
         font-size: 15em;
         line-height: 100%;
         margin-left: 23%;
@@ -110,6 +119,20 @@
         margin: 0 auto;
         display: inline-block;
       }
+      #user_container {
+        display: inline-block;
+        justify-content: center;
+        width: 80%;
+        text-align:center;
+      }
+      .user_emoji {
+        font-size: 2em;
+      }
+      .user_profil {
+        margin: 10px;
+        display: inline-block;
+        line-height: 6px;
+      }
       #button_sort {
         vertical-align: middle;
       }
@@ -123,10 +146,17 @@
         visibility: hidden; 
         margin-left: 1em;
       }
+      
 
     </style>
   </head>
   <script>
+    const emojis = ['😄','😃','😀','😊','☺','😉','😍','😘','😚','😗','😙','😜','😝','😛','😳','😁','😔',
+      '😌','😒','😞','😣','😢','😂','😭','😪','😥','😰','😅','😓','😩','😫','😨','😱','😠','😡','😤','😖',
+      '😆','😋','😷','😎','😴','😵','😲','😟','😦','😧','😈','👿','😮','😬','😐','😕','😯','😶','😇','😏','😑',
+      '👲','👳','👮','👷','💂','👶','👦','👧','👨','👩','👴','👵','👱','👼','👸','😺','😸','😻','😽','😼','🙀',
+      '😿','😹','😾','👹','👺','🙈','🙉','🙊','💀','👽','💩'];
+
     const suit = ["Clubs", "Diamonds", "Spades", "Hearts"];
 
     const rank_normal = 
@@ -149,6 +179,8 @@
 
     var users = new Map();
     var name = -1;
+    var emoji = -1;
+
     var deck = [];
     var pile = [];
     var my_hand = [];
@@ -162,7 +194,6 @@
     };
 
     socket.on("connectToRoom", function() {
-
       if (name == -1) {
         var randomRoger = "roger" + Math.floor(Math.random() * 100);
         var nameTemp = prompt("What's your name ?", randomRoger);
@@ -170,6 +201,7 @@
           nameTemp = randomRoger
         }
         name = nameTemp
+        emoji = emojis[Math.floor(Math.random() * emojis.length)]
         $("#your_hand").text("Your Hand " + name);
       }
       deck = undefined;
@@ -177,16 +209,24 @@
       my_hand = [];
       options = {};
 
+
       // Redraw everything at each connection
       initThePage()
 
-      var newData = { room: "<%= data %>", name: name, id: socket.id };
+      var newData = { 
+        room: "<%= data %>",
+        id: socket.id,
+        user: {
+          name: name, 
+          emoji: emoji
+        }
+      };
       socket.emit("userConnected", newData )
     });
 
     socket.on("addUser", function(data) {
-        users.set(data.id, {name: data.name})
-        updateUserList(data["socketUsers"])
+        users.set(data.id, data.user)
+        updateUserList(data.socketUsers)
     })
 
     socket.on("onUpdateHand", function(data) {
@@ -221,8 +261,12 @@
     });
   </script>
   <body>
-    <div class="jumbotron jumbotron-fluid">
+    <div id="screen" class="jumbotron jumbotron-fluid">
       <div id="main" class="container-fluid">
+        <div id="playersArea" class="col-11">
+          <h2 style="display:inline;">Players</h2>
+          <div id="user_container"></div>
+        </div>
         <div id="mainrow" class="row">
           <div id="playArea" class="col-4">
             <h2>Playing Area</h2>
@@ -275,6 +319,7 @@
     }
 
     function clearPlayingArea() {
+      console.log("clearPlayingArea")
       if (confirm("Are you sure you want to clear the playing area?")) {
         data = { room: "<%= data %>" };
         socket.emit("clearPlayingArea", data);
@@ -330,6 +375,17 @@
 
     function drawUsersInfos(){
       $("#numPlayers").text("Players: " + users.size);
+      $("#user_container").empty()
+
+      users.forEach( (user, key) => {
+          var content = `
+              <div class="user_profil">
+                <p class="user_emoji">${user.emoji}</p>
+                <p>${user.name}</p>
+              </div>
+        `
+        $("#user_container").append(content)
+      })
     }
 
     function drawDeck() {
@@ -337,7 +393,7 @@
       var content = ""
       if (deck == undefined) {
         content = `
-        <div class="col-6 form-group">
+          <div class="col-6 form-group">
             <h2 class="startText">Everyone in?</h2>
             <br /><br />
             <button class="btn btn-outline-dark btn-lg btn-block get_deck" onclick="start()">Start</button>
@@ -345,20 +401,20 @@
             <input type="checkbox" class="form-check-input" id="option_cavaliers" />
             <label class="form-check-label" for="option_cavaliers">Include cavaliers (56 cards) </label>
             <br />
-            <input type="checkbox" class="form-check-input" id="option_tricks" />
-            <label class="form-check-label" for="option_tricks">Can we claim tricks (as for tarot)</label>
+            <!-- <input type="checkbox" class="form-check-input" id="option_tricks" />
+            <label class="form-check-label" for="option_tricks">Can we claim tricks (as for tarot)</label> --!>
           </div>
           <div class="col-6">
             <h2 class="deckDesc">Room <%= data %></h2>
             <h2 id="numPlayers" class="deckDesc">Players: 1</h2>
-        </div>
+          </div>
         `
       } else if (deck.length == 0) {
         content = `
         <div class = 'col-6'><h2>Deck is empty</h2>
           <button onclick = 'resetGame()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>
         </div>
-        <div class = 'col-6'><span>∅</span></div>
+        <div class = 'col-6'><span class="card_deck">∅</span></div>
         `
       } else  {
         var originalLength = options["cavaliers"] ? 56 : 52;
@@ -385,7 +441,7 @@
               `
         content += "</div>";
         content += `
-          <div class = 'col-6' ><span>🂠</span>
+          <div class = 'col-6' ><span class="card_deck">🂠</span>
             <button class='col-6 distrib-btn btn btn-primary ' onclick = 'distributeCards()'>Distribute</button>
           </div>
         `
@@ -465,7 +521,7 @@
           <input type='checkbox' class='form-check-input' id='option_stack' onclick = 'onOptionStack()' ${isChecked ? "checked" : ""} />
           <label class="form-check-label" for="option_stack">View all cards</label>
         </div>
-        <button id="are_button" class = "btn btn-outline-dark btn-lg btn-block get_deck onclick = "clearPlayingArea()">Clear</button>
+        <button id="are_button" class = "btn btn-outline-dark btn-lg btn-block "get_deck" onclick = "clearPlayingArea()">Clear</button>
       `
       $("#playArea").append(content);
 
