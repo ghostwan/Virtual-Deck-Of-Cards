@@ -176,8 +176,8 @@
     ]; 
 
     var users = new Map();
-    var name = -1;
-    var emoji = -1;
+    var tricks = {};
+    var user = -1;
 
     var deck = [];
     var pile = [];
@@ -192,43 +192,34 @@
     };
 
     socket.on("connectToRoom", function() {
-      if (name == -1) {
+      /*First initialisation*/
+      if (user == -1) {
         var randomRoger = "roger" + Math.floor(Math.random() * 100);
         var nameTemp = prompt("What's your name ?", randomRoger);
         if (nameTemp == null) {
           nameTemp = randomRoger
         }
-        name = nameTemp
-        emoji = emojis[Math.floor(Math.random() * emojis.length)]
-        $("#your_hand").text("Your Hand " + name);
+        user = {
+          id: socket.id,
+          date: Date.now(),
+          name: nameTemp, 
+          emoji: emojis[Math.floor(Math.random() * emojis.length)]
+        }
       }
       deck = undefined;
       pile = [];
       my_hand = [];
       options = {};
-
-
+      tricks = {};
       // Redraw everything at each connection
+      $("#your_hand").text("Your Hand " + user.name);
       initThePage()
-
-      var newData = { 
-        id: socket.id,
-        user: {
-          name: name, 
-          emoji: emoji
-        }
-      };
-      socket.emit("userConnected", newData )
+      socket.emit("userConnected", user )
     });
-
-    socket.on("addUser", function(data) {
-        users.set(data.id, data.user)
-        drawUsersInfos(data.socketUsers)
-    })
 
     socket.on("removeUser", function(userID) {
         users.delete(userID)
-        drawUsersInfos(null)
+        drawUsersInfos()
         drawDeck();
     })
 
@@ -242,20 +233,28 @@
     socket.on("onUpdateData", function(data) {
       console.log(">>>>> New data broadcast >>>>>");
       console.log(data);
-      if (data["options"] != undefined) {
-        options = data["options"];
+      if (data.options != undefined) {
+        options = data.options;
       }
-      if (data["hand"] != undefined) {
-        my_hand = data["hand"];
+      if (data.hand != undefined) {
+        my_hand = data.hand;
         drawHand();
       }
-      if (data["deck"] != undefined) {
-        deck = data["deck"];
+      if (data.deck != undefined) {
+        deck = data.deck;
         drawDeck();
       }
-      if (data["pile"] != undefined) {
-        pile = data["pile"];
+      if (data.pile != undefined) {
+        pile = data.pile;
         drawPile();
+      }
+      if(data.user != undefined) {
+        users.set(data.user.id, data.user)
+        drawUsersInfos()
+      }
+      if(data.tricks != undefined) {
+        tricks = data.tricks;
+        drawUsersInfos()
       }
     });
   </script>
@@ -307,7 +306,7 @@
       options["tricks"] = $("#option_tricks").is(":checked");
       options["stack_visible"] = true;
 
-      socket.emit("getDeck", options );
+      resetGame();
     }
 
     function initThePage() {
@@ -318,9 +317,19 @@
     }
 
     function clearPlayingArea() {
-      console.log("clearPlayingArea")
       if (confirm("Are you sure you want to clear the playing area?")) {
-        socket.emit("clearPlayingArea");
+        socket.emit("updateData", {what: "clear playing area", pile: []});
+      }
+    }
+
+    function claimTrick() {
+      if (confirm("Are you sure you won the trick?")) {
+        tricks[user.id]
+        if (tricks[user.id] == undefined) {
+          tricks[user.id]=[]
+        }
+        tricks[user.id].push(pile)
+        socket.emit("updateData", {what: "claim tricks", tricks: tricks, pile: []});
       }
     }
 
@@ -342,8 +351,7 @@
     }
 
     function updatePile() {
-      var data = { pile: pile, options: options };
-      socket.emit("updateData", data);
+      socket.emit("updateData", { what: "update pile", pile: pile, options: options });
     }
 
     function distributeCards() {
@@ -355,24 +363,25 @@
       socket.emit("distribute", data);
     }
 
-    function drawUsersInfos(connectedUsersID){
+    function drawUsersInfos(){
       $("#user_container").empty()
-
-      users.forEach( (user, key) => {
-        if (connectedUsersID != null && !connectedUsersID.includes(key)) {
-          console.log(`User ${key} doesn't exist anymore, removing...`)
-          users.delete(key)
+      var userArray  = Array.from(users.values());
+      userArray.sort((a,b) => a.date - b.date)
+      userArray.forEach( user => {
+        var tricksNumber = ""
+        var userTricks = tricks[user.id]
+        if(userTricks != undefined) {
+          tricksNumber = " 🂠 <b>"+userTricks.length+"</b>"
         }
-        else {
-          var content = `
-              <div class="user_profil">
-                <p class="user_emoji">${user.emoji}</p>
-                <p>${user.name}</p>
-              </div>
-          `
-          $("#user_container").append(content)
-        }
+        var content = `
+            <div class="user_profil">
+              <p class="user_emoji">${user.emoji}</p>
+              <p>${user.name}${tricksNumber}</p>
+            </div>
+        `
+        $("#user_container").append(content)
       })
+
       $(".player_number").text("Players: " + users.size);
     }
 
@@ -386,11 +395,11 @@
             <br /><br />
             <button class="btn btn-outline-dark btn-lg btn-block get_deck" onclick="start()">Start</button>
             <br />
-            <input type="checkbox" class="form-check-input" id="option_cavaliers" />
+            <input type="checkbox" class="form-check-input" id="option_cavaliers" checked/>
             <label class="form-check-label" for="option_cavaliers">Include cavaliers (56 cards) </label>
             <br />
-            <!-- <input type="checkbox" class="form-check-input" id="option_tricks" />
-            <label class="form-check-label" for="option_tricks">Can we claim tricks (as for tarot)</label> --!>
+            <input type="checkbox" class="form-check-input" id="option_tricks" checked/>
+            <label class="form-check-label" for="option_tricks">Can we claim tricks (as for tarot)</label>
           </div>
           <div class="col-6 container h-100">
             <div class="row h-100 justify-content-center align-items-center">
@@ -410,7 +419,7 @@
         </div>
         `
       } else  {
-        var originalLength = options["cavaliers"] ? 56 : 52;
+        var originalLength = options.cavaliers ? 56 : 52;
 
         content = "<div class = 'col-6'><h2>Deck: " + deck.length + " / " + originalLength + " cards</h2><br>";
         if (originalLength == deck.length) {
@@ -449,10 +458,10 @@
       $("#your_hand").empty();
       var content = ""
       if (my_hand.length > 1) {
-        content = `Your Hand ${name} : ${my_hand.length} cards`
+        content = `Your Hand ${user.name} : ${my_hand.length} cards`
         $("#cards_control").visible()
       }else {
-        content = `Your Hand ${name}`
+        content = `Your Hand ${user.name}`
         $("#cards_control").invisible()
       }
       $("#your_hand").append(content);
@@ -514,9 +523,16 @@
         <div class = "col-6 form-group">
           <input type='checkbox' class='form-check-input' id='option_stack' onclick = 'onOptionStack()' ${isChecked ? "checked" : ""} />
           <label class="form-check-label" for="option_stack">View all cards</label>
-        </div>
-        <button id="are_button" class = "btn btn-outline-dark btn-lg btn-block "get_deck" onclick = "clearPlayingArea()">Clear</button>
-      `
+        </div>`
+
+      if(options.tricks) {
+        if(pile.length == users.size) {
+          content += '<button id="are_button" class = "btn btn-outline-dark btn-lg btn-block" onclick = "claimTrick()">Claim trick</button>'
+        }
+      } else {
+        content += '<button id="are_button" class = "btn btn-outline-dark btn-lg btn-block" onclick = "clearPlayingArea()">Clear</button>'
+      }
+      
       $("#playArea").append(content);
 
       for (var i = 0; i < pile.length; i++) {
@@ -585,7 +601,7 @@
 
       my_hand.splice(cardIndex, 1);
       $(".card:eq(" + cardIndex + ")").remove();
-      card["username"] = name;
+      card["username"] = user.name;
       pile.push(card);
 
       updatePile();

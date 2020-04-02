@@ -34,26 +34,10 @@ io.on("connection", socket => {
     }
   });
 
-  socket.on("userConnected", data => {
-    console.log(data)
-    console.log(`[${socket.room}] <===  User ${data.user.name} connected!`)
-    var socketUsers = Object.keys(io.sockets.adapter.rooms[socket.room].sockets);
-
-    emitToRoom("addUser", { id: data.id, user: data.user, socketUsers: socketUsers})
-  });
-
-  socket.on("getDeck", options => {
-    log("get new deck")
-    var deck = newDeck(options);
-    deck = shuffleDeck(deck, deck.length);
-    
-    emitToRoom("onUpdateData", { deck: deck, options: options })
-  });
-
-  socket.on("clearPlayingArea", function() {
-    log("clear playing area")
-
-    emitToRoom("onUpdateData", {pile: []});
+  socket.on("userConnected", user => {
+    console.log(user)
+    console.log(`[${socket.room}] <===  User ${user.name} connected!`)
+    emitToRoom("onUpdateData", {user : user})
   });
 
   socket.on("takeCards", data => {
@@ -94,15 +78,19 @@ io.on("connection", socket => {
 
   socket.on("resetGame", options => {
     log(`reset the game`)
-
     var deck = newDeck(options);
-    deck = shuffleDeck(deck, deck.length);
-    emitToRoom("onUpdateData", {deck: deck, hand: [], pile: []});
+
+    emitToRoom("onUpdateData", {
+      deck: shuffleDeck(deck, deck.length), 
+      hand: [], 
+      pile: [], 
+      options: options, 
+      tricks:{} });
   });
 
   // Broadcast function, sync datas a cross all client from a room
   socket.on("updateData", data => {
-    log("<)))")
+    log("<))) "+(data.what != undefined? data.what : ""))
 
     emitToRoom("onUpdateData", data );
   });

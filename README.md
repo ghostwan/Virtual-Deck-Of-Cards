@@ -25,6 +25,7 @@ Fear no more, as the virtual deck of cards is here! Simply create or sign into a
 - Take a card from the deck
 - Play a card from your hand
 - Take a card from the playing area (for some game as yaniv or if you did a mistake)
+- Claim the trick if you won the round
 - Rearange cards in your hand or sort them
 - See who play a card
 - Clear the playing area
@@ -33,7 +34,7 @@ Fear no more, as the virtual deck of cards is here! Simply create or sign into a
 # What's next 
 
 - UI - Passer les checkbox en toggle
-- GAME PLAY - Gestion des plies
+- GAME PLAY - Affichage des plies remportés
 - GAME PLAY - Ordre du tour
 - GAME PLAY - Prise en compte des annonces
 - GAME PLAY - Locker la partie pour que plus personnes ne puisse rentrer
@@ -42,6 +43,7 @@ Fear no more, as the virtual deck of cards is here! Simply create or sign into a
 - GAME PLAY - Gestion des scores
 - GAME PLAY - Preset de configuration pour des jeux existants
 - GAME PLAY - Rajouter les cartes les atouts de tarot
+- GAME PLAY - Sélectionner le nombre de deck quand on est nombreux
 - UX - Chat écrit
 - UX - Chat oral / video
 
