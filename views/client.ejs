@@ -175,7 +175,7 @@
       ["🂱", "🂲", "🂳", "🂴", "🂵", "🂶", "🂷", "🂸", "🂹", "🂺", "🂻", "🂼", "🂽", "🂾"]  //  Hearts (coeur)
     ]; 
 
-    var users = new Map();
+    var users = [];
     var tricks = {};
     var user = -1;
     var deckOriginalLength = -1;
@@ -192,7 +192,7 @@
       event.returnValue = "Refreshing the page will make you disconnect from the game!";
     };
 
-    socket.on("connectToRoom", function() {
+    socket.on("askInfo", function() {
       /*First initialisation*/
       if (user == -1) {
         var randomRoger = "roger" + Math.floor(Math.random() * 100);
@@ -207,23 +207,8 @@
           emoji: emojis[Math.floor(Math.random() * emojis.length)]
         }
       }
-      remainingCards = -1;
-      deckOriginalLength = -1;
-      pile = [];
-      my_hand = [];
-      options = {};
-      tricks = {};
-      // Redraw everything at each connection
-      $("#your_hand").text("Your Hand " + user.name);
-      initThePage()
-      socket.emit("userConnected", user )
+      socket.emit("sendInfo", user )
     });
-
-    socket.on("removeUser", function(userID) {
-        users.delete(userID)
-        drawUsersInfos()
-        drawDeck();
-    })
 
     socket.on("onUpdateHand", function(data) {
       console.log("===== Update Hand =====");
@@ -235,32 +220,47 @@
     socket.on("onUpdateData", function(data) {
       console.log(">>>>> New data broadcast >>>>>");
       console.log(data);
+      var reDrawHand = false;
+      var reDrawPile = false; 
+      var reDrawDeck = false;
+      var reDrawUsersInfo = false;
+
       if (data.options != undefined) {
         options = data.options;
+        reDrawDeck = true;
+        reDrawPile = true;
       }
       if (data.hand != undefined) {
         my_hand = data.hand;
-        drawHand();
+        reDrawHand = true;
       }
       if (data.deckOriginalLength != undefined) {
         deckOriginalLength = data.deckOriginalLength;
+        reDrawDeck = true
       }
       if (data.remainingCards != undefined) {
         remainingCards = data.remainingCards;
-        drawDeck();
+        reDrawDeck = true
       }
       if (data.pile != undefined) {
         pile = data.pile;
-        drawPile();
+        reDrawPile = true
       }
-      if(data.user != undefined) {
-        users.set(data.user.id, data.user)
-        drawUsersInfos()
+      if(data.users != undefined) {
+        users = data.users
+        reDrawDeck = true
+        reDrawUsersInfo = true
       }
       if(data.tricks != undefined) {
         tricks = data.tricks;
-        drawUsersInfos()
+        reDrawUsersInfo = true
       }
+
+      if(reDrawDeck) drawDeck();
+      if(reDrawHand) drawHand(data.instruction == true);
+      if(reDrawPile) drawPile();
+      if(reDrawUsersInfo) drawUsersInfos()
+
     });
   </script>
   <body>
@@ -309,16 +309,11 @@
     function start() {
       options["cavaliers"] = $("#option_cavaliers").is(":checked");
       options["tricks"] = $("#option_tricks").is(":checked");
+      options["cards_distribute"] = -1;
       options["stack_visible"] = true;
 
-      resetGame();
-    }
-
-    function initThePage() {
-      drawDeck()
-      drawPile()
-      drawHand()
-      $("#instruction").show();
+      socket.emit("updateData", { what: "update options", options: options });
+      resetRound();
     }
 
     function clearPlayingArea() {
@@ -338,16 +333,12 @@
       }
     }
 
-    function getUserID() {
-      return users.get(socket.id);
-    }
-
     function shuffleDeck() {
       socket.emit("shuffleDeck");
     }
 
-    function resetGame() {
-      socket.emit("resetGame", options);
+    function resetRound() {
+      socket.emit("resetRound");
     }
 
     function takeOne() {
@@ -355,24 +346,10 @@
       socket.emit("takeCards", data);
     }
 
-    function updatePile() {
-      socket.emit("updateData", { what: "update pile", pile: pile, options: options });
-    }
-
-    function distributeCards() {
-      var numCards = $("#distribute_card").val();
-      if ($("#all_cards").is(":checked")) {
-        numCards = -1;
-      }
-      data = { numCards: numCards, hand: my_hand};
-      socket.emit("distribute", data);
-    }
 
     function drawUsersInfos(){
       $("#user_container").empty()
-      var userArray  = Array.from(users.values());
-      userArray.sort((a,b) => a.date - b.date)
-      userArray.forEach( user => {
+      users.forEach( user => {
         var tricksNumber = ""
         var userTricks = tricks[user.id]
         if(userTricks != undefined) {
@@ -387,7 +364,15 @@
         $("#user_container").append(content)
       })
 
-      $(".player_number").text("Players: " + users.size);
+      $(".player_number").text("Players: " + users.length);
+    }
+
+    function isChecked(name) {
+      return `${options[name] ? "checked" : ""}`
+    }
+
+    function isAllCards() {
+      return options["cards_distribute"] == -1;
     }
 
     function drawDeck() {
@@ -400,10 +385,12 @@
             <br /><br />
             <button class="btn btn-outline-dark btn-lg btn-block get_deck" onclick="start()">Start</button>
             <br />
-            <input type="checkbox" class="form-check-input" id="option_cavaliers" checked/>
-            <label class="form-check-label" for="option_cavaliers">Include cavaliers (56 cards) </label>
+            <input type="checkbox" class="form-check-input" 
+                   id="option_cavaliers" onclick = 'onOptionChange("cavaliers")' ${isChecked("cavaliers")}/>
+            <label class="form-check-label" for="option_cavaliers" >Include cavaliers (56 cards) </label>
             <br />
-            <input type="checkbox" class="form-check-input" id="option_tricks" checked/>
+            <input type="checkbox" class="form-check-input" 
+                   id="option_tricks" onclick = 'onOptionChange("tricks")' ${isChecked("tricks")}/>
             <label class="form-check-label" for="option_tricks">Can we claim tricks (as for tarot)</label>
           </div>
           <div class="col-6 container h-100">
@@ -414,8 +401,8 @@
         `
       } else if (remainingCards == 0) {
         content = `
-        <div class = 'col-6'><h2>Deck is empty</h2>
-          <button onclick = 'resetGame()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>
+        <div class = 'col-6'><h2>Deck is empty</h2><br>
+          <button onclick = 'resetRound()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>
         </div>
         <div class="col-6 container h-100">
           <div class="row h-100 justify-content-center align-items-center">
@@ -427,47 +414,62 @@
 
         content = "<div class = 'col-6'><h2>Deck: " + remainingCards + " / " + deckOriginalLength + " cards</h2><br>";
         if (deckOriginalLength == remainingCards) {
-          content +="<button onclick = 'shuffleDeck()' class = 'btn btn-outline-dark btn-lg btn-block'>Shuffle Cards</button><br>";
-        } else {
-          content +="<button onclick = 'resetGame()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>";
-        }
-
-        var message = users.size == 1 ? "Your are the only player connected! "
-                                        : "Card to distribute to each player (" + users.size + " players)";
-
-        content += ` 
-          <button class = 'btn btn-outline-dark btn-lg btn-block' onclick = 'takeOne()'>Take 1 Card</button><br>
+          var message = users.length == 1 ? "Your are the only player connected! "
+                                        : "Card to distribute to each player (" + users.length + " players)";
+          content +=`
+          <button onclick = 'shuffleDeck()' class = 'btn btn-outline-dark btn-lg btn-block'>Shuffle Cards</button><br>
+          <button class = 'btn btn-outline-dark btn-lg btn-block' onclick = 'distributeCards()'>Distribute</button><br>
           <div class="control-group form-inline">
             <label class="mb-2" for="distribute_card">${message}</label>
-            <input class= "mb-2" type = "number" id = "distribute_card" placeholder = "number of cards" disabled />
+            <input  class= "mb-2" type = "number" id = "distribute_card" placeholder = "number of cards" 
+                value="${isAllCards()? "" : options["cards_distribute"]}" ${options["cards_distribute"] == -1 ? "disabled" : ""} />
             <div class="mx-sm-3 mb-2"> Or </div>'
             <label class="form-check-label mb-2" for="all_cards">All cards</label>
-            <input type='checkbox' class='form-check-input mb-2' id='all_cards' checked onclick='onOptionDistributeAllCard()'>
+            <input  type='checkbox' class='form-check-input mb-2' 
+                    id='option_all_cards' ${isAllCards() ? "checked" : ""} onclick='onOptionAllCardsChange()'>
           </div>
               `
+        } else {
+          content +="<button onclick = 'resetRound()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>";
+        }
+
         content += "</div>";
         content += `
           <div class = 'col-6'>
             <span style="margin-left:25%" class="card_deck">🂠</span>
-            <button style="margin-left:25%" class='col-6 distrib-btn btn btn-primary ' onclick = 'distributeCards()'>Distribute</button>
+            <button style="margin-left:25%" class='col-6 distrib-btn btn btn-primary ' onclick = 'takeOne()'>Draw a Card</button>
           </div>
         `
       }
       $("#mainDeck").append(content);
     }
 
-    function drawHand() {
+    function drawHand(instruction = false) {
 
-      $("#instruction").hide();
       $("#your_hand").empty();
       var content = ""
-      if (my_hand.length > 1) {
-        content = `Your Hand ${user.name} : ${my_hand.length} cards`
-        $("#cards_control").visible()
-      }else {
-        content = `Your Hand ${user.name}`
-        $("#cards_control").invisible()
+
+      if(instruction) {
+        content = `Read this instructions ${user.name}`
+          $("#instruction").show();
+          $("#cards_control").invisible()
+      } else {
+        $("#instruction").hide();
+        switch(my_hand.length) {
+          case 0: 
+            content = `Your Hand ${user.name} is empty!`;
+            $("#cards_control").invisible();
+            break;
+          case 1: 
+            content = `Your Hand ${user.name}`;
+            $("#cards_control").invisible();
+            break;
+          default:$item
+            content = `Your Hand ${user.name} : ${my_hand.length} cards`;
+            $("#cards_control").visible()
+        }
       }
+
       $("#your_hand").append(content);
 
       $("#cardDisplay").empty();
@@ -519,18 +521,17 @@
     function drawPile() {
       var rank = options["cavaliers"] ? rank_cavaliers : rank_normal;
       var unicode = options["cavaliers"] ? unicode_cavaliers : unicode_normal;
-      var isChecked = options["stack_visible"]
       
       $("#playArea").empty();
       var content = `
         <h2>Playing Area</h2>
         <div class = "col-6 form-group">
-          <input type='checkbox' class='form-check-input' id='option_stack' onclick = 'onOptionStack()' ${isChecked ? "checked" : ""} />
-          <label class="form-check-label" for="option_stack">View all cards</label>
+          <input type='checkbox' class='form-check-input' id='option_stack_visible' onclick = 'onOptionChange("stack_visible")' ${isChecked("stack_visible")} />
+          <label class="form-check-label" for="option_stack_visible">View all cards</label>
         </div>`
 
       if(options.tricks) {
-        if(pile.length == users.size) {
+        if(pile.length == users.length) {
           content += '<button id="are_button" class = "btn btn-outline-dark btn-lg btn-block" onclick = "claimTrick()">Claim trick</button>'
         }
       } else {
@@ -570,17 +571,27 @@
       drawHand();
     }
 
-    function onOptionStack() {
-      options["stack_visible"] = $("#option_stack").is(":checked");
-      updatePile();
+    function distributeCards() {
+      var numCards = $("#distribute_card").val();
+      if ($("#option_all_cards").is(":checked")) {
+        numCards = -1;
+      } 
+      data = { numCards: numCards, hand: my_hand};
+      socket.emit("distribute", data);
     }
 
-    function onOptionDistributeAllCard() {
-      if ($("#all_cards").is(":checked")) {
-        $("#distribute_card").prop("disabled", true);
+    function onOptionAllCardsChange() {
+      if($("#option_all_cards").is(":checked")) {
+        options["cards_distribute"] = -1;
       } else {
-        $("#distribute_card").prop("disabled", false);
+        options["cards_distribute"] = 1;
       }
+      socket.emit("updateData", { what: "update options", options: options });
+    }
+
+    function onOptionChange(name) {
+      options[name] = $("#option_"+name).is(":checked");
+      socket.emit("updateData", { what: "update options", options: options });
     }
 
     function debug(object) {
@@ -589,11 +600,8 @@
         console.log("=============")
     }
 
-    
-
     // Move card from you deck to the pile
     $("body").on("click", ".card", function() {
-      
       // If reorder possible do nothing
       if($("#option_reorder").prop("checked")) {
         return
@@ -608,7 +616,7 @@
       card["username"] = user.name;
       pile.push(card);
 
-      updatePile();
+      socket.emit("updateData", { what: "update pile", pile: pile });
       drawHand();
     });
 
@@ -622,7 +630,7 @@
       my_hand.push(card);
       pile.splice(cardIndex, 1);
 
-      updatePile();
+      socket.emit("updateData", { what: "update pile", pile: pile });
       drawHand();
     });
 

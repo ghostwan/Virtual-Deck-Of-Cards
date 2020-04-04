@@ -22,22 +22,62 @@ io.on("connection", socket => {
     console.log(`[${room}] ==> User is ${socket.id} connecting...`);
     socket.join(room);
     socket.room = room
-    io.sockets.in(room).emit("connectToRoom");
+    emitToUser(socket.id, "askInfo")
   });
 
-  socket.on('disconnect',function(reason) {
-    if(socket.room != undefined ) {
-      log(`${socket.id} client disconnect because ${reason}`)
-      emitToRoom("removeUser", socket.id)
-    } else {
-      console.log(`!! Can't retrieve room ID !! ${socket.id} client disconnect because ${reason}`)
-    }
-  });
-
-  socket.on("userConnected", user => {
+  socket.on("sendInfo", (user) => {
     console.log(user)
     console.log(`[${socket.room}] <===  User ${user.name} connected!`)
-    emitToRoom("onUpdateData", {user : user})
+
+    if(getUsersConnected().length <= 1) {
+      // If we are the first user to connect create the room
+      createNewRoom(user)
+    } else {
+      // Else ask to join an existing room
+      joinExistingRoom(user)
+    }
+    
+    var deck = getDeck()
+    emitToUser(user.id, "onUpdateData", {
+      users: prepareUsers(),
+      instruction: true,
+      deckOriginalLength: getData("deckOriginalLength"),
+      remainingCards: deck == undefined ? -1 : deck.length,
+      options: getData("options"), 
+      pile: getData("pile"), 
+      tricks : getData("tricks"),
+      hand: []
+    });
+
+    emitUpdateToRoom({users: prepareUsers()})
+  });
+
+  function createNewRoom(user) {
+    var users = new Map()
+    users.set(user.id, user)
+    storeData("users", users)
+    storeData("pile", [])
+    storeData("options", {})
+    storeData("tricks", {})
+    storeData("deckOriginalLength", -1)
+  }
+
+  function joinExistingRoom(user) {
+    var users = getData("users")
+    users.set(user.id, user)
+    storeData("users", users)
+  }
+
+  socket.on('disconnect',function(reason) {
+    if(socketNotAvailble() ) {
+      console.log(`!! Can't retrieve room ID !! ${socket.id} client disconnect because ${reason}`)
+    } else {
+      log(`${socket.id} client disconnect because ${reason}`)
+      var users = getData("users")
+      users.delete(socket.id)
+      storeData("users", users)
+      emitUpdateToRoom({users: prepareUsers()})
+    }
   });
 
   socket.on("takeCards", data => {
@@ -53,8 +93,10 @@ io.on("connection", socket => {
     if(socketNotAvailble()) {return}
 
     var deck = getDeck();
+    var options = getData("options")
     var numCards = data.numCards;
-    var users = Object.keys(io.sockets.adapter.rooms[socket.room].sockets);
+    options["cards_distribute"] = numCards;
+    var users = getUsersConnected();
     
     if (numCards == -1) {
       numCards = Math.trunc(deck.length / users.length);
@@ -69,7 +111,8 @@ io.on("connection", socket => {
       
       emitToUser(users[u], "onUpdateHand", hand);
     }
-    updateDeck(deck);
+    storeData("deck", deck)
+    emitUpdateToRoom({remainingCards: deck.length, options: options})
   });
 
   socket.on("shuffleDeck", () => {
@@ -80,22 +123,28 @@ io.on("connection", socket => {
     updateDeck(shuffleDeck(deck, deck.length));
   });
 
-  socket.on("resetGame", options => {
+  socket.on("resetRound", () => {
     if(socketNotAvailble()) {return}
 
-    log(`reset the game`)
-    var deck = newDeck(options);
-    deck = shuffleDeck(deck, deck.length)
+    log(`reset the round`)
+    var deck = newDeck(getData("options"));
+    deck = shuffleDeck(deck, deck.length);
 
-    io.sockets.adapter.rooms[socket.room].deck = deck
+    storeData("tricks", {})
+    storeData("pile", [])
+    storeData("deck", deck)
+    storeData("deckOriginalLength", deck.length);
 
-    emitToRoom("onUpdateData", {
-      remainingCards: deck.length,
+    emitUpdateToRoom({
+      instruction: false,
       deckOriginalLength: deck.length,
-      hand: [], 
-      pile: [], 
-      options: options, 
-      tricks:{} });
+      remainingCards: deck.length,
+      options: getData("options"), 
+      pile: [],
+      hand: [],
+      tricks:{} 
+    });
+
   });
 
   // Broadcast function, sync datas a cross all client from a room
@@ -104,8 +153,19 @@ io.on("connection", socket => {
 
     log("<))) "+(data.what != undefined? data.what : ""))
 
-    emitToRoom("onUpdateData", data );
+    if (data.options != undefined) storeData("options", data.options);
+    if (data.deckOriginalLength != undefined) storeData("deckOriginalLength", data.deckOriginalLength);    
+    if (data.pile != undefined) storeData("pile", data.pile);
+    if(data.tricks != undefined) storeData("tricks", data.tricks);
+
+    emitUpdateToRoom(data );
   });
+
+  function prepareUsers(){
+    var usersArray  = Array.from(getData("users").values());
+    usersArray.sort((a,b) => a.date - b.date);
+    return usersArray;
+  }
 
   function socketNotAvailble() {
     if(socket == undefined 
@@ -121,20 +181,32 @@ io.on("connection", socket => {
   function log(info) {
     console.log(`[${socket.room}] ${info}`)
   }
-  function emitToRoom(event, data) {
-    io.sockets.in(socket.room).emit(event, data)
+  function emitUpdateToRoom(data) {
+    io.sockets.in(socket.room).emit("onUpdateData", data)
   }
   function emitToUser(user, event, data) {
     io.to(user).emit(event, data);
   }
 
+  function storeData(key, data){
+    io.sockets.adapter.rooms[socket.room][key] = data
+  }
+
+  function getData(key) {
+    return io.sockets.adapter.rooms[socket.room][key]
+  }
+
   function updateDeck(deck) {
-    io.sockets.adapter.rooms[socket.room].deck = deck
-    emitToRoom("onUpdateData", {remainingCards: deck.length})
+    storeData("deck", deck)
+    emitUpdateToRoom({remainingCards: deck.length})
   }
 
   function getDeck() {
-    return io.sockets.adapter.rooms[socket.room].deck
+    return getData("deck")
+  }
+
+  function getUsersConnected() {
+    return Object.keys(io.sockets.adapter.rooms[socket.room].sockets)
   }
 });
 
