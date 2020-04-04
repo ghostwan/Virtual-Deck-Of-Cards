@@ -41,6 +41,8 @@ io.on("connection", socket => {
   });
 
   socket.on("takeCards", data => {
+    if(socketNotAvailble()) {return}
+
     log(`${data.user} ask for ${data.numCards} cards`)
     cards = takeCards(data.numCards, getDeck(), data.hand);
     updateDeck(cards.deck)
@@ -48,6 +50,8 @@ io.on("connection", socket => {
   });
 
   socket.on("distribute", data => {
+    if(socketNotAvailble()) {return}
+
     var deck = getDeck();
     var numCards = data.numCards;
     var users = Object.keys(io.sockets.adapter.rooms[socket.room].sockets);
@@ -69,12 +73,16 @@ io.on("connection", socket => {
   });
 
   socket.on("shuffleDeck", () => {
+    if(socketNotAvailble()) {return}
+
     log(`shuffle the deck`)
     var deck = getDeck()
     updateDeck(shuffleDeck(deck, deck.length));
   });
 
   socket.on("resetGame", options => {
+    if(socketNotAvailble()) {return}
+
     log(`reset the game`)
     var deck = newDeck(options);
     deck = shuffleDeck(deck, deck.length)
@@ -92,10 +100,23 @@ io.on("connection", socket => {
 
   // Broadcast function, sync datas a cross all client from a room
   socket.on("updateData", data => {
+    if(socketNotAvailble()) {return}
+
     log("<))) "+(data.what != undefined? data.what : ""))
 
     emitToRoom("onUpdateData", data );
   });
+
+  function socketNotAvailble() {
+    if(socket == undefined 
+      || socket.room == undefined
+      || io.sockets.adapter.rooms[socket.room] == undefined) {
+        log("socket not available !")
+        return true;
+      } else {
+        return false;
+      }
+  }
 
   function log(info) {
     console.log(`[${socket.room}] ${info}`)
@@ -108,10 +129,8 @@ io.on("connection", socket => {
   }
 
   function updateDeck(deck) {
-    if(deck != undefined) {
-      io.sockets.adapter.rooms[socket.room].deck = deck
-      emitToRoom("onUpdateData", {remainingCards: deck.length})
-    }
+    io.sockets.adapter.rooms[socket.room].deck = deck
+    emitToRoom("onUpdateData", {remainingCards: deck.length})
   }
 
   function getDeck() {
