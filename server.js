@@ -42,14 +42,13 @@ io.on("connection", socket => {
 
   socket.on("takeCards", data => {
     log(`${data.user} ask for ${data.numCards} cards`)
-    cards = takeCards(data.numCards, data.deck, data.hand);
-
+    cards = takeCards(data.numCards, getDeck(), data.hand);
+    updateDeck(cards.deck)
     emitToUser(data.user, "onUpdateHand", cards.hand)
-    emitToRoom("onUpdateData", {deck: cards.deck});
   });
 
   socket.on("distribute", data => {
-    var deck = data.deck;
+    var deck = getDeck();
     var numCards = data.numCards;
     var users = Object.keys(io.sockets.adapter.rooms[socket.room].sockets);
     
@@ -66,22 +65,25 @@ io.on("connection", socket => {
       
       emitToUser(users[u], "onUpdateHand", hand);
     }
-    emitToRoom("onUpdateData", {deck: deck});
+    updateDeck(deck);
   });
 
-  socket.on("shuffleDeck", deck => {
+  socket.on("shuffleDeck", () => {
     log(`shuffle the deck`)
-
-    deck = shuffleDeck(deck, deck.length)
-    emitToRoom("onUpdateData", {deck : deck});
+    var deck = getDeck()
+    updateDeck(shuffleDeck(deck, deck.length));
   });
 
   socket.on("resetGame", options => {
     log(`reset the game`)
     var deck = newDeck(options);
+    deck = shuffleDeck(deck, deck.length)
+
+    io.sockets.adapter.rooms[socket.room].deck = deck
 
     emitToRoom("onUpdateData", {
-      deck: shuffleDeck(deck, deck.length), 
+      remainingCards: deck.length,
+      deckOriginalLength: deck.length,
       hand: [], 
       pile: [], 
       options: options, 
@@ -103,6 +105,17 @@ io.on("connection", socket => {
   }
   function emitToUser(user, event, data) {
     io.to(user).emit(event, data);
+  }
+
+  function updateDeck(deck) {
+    if(deck != undefined) {
+      io.sockets.adapter.rooms[socket.room].deck = deck
+      emitToRoom("onUpdateData", {remainingCards: deck.length})
+    }
+  }
+
+  function getDeck() {
+    return io.sockets.adapter.rooms[socket.room].deck
   }
 });
 

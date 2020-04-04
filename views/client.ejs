@@ -178,8 +178,9 @@
     var users = new Map();
     var tricks = {};
     var user = -1;
+    var deckOriginalLength = -1;
+    var remainingCards = -1;
 
-    var deck = [];
     var pile = [];
     var my_hand = [];
     var socket = io();
@@ -206,7 +207,8 @@
           emoji: emojis[Math.floor(Math.random() * emojis.length)]
         }
       }
-      deck = undefined;
+      remainingCards = -1;
+      deckOriginalLength = -1;
       pile = [];
       my_hand = [];
       options = {};
@@ -240,8 +242,11 @@
         my_hand = data.hand;
         drawHand();
       }
-      if (data.deck != undefined) {
-        deck = data.deck;
+      if (data.deckOriginalLength != undefined) {
+        deckOriginalLength = data.deckOriginalLength;
+      }
+      if (data.remainingCards != undefined) {
+        remainingCards = data.remainingCards;
         drawDeck();
       }
       if (data.pile != undefined) {
@@ -338,7 +343,7 @@
     }
 
     function shuffleDeck() {
-      socket.emit("shuffleDeck", deck);
+      socket.emit("shuffleDeck");
     }
 
     function resetGame() {
@@ -346,7 +351,7 @@
     }
 
     function takeOne() {
-      var data = { numCards: 1, deck: deck, hand: my_hand, user: socket.id };
+      var data = { numCards: 1, hand: my_hand, user: socket.id };
       socket.emit("takeCards", data);
     }
 
@@ -359,7 +364,7 @@
       if ($("#all_cards").is(":checked")) {
         numCards = -1;
       }
-      data = { numCards: numCards, deck: deck, hand: my_hand};
+      data = { numCards: numCards, hand: my_hand};
       socket.emit("distribute", data);
     }
 
@@ -388,7 +393,7 @@
     function drawDeck() {
       $("#mainDeck").empty();
       var content = ""
-      if (deck == undefined) {
+      if (remainingCards == -1) {
         content = `
           <div class="col-6 form-group">
             <h2 class="startText">Everyone in?</h2>
@@ -407,7 +412,7 @@
             </div>
           </div>
         `
-      } else if (deck.length == 0) {
+      } else if (remainingCards == 0) {
         content = `
         <div class = 'col-6'><h2>Deck is empty</h2>
           <button onclick = 'resetGame()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>
@@ -419,10 +424,9 @@
         </div>
         `
       } else  {
-        var originalLength = options.cavaliers ? 56 : 52;
 
-        content = "<div class = 'col-6'><h2>Deck: " + deck.length + " / " + originalLength + " cards</h2><br>";
-        if (originalLength == deck.length) {
+        content = "<div class = 'col-6'><h2>Deck: " + remainingCards + " / " + deckOriginalLength + " cards</h2><br>";
+        if (deckOriginalLength == remainingCards) {
           content +="<button onclick = 'shuffleDeck()' class = 'btn btn-outline-dark btn-lg btn-block'>Shuffle Cards</button><br>";
         } else {
           content +="<button onclick = 'resetGame()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>";
