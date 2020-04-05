@@ -36,6 +36,7 @@ Fear no more, as the virtual deck of cards is here! Simply create or sign into a
 - UI - Passer les checkbox en toggle
 - GAME PLAY - Affichage des plies remportés
 - GAME PLAY - Ordre du tour
+- Descendre carte par rapport au claim
 - GAME PLAY - Prise en compte des annonces
 - GAME PLAY - Quand quelqu'un se connecte lui permettre ou non de rejoindre la partie, sinon spectateur
 - GAME PLAY - Locker la partie pour que plus personnes ne puisse rentrer 

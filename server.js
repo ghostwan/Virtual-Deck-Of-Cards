@@ -1,4 +1,6 @@
-var app = require("express")();
+var path = require('path');
+var express = require('express');
+var app = express();
 var http = require("http").Server(app);
 var io = require("socket.io")(http, {'pingTimeout': 20000, 'pingInterval': 3000});
 
@@ -7,10 +9,14 @@ http.listen(PORT, () => {
   console.log(`VDOC server listenning on ${PORT}`);
 });
 
+app.use(express.static(path.join(__dirname, 'public')));
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'pug');
 
 app.get("/", (req, res) => {
   console.log('Requesting index.html');
-  res.sendFile(__dirname + "/views/index.html");
+  res.render('index');
+  // res.sendFile(__dirname + "/views/index.html");
 });
 
 app.get("/connectroom/", (req, res) => {

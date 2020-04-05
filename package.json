@@ -12,6 +12,7 @@
   "dependencies": {
     "ejs": "^2.6.1",
     "express": "^4.16.4",
+    "pug": "^2.0.4",
     "socket.io": "^2.1.1"
   }
 }

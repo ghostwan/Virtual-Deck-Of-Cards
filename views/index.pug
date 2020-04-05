@@ -1,0 +1,13 @@
+doctype html
+html
+  head
+    title="Virtual Deck - Play Anywhere with Anyone"
+    link(rel='stylesheet', href='/stylesheets/style.css')
+    link(rel='icon', type="image/png" href="/images/icon.png")
+  body
+    block content
+    form(action="/connectroom", method="get")
+        input(type="text", name="roomID")
+        input(type="submit", value="Go")
+
+
