@@ -43,9 +43,11 @@ io.on("connection", socket => {
       instruction: true,
       deckOriginalLength: getData("deckOriginalLength"),
       remainingCards: deck == undefined ? -1 : deck.length,
+      cardAside: getData("cardAside"),
       options: getData("options"), 
       pile: getData("pile"), 
       tricks : getData("tricks"),
+      state: state(),
       hand: []
     });
 
@@ -56,10 +58,12 @@ io.on("connection", socket => {
     var users = new Map()
     users.set(user.id, user)
     storeData("users", users)
+    storeData("state", "config")
     storeData("pile", [])
     storeData("options", {})
     storeData("tricks", {})
     storeData("deckOriginalLength", -1)
+    storeData("cardAside", -1)
   }
 
   function joinExistingRoom(user) {
@@ -80,13 +84,24 @@ io.on("connection", socket => {
     }
   });
 
-  socket.on("takeCards", data => {
+  socket.on("takeCard", data => {
     if(socketNotAvailble()) {return}
 
-    log(`${data.user} ask for ${data.numCards} cards`)
-    cards = takeCards(data.numCards, getDeck(), data.hand);
+    log(`${socket.id} draw a card`)
+    cards = takeCards(1, getDeck(), data.hand);
     updateDeck(cards.deck)
-    emitToUser(data.user, "onUpdateHand", cards.hand)
+    emitToUser(socket.id, "onUpdateHand", cards.hand)
+  });
+
+  socket.on("putCardAside", data => {
+    if(socketNotAvailble()) {return}
+
+    log(`put a card aside`)
+    cards = takeCards(1, getDeck(), []);
+    var cardAside = cards.hand[0]
+    storeData("deck", cards.deck)
+    storeData("cardAside", cardAside)
+    emitUpdateToRoom({remainingCards: cards.deck.length, cardAside: cardAside})
   });
 
   socket.on("distribute", data => {
@@ -112,7 +127,7 @@ io.on("connection", socket => {
       emitToUser(users[u], "onUpdateHand", hand);
     }
     storeData("deck", deck)
-    emitUpdateToRoom({remainingCards: deck.length, options: options})
+    emitUpdateToRoom({remainingCards: deck.length, options: options, state: state("play")})
   });
 
   socket.on("shuffleDeck", () => {
@@ -134,12 +149,15 @@ io.on("connection", socket => {
     storeData("pile", [])
     storeData("deck", deck)
     storeData("deckOriginalLength", deck.length);
+    storeData("cardAside", -1);
 
     emitUpdateToRoom({
       instruction: false,
       deckOriginalLength: deck.length,
       remainingCards: deck.length,
-      options: getData("options"), 
+      options: getData("options"),
+      state: state("distribute"),
+      cardAside: -1,
       pile: [],
       hand: [],
       tricks:{} 
@@ -207,6 +225,16 @@ io.on("connection", socket => {
 
   function getUsersConnected() {
     return Object.keys(io.sockets.adapter.rooms[socket.room].sockets)
+  }
+
+  /* MAGICAL GETTER / SETTER */
+  function state(value=undefined) {
+    if(value != undefined) {
+      storeData(state.name, value)
+      return value;
+    } else {
+      return getData(state.name)
+    }
   }
 });
 

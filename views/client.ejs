@@ -89,6 +89,7 @@
       .card_deck {
         font-size: 15em;
         line-height: 100%;
+        margin-left:25%
       }
       .distrib-btn {
         margin-top: 10px;
@@ -116,6 +117,9 @@
       .card_layer {
         margin: 0 auto;
         display: inline-block;
+      }
+      .card_red {
+        color: red
       }
       #user_container {
         display: inline-block;
@@ -175,6 +179,8 @@
       ["🂱", "🂲", "🂳", "🂴", "🂵", "🂶", "🂷", "🂸", "🂹", "🂺", "🂻", "🂼", "🂽", "🂾"]  //  Hearts (coeur)
     ]; 
 
+    var state;
+    var cardAside = -1;
     var users = [];
     var tricks = {};
     var user = -1;
@@ -255,6 +261,14 @@
         tricks = data.tricks;
         reDrawUsersInfo = true
       }
+      if(data.state != undefined) {
+        state = data.state
+        reDrawDeck = true
+      }
+      if(data.cardAside != undefined) {
+        cardAside = data.cardAside
+        reDrawDeck = true
+      }
 
       if(reDrawDeck) drawDeck();
       if(reDrawHand) drawHand(data.instruction == true);
@@ -309,7 +323,7 @@
     function start() {
       options["cavaliers"] = $("#option_cavaliers").is(":checked");
       options["tricks"] = $("#option_tricks").is(":checked");
-      options["cards_distribute"] = -1;
+      options["cards_distribute"] = 1;
       options["stack_visible"] = true;
 
       socket.emit("updateData", { what: "update options", options: options });
@@ -341,11 +355,14 @@
       socket.emit("resetRound");
     }
 
-    function takeOne() {
-      var data = { numCards: 1, hand: my_hand, user: socket.id };
-      socket.emit("takeCards", data);
+    function takeCard() {
+      var data = { hand: my_hand};
+      socket.emit("takeCard", data);
     }
 
+    function putCardAside() {
+      socket.emit("putCardAside");
+    }
 
     function drawUsersInfos(){
       $("#user_container").empty()
@@ -368,17 +385,30 @@
     }
 
     function isChecked(name) {
-      return `${options[name] ? "checked" : ""}`
+      var result = options[name] == undefined ?  true : options[name]
+      return  result? "checked" : ""
     }
 
     function isAllCards() {
       return options["cards_distribute"] == -1;
     }
+    function drawCard(card) {
+      var rank = options["cavaliers"] ? rank_cavaliers : rank_normal;
+      var unicode = options["cavaliers"] ? unicode_cavaliers : unicode_normal;
+      var result =  unicode[suit.indexOf(card["suit"])][rank.indexOf(card["rank"])];
+      console.log(result);
+      return result;
+    }
 
     function drawDeck() {
       $("#mainDeck").empty();
       var content = ""
-      if (remainingCards == -1) {
+      var card_color = ""
+      if(cardAside != -1 && (cardAside["suit"] == "Hearts" || cardAside["suit"] == "Diamonds")) {
+        card_color="card_red"
+      }
+
+      if (state == "config") {
         content = `
           <div class="col-6 form-group">
             <h2 class="startText">Everyone in?</h2>
@@ -391,7 +421,7 @@
             <br />
             <input type="checkbox" class="form-check-input" 
                    id="option_tricks" onclick = 'onOptionChange("tricks")' ${isChecked("tricks")}/>
-            <label class="form-check-label" for="option_tricks">Can we claim tricks (as for tarot)</label>
+            <label class="form-check-label" for="option_tricks">Claim tricks (as for tarot)</label>
           </div>
           <div class="col-6 container h-100">
             <div class="row h-100 justify-content-center align-items-center">
@@ -399,25 +429,12 @@
             </div>
           </div>
         `
-      } else if (remainingCards == 0) {
+      } else if (state == "distribute") {
+        var message = users.length == 1 ? "Your are the only player connected! "
+                                      : "Card to distribute to each player (" + users.length + " players)";
         content = `
-        <div class = 'col-6'><h2>Deck is empty</h2><br>
-          <button onclick = 'resetRound()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>
-        </div>
-        <div class="col-6 container h-100">
-          <div class="row h-100 justify-content-center align-items-center">
-            <span class="card_deck">∅</span>
-          </div>
-        </div>
-        `
-      } else  {
-
-        content = "<div class = 'col-6'><h2>Deck: " + remainingCards + " / " + deckOriginalLength + " cards</h2><br>";
-        if (deckOriginalLength == remainingCards) {
-          var message = users.length == 1 ? "Your are the only player connected! "
-                                        : "Card to distribute to each player (" + users.length + " players)";
-          content +=`
-          <button onclick = 'shuffleDeck()' class = 'btn btn-outline-dark btn-lg btn-block'>Shuffle Cards</button><br>
+        <div class = 'col-6'><h2>Deck: ${remainingCards} / ${deckOriginalLength} cards</h2><br>
+          <button onclick = 'shuffleDeck()' class = 'btn btn-outline-dark btn-lg btn-block'>Shuffle cards</button><br>
           <button class = 'btn btn-outline-dark btn-lg btn-block' onclick = 'distributeCards()'>Distribute</button><br>
           <div class="control-group form-inline">
             <label class="mb-2" for="distribute_card">${message}</label>
@@ -428,24 +445,48 @@
             <input  type='checkbox' class='form-check-input mb-2' 
                     id='option_all_cards' ${isAllCards() ? "checked" : ""} onclick='onOptionAllCardsChange()'>
           </div>
-              `
-        } else {
-          content +="<button onclick = 'resetRound()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>";
-        }
-
-        content += "</div>";
-        content += `
+        </div>`
+        if (cardAside != -1) {
+          content += `
           <div class = 'col-6'>
-            <span style="margin-left:25%" class="card_deck">🂠</span>
-            <button style="margin-left:25%" class='col-6 distrib-btn btn btn-primary ' onclick = 'takeOne()'>Draw a Card</button>
+            <span class="card_deck ${card_color}">${drawCard(cardAside)}</span>
+          </div>
+          `
+        } else {
+          content += `
+          <div class = 'col-6'>
+            <span class="card_deck">🂠</span>
+            <button style="margin-left:25%" class='col-6 distrib-btn btn btn-primary ' onclick = 'putCardAside()'>Put a card aside</button>
           </div>
         `
+        }
+        
+      } else if (state == "play") {
+        if (remainingCards == 0) {
+          content = 
+          `<div class = 'col-6'><h2>Deck is empty</h2><br>
+            <button onclick = 'resetRound()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>
+          </div>
+          <div class = 'col-6'>
+            <span class="card_deck ${card_color}">${cardAside != -1? drawCard(cardAside) : "∅"}</span>
+          </div>
+          `
+        } else {
+          content = 
+          `<div class = 'col-6'><h2>Deck: ${remainingCards} / ${deckOriginalLength} cards</h2><br>
+            <button onclick = 'resetRound()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>
+          </div>
+          <div class = 'col-6'>
+            <span class="card_deck ${card_color}">${cardAside != -1? drawCard(cardAside) : "🂠"}</span>
+            <button style="margin-left:25%" class='col-6 distrib-btn btn btn-primary ' onclick = 'takeCard()'>Draw a card</button>
+          </div>
+          `
+        }
       }
       $("#mainDeck").append(content);
     }
 
     function drawHand(instruction = false) {
-
       $("#your_hand").empty();
       var content = ""
 
@@ -464,7 +505,7 @@
             content = `Your Hand ${user.name}`;
             $("#cards_control").invisible();
             break;
-          default:$item
+          default:
             content = `Your Hand ${user.name} : ${my_hand.length} cards`;
             $("#cards_control").visible()
         }
@@ -503,12 +544,10 @@
       } else {
         $('#cardDisplay').sortable('disable');
       } 
-      var rank = options["cavaliers"] ? rank_cavaliers : rank_normal;
-      var unicode = options["cavaliers"] ? unicode_cavaliers : unicode_normal;
 
       for (var i = 0; i < my_hand.length; i++) {
         card = my_hand[i];
-        var $item = $('<div class="card"/>').text(unicode[suit.indexOf(card["suit"])][rank.indexOf(card["rank"])]);
+        var $item = $('<div class="card"/>').text(drawCard(card));
         if (card["suit"] == "Hearts" || card["suit"] == "Diamonds") {
           $item.css({ color: "red" });
         } else {
@@ -519,8 +558,6 @@
     }
 
     function drawPile() {
-      var rank = options["cavaliers"] ? rank_cavaliers : rank_normal;
-      var unicode = options["cavaliers"] ? unicode_cavaliers : unicode_normal;
       
       $("#playArea").empty();
       var content = `
@@ -543,9 +580,7 @@
       for (var i = 0; i < pile.length; i++) {
         var j = options["stack_visible"] ? pile.length - 1 - i : i;
         card = pile[j];
-        var $item = $('<div class="cardinPile"/>').text(
-          unicode[suit.indexOf(card["suit"])][rank.indexOf(card["rank"])]
-        );
+        var $item = $('<div class="cardinPile"/>').text(drawCard(card));
         if (card["suit"] == "Hearts" || card["suit"] == "Diamonds") {
           $item.css({ color: "red" });
         }
