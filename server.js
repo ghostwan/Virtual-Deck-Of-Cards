@@ -1,9 +1,16 @@
-var app = require("express")();
-var http = require("http").Server(app);
-var io = require("socket.io")(http, {'pingTimeout': 20000, 'pingInterval': 3000});
+var express = require('express');
+var path = require('path');
+var http = require("http");
+
+var app = express();
+var server = http.Server(app)
+var io = require("socket.io")(server, {'pingTimeout': 20000, 'pingInterval': 3000});
+
+app.use(express.static(path.join(__dirname, 'public')));
+app.set('views', path.join(__dirname, 'views'));
 
 const PORT = process.env.PORT || 3000;
-http.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`VDOC server listenning on ${PORT}`);
 });
 
@@ -11,10 +18,11 @@ http.listen(PORT, () => {
 app.get("/", (req, res) => {
   console.log('Requesting index.html');
   res.sendFile(__dirname + "/views/index.html");
+  // res.render('index');
 });
 
 app.get("/connectroom/", (req, res) => {
-  res.render("client.ejs", { data: req.query["roomID"] });
+  res.sendFile(__dirname + "/views/game.html", { data: req.query["roomID"] });
 });
 
 io.on("connection", socket => {
