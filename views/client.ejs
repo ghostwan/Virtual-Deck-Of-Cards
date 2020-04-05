@@ -148,7 +148,14 @@
         visibility: hidden; 
         margin-left: 1em;
       }
-      
+      #reset_button {
+        margin: 5px;
+        height:auto;
+        text-align:center;
+        top:0;
+        position:absolute; float:right;
+        visibility: hidden;
+      }
 
     </style>
   </head>
@@ -279,6 +286,7 @@
   </script>
   <body>
     <div id="screen" class="jumbotron jumbotron-fluid">
+      <button id="reset_button" class="btn btn-danger reset_button" onclick="resetGame()"> Reset </button>
       <div id="main" class="container-fluid">
         <div id="playersArea" class="col-11">
           <h2 class="player_number" style="display:inline;">Players</h2>
@@ -295,7 +303,7 @@
                 <div id="hand_header">
                   <h2 style="vertical-align: middle;" class="d-inline-block" id="your_hand"> Your Hand </h2>  
                   <div id="cards_control" class="d-inline-block">
-                    <button class = "d-inline-block btn btn-info" onclick = "onSortCard()"> Sort </button>
+                    <button class = "d-inline-block btn btn-info" onclick = "sortCard()"> Sort </button>
                     <input  id="option_reorder" class ="d-inline-block" type="checkbox" data-toggle="toggle" 
                             data-width="90"
                             data-on="Reorder" 
@@ -331,8 +339,14 @@
     }
 
     function clearPlayingArea() {
-      if (confirm("Are you sure you want to clear the playing area?")) {
+      if (confirm("Are you sure, you want to clear the playing area?")) {
         socket.emit("updateData", {what: "clear playing area", pile: []});
+      }
+    }
+
+    function resetGame() {
+      if (confirm("Are you sure, you want to reset the game?")) {
+        socket.emit("resetGame");
       }
     }
 
@@ -409,6 +423,7 @@
       }
 
       if (state == "config") {
+        $("#reset_button").invisible();
         content = `
           <div class="col-6 form-group">
             <h2 class="startText">Everyone in?</h2>
@@ -430,6 +445,7 @@
           </div>
         `
       } else if (state == "distribute") {
+        $("#reset_button").visible();
         var message = users.length == 1 ? "Your are the only player connected! "
                                       : "Card to distribute to each player (" + users.length + " players)";
         content = `
@@ -462,6 +478,8 @@
         }
         
       } else if (state == "play") {
+        $("#reset_button").visible();
+        
         if (remainingCards == 0) {
           content = 
           `<div class = 'col-6'><h2>Deck is empty</h2><br>
@@ -596,7 +614,7 @@
       }
     }
 
-    function onSortCard() {
+    function sortCard() {
       my_hand.sort(function(a, b) {
         if (suit.indexOf(a.suit) < suit.indexOf(b.suit)) return -1;
         if (suit.indexOf(a.suit) > suit.indexOf(b.suit)) return 1;

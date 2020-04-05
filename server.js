@@ -31,10 +31,15 @@ io.on("connection", socket => {
 
     if(getUsersConnected().length <= 1) {
       // If we are the first user to connect create the room
-      createNewRoom(user)
+      var users = new Map()
+      users.set(user.id, user)
+      storeData("users", users)
+      createNewGame()
     } else {
       // Else ask to join an existing room
-      joinExistingRoom(user)
+      var users = getData("users")
+      users.set(user.id, user)
+      storeData("users", users)
     }
     
     var deck = getDeck()
@@ -54,22 +59,14 @@ io.on("connection", socket => {
     emitUpdateToRoom({users: prepareUsers()})
   });
 
-  function createNewRoom(user) {
-    var users = new Map()
-    users.set(user.id, user)
-    storeData("users", users)
+  function createNewGame() {
     storeData("state", "config")
     storeData("pile", [])
     storeData("options", {})
     storeData("tricks", {})
     storeData("deckOriginalLength", -1)
     storeData("cardAside", -1)
-  }
-
-  function joinExistingRoom(user) {
-    var users = getData("users")
-    users.set(user.id, user)
-    storeData("users", users)
+    storeData("deck", [])
   }
 
   socket.on('disconnect',function(reason) {
@@ -137,6 +134,25 @@ io.on("connection", socket => {
     var deck = getDeck()
     updateDeck(shuffleDeck(deck, deck.length));
   });
+
+  socket.on("resetGame", () => {
+    if(socketNotAvailble()) {return}
+    log(`reset the game`)
+
+    createNewGame()
+
+    emitUpdateToRoom({
+      instruction: false,
+      deckOriginalLength: getData("deckOriginalLength"),
+      remainingCards: -1,
+      cardAside: getData("cardAside"),
+      options: getData("options"), 
+      pile: getData("pile"), 
+      tricks : getData("tricks"),
+      state: state(),
+      hand: []
+    });
+  })
 
   socket.on("resetRound", () => {
     if(socketNotAvailble()) {return}
