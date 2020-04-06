@@ -1,10 +1,14 @@
 var express = require('express');
 var path = require('path');
 var http = require("http");
+var fs = require("fs")
+var vm = require('vm')
+vm.runInThisContext(fs.readFileSync(__dirname + "/public/javascripts/common.js"))
 
 var app = express();
 var server = http.Server(app)
 var io = require("socket.io")(server, {'pingTimeout': 20000, 'pingInterval': 3000});
+
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.set('views', path.join(__dirname, 'views'));
@@ -30,6 +34,7 @@ io.on("connection", socket => {
     console.log(`[${room}] ==> User is ${socket.id} connecting...`);
     socket.join(room);
     socket.room = room
+    console.log(STATE_CONFIG)
     emitToUser(socket.id, "askInfo")
   });
 
@@ -59,7 +64,7 @@ io.on("connection", socket => {
       cardAside: getData("cardAside"),
       options: getData("options"), 
       pile: getData("pile"), 
-      tricks : getData("tricks"),
+      gameData : getData("gameData"),
       state: state(),
       hand: []
     });
@@ -68,10 +73,10 @@ io.on("connection", socket => {
   });
 
   function createNewGame() {
-    storeData("state", "config")
+    storeData("state", STATE_CONFIG)
     storeData("pile", [])
     storeData("options", {})
-    storeData("tricks", {})
+    storeData("gameData", {})
     storeData("deckOriginalLength", -1)
     storeData("cardAside", -1)
     storeData("deck", [])
@@ -132,7 +137,7 @@ io.on("connection", socket => {
       emitToUser(users[u], "onUpdateHand", hand);
     }
     storeData("deck", deck)
-    emitUpdateToRoom({remainingCards: deck.length, options: options, state: state("play")})
+    emitUpdateToRoom({remainingCards: deck.length, options: options, state: state(STATE_PLAY)})
   });
 
   socket.on("shuffleDeck", () => {
@@ -156,7 +161,7 @@ io.on("connection", socket => {
       cardAside: getData("cardAside"),
       options: getData("options"), 
       pile: getData("pile"), 
-      tricks : getData("tricks"),
+      gameData : getData("gameData"),
       state: state(),
       hand: []
     });
@@ -169,7 +174,7 @@ io.on("connection", socket => {
     var deck = newDeck(getData("options"));
     deck = shuffleDeck(deck, deck.length);
 
-    storeData("tricks", {})
+    storeData("gameData", {})
     storeData("pile", [])
     storeData("deck", deck)
     storeData("deckOriginalLength", deck.length);
@@ -180,11 +185,11 @@ io.on("connection", socket => {
       deckOriginalLength: deck.length,
       remainingCards: deck.length,
       options: getData("options"),
-      state: state("distribute"),
+      state: state(STATE_DISTRIBUTE),
       cardAside: -1,
       pile: [],
       hand: [],
-      tricks:{} 
+      gameData:{} 
     });
 
   });
@@ -198,7 +203,7 @@ io.on("connection", socket => {
     if (data.options != undefined) storeData("options", data.options);
     if (data.deckOriginalLength != undefined) storeData("deckOriginalLength", data.deckOriginalLength);    
     if (data.pile != undefined) storeData("pile", data.pile);
-    if(data.tricks != undefined) storeData("tricks", data.tricks);
+    if(data.gameData != undefined) storeData("gameData", data.gameData);
 
     emitUpdateToRoom(data );
   });

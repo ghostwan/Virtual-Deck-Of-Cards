@@ -128,3 +128,6 @@ h2 {
   float: right;
   visibility: hidden;
 }
+.playing_btn {
+  margin-bottom: 11px
+}

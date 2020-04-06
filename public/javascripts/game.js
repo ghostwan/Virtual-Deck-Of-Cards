@@ -22,12 +22,13 @@ const unicode_cavaliers = [
     ["🃁", "🃂", "🃃", "🃄", "🃅", "🃆", "🃇", "🃈", "🃉", "🃊", "🃋", "🃌", "🃍", "🃎"], //  Diamonds (carreau)
     ["🂡", "🂢", "🂣", "🂤", "🂥", "🂦", "🂧", "🂨", "🂩", "🂪", "🂫", "🂬", "🂭", "🂮"], //  Spades (pique)
     ["🂱", "🂲", "🂳", "🂴", "🂵", "🂶", "🂷", "🂸", "🂹", "🂺", "🂻", "🂼", "🂽", "🂾"]  //  Hearts (coeur)
-]; 
+];
+
 
 var state;
 var cardAside = -1;
 var users = [];
-var tricks = {};
+var gameData = {};
 var user = -1;
 var deckOriginalLength = -1;
 var remainingCards = -1;
@@ -124,6 +125,7 @@ socket.on("onUpdateData", function (data) {
     options = data.options;
     reDrawDeck = true;
     reDrawPile = true;
+    reDrawUsersInfo = true
   }
   if (data.hand != undefined) {
     my_hand = data.hand;
@@ -146,8 +148,8 @@ socket.on("onUpdateData", function (data) {
     reDrawDeck = true;
     reDrawUsersInfo = true;
   }
-  if (data.tricks != undefined) {
-    tricks = data.tricks;
+  if (data.gameData != undefined) {
+    gameData = data.gameData;
     reDrawUsersInfo = true;
   }
   if (data.state != undefined) {
@@ -189,12 +191,15 @@ function resetGame() {
 
 function claimTrick() {
   if (confirm("Are you sure you won the trick?")) {
-    tricks[user.id];
-    if (tricks[user.id] == undefined) {
-      tricks[user.id] = [];
+    if(gameData[user.id] == undefined) {
+      gameData[user.id] = {}
     }
-    tricks[user.id].push(pile);
-    socket.emit("updateData", { what: "claim tricks", tricks: tricks, pile: [] });
+    if(gameData[user.id].tricks == undefined) {
+      gameData[user.id].tricks = []
+    }
+
+    gameData[user.id].tricks.push(pile);
+    socket.emit("updateData", { what: "claim tricks", gameData: gameData, pile: [] });
   }
 }
 
@@ -218,15 +223,24 @@ function putCardAside() {
 function drawUsersInfos() {
   $("#user_container").empty();
   users.forEach((user) => {
-    var tricksNumber = "";
-    var userTricks = tricks[user.id];
-    if (userTricks != undefined) {
-      tricksNumber = " 🂠 <b>" + userTricks.length + "</b>";
+    var number = "";
+    var data = gameData[user.id];
+    if(state == STATE_CONFIG) {
+      number = `🂠 <b> X </b>`
+    } else if(data != undefined) {
+      debug(data)
+      debug(options)
+      if(options.tricks) {
+        if(data != undefined && data.tricks != undefined)
+          number = " 🂠 <b>" + data.tricks.length + "</b>";
+      } else if (data != undefined && data.cards != undefined) {
+        number = " 🂠 <b>" + data.cards + "</b>";
+      }
     }
     var content = `
           <div class="user_profil">
             <p class="user_emoji">${user.emoji}</p>
-            <p>${user.name}${tricksNumber}</p>
+            <p>${user.name}${number}</p>
           </div>
       `;
     $("#user_container").append(content);
@@ -236,8 +250,7 @@ function drawUsersInfos() {
 }
 
 function isChecked(name) {
-  var result = options[name] == undefined ? true : options[name];
-  return result ? "checked" : "";
+  return options[name] == undefined ? true : options[name];
 }
 
 function isAllCards() {
@@ -259,7 +272,7 @@ function drawDeck() {
     card_color = "card_red";
   }
 
-  if (state == "config") {
+  if (state == STATE_CONFIG) {
     $("#reset_button").invisible();
     content = `
         <div class="col-6 form-group">
@@ -268,12 +281,16 @@ function drawDeck() {
           <button class="btn btn-outline-dark btn-lg btn-block get_deck" onclick="start()">Start</button>
           <br />
           <input type="checkbox" class="form-check-input" 
-                 id="option_cavaliers" onclick = 'onOptionChange("cavaliers")' ${isChecked("cavaliers")}/>
-          <label class="form-check-label" for="option_cavaliers" >Include cavaliers (56 cards) </label>
+                 id="option_cavaliers" onclick = 'onOptionChange("cavaliers")' ${isChecked("cavaliers")? "checked" : ""}/>
+          <label class="form-check-label" for="option_cavaliers" >Include cavaliers
+          => ${isChecked("cavaliers")? "56 cards" : "52 cards"}
+          </label>
           <br />
           <input type="checkbox" class="form-check-input" 
-                 id="option_tricks" onclick = 'onOptionChange("tricks")' ${isChecked("tricks")}/>
-          <label class="form-check-label" for="option_tricks">Claim tricks (as for tarot)</label>
+                 id="option_tricks" onclick = 'onOptionChange("tricks")' ${isChecked("tricks")? "checked" : ""}/>
+          <label class="form-check-label" for="option_tricks">Claim tricks
+          🂠 <b> X </b> => ${isChecked("tricks")? "tricks won" : "cards in hand"}
+          </label>
         </div>
         <div class="col-6 container h-100">
           <div class="row h-100 justify-content-center align-items-center">
@@ -281,7 +298,7 @@ function drawDeck() {
           </div>
         </div>
       `;
-  } else if (state == "distribute") {
+  } else if (state == STATE_DISTRIBUTE) {
     $("#reset_button").visible();
     var message =
       users.length == 1
@@ -294,9 +311,7 @@ function drawDeck() {
         <div class="control-group form-inline">
           <label class="mb-2" for="distribute_card">${message}</label>
           <input  class= "mb-2" type = "number" id = "distribute_card" placeholder = "number of cards" 
-              value="${isAllCards() ? "" : options["cards_distribute"]}" ${
-      options["cards_distribute"] == -1 ? "disabled" : ""
-    } />
+              value="${isAllCards() ? "" : options["cards_distribute"]}" ${options["cards_distribute"] == -1 ? "disabled" : ""} />
           <div class="mx-sm-3 mb-2"> Or </div>'
           <label class="form-check-label mb-2" for="all_cards">All cards</label>
           <input  type='checkbox' class='form-check-input mb-2' 
@@ -317,7 +332,7 @@ function drawDeck() {
         </div>
       `;
     }
-  } else if (state == "play") {
+  } else if (state == STATE_PLAY) {
     $("#reset_button").visible();
 
     if (remainingCards == 0) {
@@ -414,24 +429,25 @@ function drawHand(instruction = false) {
 }
 
 function drawPile() {
+  if(state == STATE_CONFIG) {
+    return
+  }
+
   $("#playArea").empty();
   var content = `
       <h2>Playing Area</h2>
       <div class = "col-6 form-group">
-        <input type='checkbox' class='form-check-input' id='option_stack_visible' onclick = 'onOptionChange("stack_visible")' ${isChecked(
-          "stack_visible"
-        )} />
+        <input type='checkbox' class='form-check-input' id='option_stack_visible' onclick = 'onOptionChange("stack_visible")' 
+        ${isChecked("stack_visible") ? "checked" : ""} />
         <label class="form-check-label" for="option_stack_visible">View all cards</label>
       </div>`;
 
   if (options.tricks) {
     if (pile.length == users.length) {
-      content +=
-        '<button id="are_button" class = "btn btn-outline-dark btn-lg btn-block" onclick = "claimTrick()">Claim trick</button>';
+      content += '<button class = "playing_btn btn btn-outline-dark btn-lg btn-block" onclick = "claimTrick()">Claim trick</button>';
     }
   } else {
-    content +=
-      '<button id="are_button" class = "btn btn-outline-dark btn-lg btn-block" onclick = "clearPlayingArea()">Clear</button>';
+    content += '<button class = "playing_btn btn btn-outline-dark btn-lg btn-block" onclick = "clearPlayingArea()">Clear</button>';
   }
 
   $("#playArea").append(content);
@@ -504,7 +520,7 @@ jQuery.fn.invisible = function () {
 
 $(document).on("keypress", function (event) {
     var keycode = event.keyCode ? event.keyCode : event.which;
-    if (keycode == "13") {
+    if (keycode == "13" && state == STATE_DISTRIBUTE) {
       distributeCards();
     }
 });
