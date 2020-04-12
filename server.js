@@ -99,11 +99,22 @@ io.on("connection", socket => {
 
     log(`${socket.id} draw a card`)
     cards = takeCards(1, getDeck(), data.hand);
-    updateDeck(cards.deck)
+    var gameData = getData("gameData") 
+    if(gameData == undefined) {
+      gameData = {}
+    }
+    if(gameData[socket.id] == undefined) {
+      gameData[socket.id] = {}
+      gameData[socket.id].cards = 0
+    }
+    gameData[socket.id].cards ++;
+    storeData("gameData", gameData)
+    storeData("deck", cards.deck)
+    emitUpdateToRoom({remainingCards: cards.deck.length, gameData: gameData})
     emitToUser(socket.id, "onUpdateHand", cards.hand)
   });
 
-  socket.on("putCardAside", data => {
+  socket.on("putCardAside", () => {
     if(socketNotAvailble()) {return}
 
     log(`put a card aside`)
@@ -127,6 +138,7 @@ io.on("connection", socket => {
       numCards = Math.trunc(deck.length / users.length);
     }
     log(`distribute ${numCards} cards`)
+    var gameData = getData("gameData")
 
     for (var u = 0; u < users.length; u++) {
       hand = [];
@@ -135,9 +147,15 @@ io.on("connection", socket => {
       hand = result["hand"];
       
       emitToUser(users[u], "onUpdateHand", hand);
+      
+      if(gameData[users[u]] == undefined) {
+        gameData[users[u]] = {}
+      }
+      gameData[users[u]].cards = hand.length
     }
+    storeData("gameData", gameData)
     storeData("deck", deck)
-    emitUpdateToRoom({remainingCards: deck.length, options: options, state: state(STATE_PLAY)})
+    emitUpdateToRoom({remainingCards: deck.length, options: options, state: state(STATE_PLAY), gameData: gameData})
   });
 
   socket.on("shuffleDeck", () => {
@@ -145,7 +163,9 @@ io.on("connection", socket => {
 
     log(`shuffle the deck`)
     var deck = getDeck()
-    updateDeck(shuffleDeck(deck, deck.length));
+    deck = shuffleDeck(deck, deck.length);
+    storeData("deck", deck)
+    emitUpdateToRoom({remainingCards: deck.length})
   });
 
   socket.on("resetGame", () => {
@@ -241,11 +261,6 @@ io.on("connection", socket => {
 
   function getData(key) {
     return io.sockets.adapter.rooms[socket.room][key]
-  }
-
-  function updateDeck(deck) {
-    storeData("deck", deck)
-    emitUpdateToRoom({remainingCards: deck.length})
   }
 
   function getDeck() {

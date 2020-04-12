@@ -41,44 +41,47 @@ var room;
 
 function init(roomName) {
 
-    $("body").on("click", ".card", function () {
-      // If reorder possible do nothing
-      if ($("#option_reorder").prop("checked")) {
-        return;
-      }
+  // Move card from your hand to the pile
+  $("body").on("click", ".card", function () {
+    // If reorder possible do nothing
+    if ($("#option_reorder").prop("checked")) {
+      return;
+    }
 
-      var cardIndex = $(".card").index($(this));
-      var card = my_hand[cardIndex];
-      console.log("Click on your card on " + card);
+    var cardIndex = $(".card").index($(this));
+    var card = my_hand[cardIndex];
+    console.log("Click on your card on " + card);
 
-      my_hand.splice(cardIndex, 1);
-      $(".card:eq(" + cardIndex + ")").remove();
-      card["username"] = user.name;
-      pile.push(card);
+    my_hand.splice(cardIndex, 1);
+    $(".card:eq(" + cardIndex + ")").remove();
+    card["username"] = user.name;
+    pile.push(card);
 
-      socket.emit("updateData", { what: "update pile", pile: pile });
-      drawHand();
-    });
+    gameData[user.id].cards --
+    socket.emit("updateData", { what: "update pile", pile: pile, gameData: gameData });
+    drawHand();
+  });
 
-    // Move card from the pile to your deck
-    $("body").on("click", ".cardinPile", function () {
-      debug("click on card");
+  // Move card from the pile to your hand
+  $("body").on("click", ".cardinPile", function () {
+    debug("click on card");
 
-      var cardIndex = $(".cardinPile").index($(this));
-      var cardIndex = options["stack_visible"] ? pile.length - 1 - cardIndex : cardIndex;
-      var card = pile[cardIndex];
-      console.log("Click on the pile card on " + card);
+    var cardIndex = $(".cardinPile").index($(this));
+    var cardIndex = options["stack_visible"] ? pile.length - 1 - cardIndex : cardIndex;
+    var card = pile[cardIndex];
+    console.log("Click on the pile card on " + card);
 
-      my_hand.push(card);
-      pile.splice(cardIndex, 1);
+    my_hand.push(card);
+    pile.splice(cardIndex, 1);
 
-      socket.emit("updateData", { what: "update pile", pile: pile });
-      drawHand();
-    });
+    gameData[user.id].cards ++
+    socket.emit("updateData", { what: "update pile", pile: pile, gameData: gameData });
+    drawHand();
+  });
 
-    $("#option_reorder").change(function () {
-      drawHand();
-    });
+  $("#option_reorder").change(function () {
+    drawHand();
+  });
 
     room = roomName
     socket.emit("connectRoom", roomName);  
