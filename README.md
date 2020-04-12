@@ -24,6 +24,7 @@ Fear no more, as the virtual deck of cards is here! Simply create or sign into a
 - Put a card aside for game as "oh hell"
 - Distribute the whole deck or a specific number of cards among all players 
 - See How many cards each player got
+- See who's turn is
 - Draw a card from the deck
 - Play a card from your hand
 - Take a card from the playing area (for some game as yaniv or if you did a mistake)
@@ -34,9 +35,9 @@ Fear no more, as the virtual deck of cards is here! Simply create or sign into a
 
 # What's next 
 
-- GAME PLAY - Ordre du tour
 - GAME PLAY - RATATOUILLE - Affichage des plies remportés
 - GAME PLAY - YANIV - loguer les actions des gens voir qui a piocher 
+- GAME PLAY - ESCALIER - Faire évoluer l'ordre du tour
 - GAME PLAY - YANIV - regrouper les cartes en haut de pile 
 - GAME PLAY - YANIV -  permettre de nettoyer les cartes poser par le joueur d'avant
 - GAME PLAY - ESCALIER - Prise en compte des annonces

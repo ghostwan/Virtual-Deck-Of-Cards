@@ -28,13 +28,14 @@ const unicode_cavaliers = [
 var state;
 var cardAside = -1;
 var users = [];
+var playerNumber = -1;
 var gameData = {};
-var user = -1;
 var deckOriginalLength = -1;
 var remainingCards = -1;
 
-var pile = [];
+var my_user = -1;
 var my_hand = [];
+var pile = [];
 var socket = io();
 var options = {};
 var room;
@@ -54,10 +55,10 @@ function init(roomName) {
 
     my_hand.splice(cardIndex, 1);
     $(".card:eq(" + cardIndex + ")").remove();
-    card["username"] = user.name;
+    card["username"] = my_user.name;
     pile.push(card);
 
-    gameData[user.id].cards --
+    gameData[my_user.id].cards --
     socket.emit("updateData", { what: "update pile", pile: pile, gameData: gameData });
     drawHand();
   });
@@ -74,7 +75,7 @@ function init(roomName) {
     my_hand.push(card);
     pile.splice(cardIndex, 1);
 
-    gameData[user.id].cards ++
+    gameData[my_user.id].cards ++
     socket.emit("updateData", { what: "update pile", pile: pile, gameData: gameData });
     drawHand();
   });
@@ -93,20 +94,20 @@ window.onbeforeunload = function (event) {
 
 socket.on("askInfo", function () {
   /*First initialisation*/
-  if (user == -1) {
+  if (my_user == -1) {
     var randomRoger = "roger" + Math.floor(Math.random() * 100);
     var nameTemp = prompt("What's your name ?", randomRoger);
     if (nameTemp == null) {
       nameTemp = randomRoger;
     }
-    user = {
+    my_user = {
       id: socket.id,
       date: Date.now(),
       name: nameTemp,
       emoji: emojis[Math.floor(Math.random() * emojis.length)],
     };
   }
-  socket.emit("sendInfo", user);
+  socket.emit("sendInfo", my_user);
 });
 
 socket.on("onUpdateHand", function (data) {
@@ -116,6 +117,17 @@ socket.on("onUpdateHand", function (data) {
   drawHand();
 });
 
+function isExist(value) {
+  return value != undefined
+}
+
+function isMyTurn() {
+  if(playerNumber != -1)  {
+    return users[playerNumber].id == my_user.id;
+  }
+  return false;
+}
+
 socket.on("onUpdateData", function (data) {
   console.log(">>>>> New data broadcast >>>>>");
   console.log(data);
@@ -124,42 +136,47 @@ socket.on("onUpdateData", function (data) {
   var reDrawDeck = false;
   var reDrawUsersInfo = false;
 
-  if (data.options != undefined) {
+  if ( isExist(data.options) ) {
     options = data.options;
     reDrawDeck = true;
     reDrawPile = true;
     reDrawUsersInfo = true
   }
-  if (data.hand != undefined) {
+  if ( isExist(data.hand) ) {
     my_hand = data.hand;
     reDrawHand = true;
   }
-  if (data.deckOriginalLength != undefined) {
+  if ( isExist(data.deckOriginalLength) ) {
     deckOriginalLength = data.deckOriginalLength;
     reDrawDeck = true;
   }
-  if (data.remainingCards != undefined) {
+  if ( isExist(data.remainingCards) ) {
     remainingCards = data.remainingCards;
     reDrawDeck = true;
   }
-  if (data.pile != undefined) {
+  if ( isExist(data.pile) ) {
     pile = data.pile;
     reDrawPile = true;
   }
-  if (data.users != undefined) {
+  if ( isExist(data.users) ) {
     users = data.users;
     reDrawDeck = true;
     reDrawUsersInfo = true;
   }
-  if (data.gameData != undefined) {
+  if( isExist(data.playerNumber) ) {
+    playerNumber = data.playerNumber;
+    reDrawUsersInfo = true;
+    reDrawDeck = true;
+  }
+  if ( isExist(data.gameData) ) {
     gameData = data.gameData;
     reDrawUsersInfo = true;
   }
-  if (data.state != undefined) {
+  if ( isExist(data.state) ) {
     state = data.state;
     reDrawDeck = true;
   }
-  if (data.cardAside != undefined) {
+  if ( isExist(data.cardAside) ) {
     cardAside = data.cardAside;
     reDrawDeck = true;
   }
@@ -194,14 +211,14 @@ function resetGame() {
 
 function claimTrick() {
   if (confirm("Are you sure you won the trick?")) {
-    if(gameData[user.id] == undefined) {
-      gameData[user.id] = {}
+    if(gameData[my_user.id] == undefined) {
+      gameData[my_user.id] = {}
     }
-    if(gameData[user.id].tricks == undefined) {
-      gameData[user.id].tricks = []
+    if(gameData[my_user.id].tricks == undefined) {
+      gameData[my_user.id].tricks = []
     }
 
-    gameData[user.id].tricks.push(pile);
+    gameData[my_user.id].tricks.push(pile);
     socket.emit("updateData", { what: "claim tricks", gameData: gameData, pile: [] });
   }
 }
@@ -223,6 +240,12 @@ function putCardAside() {
   socket.emit("putCardAside");
 }
 
+function endTurn() {
+  if(isMyTurn()) {
+    socket.emit("endTurn");
+  }
+}
+
 function drawUsersInfos() {
   $("#user_container").empty();
   users.forEach((user) => {
@@ -231,8 +254,6 @@ function drawUsersInfos() {
     if(state == STATE_CONFIG) {
       number = `🂠 <b> X </b>`
     } else if(data != undefined) {
-      debug(data)
-      debug(options)
       if(options.tricks) {
         if(data != undefined && data.tricks != undefined)
           number = " 🂠 <b>" + data.tricks.length + "</b>";
@@ -240,8 +261,12 @@ function drawUsersInfos() {
         number = " 🂠 <b>" + data.cards + "</b>";
       }
     }
+    var userClass = "user_profil"
+    if(playerNumber != -1 && users[playerNumber].id == user.id) {
+      userClass +=  " player"
+    }
     var content = `
-          <div class="user_profil">
+          <div class="${userClass}">
             <p class="user_emoji">${user.emoji}</p>
             <p>${user.name}${number}</p>
           </div>
@@ -337,9 +362,14 @@ function drawDeck() {
     }
   } else if (state == STATE_PLAY) {
     $("#reset_button").visible();
+    var endTurnButton = ""
+    if(isMyTurn()) {
+      endTurnButton = "<button onclick = 'endTurn()' class = 'btn btn-outline-dark btn-lg btn-block'>End turn</button><br>"
+    }
 
     if (remainingCards == 0) {
       content = `<div class = 'col-6'><h2>Deck is empty</h2><br>
+          ${endTurnButton}
           <button onclick = 'resetRound()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>
         </div>
         <div class = 'col-6'>
@@ -349,6 +379,7 @@ function drawDeck() {
     } else {
       content = `<div class = 'col-6'><h2>Deck: ${remainingCards} / ${deckOriginalLength} cards</h2><br>
           <button onclick = 'resetRound()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>
+          ${endTurnButton}
         </div>
         <div class = 'col-6'>
           <span class="card_deck ${card_color}">${cardAside != -1 ? drawCard(cardAside) : "🂠"}</span>
@@ -365,22 +396,22 @@ function drawHand(instruction = false) {
   var content = "";
 
   if (instruction) {
-    content = `Read this instructions ${user.name}`;
+    content = `Read this instructions ${my_user.name}`;
     $("#instruction").show();
     $("#cards_control").invisible();
   } else {
     $("#instruction").hide();
     switch (my_hand.length) {
       case 0:
-        content = `Your Hand ${user.name} is empty!`;
+        content = `Your Hand ${my_user.name} is empty!`;
         $("#cards_control").invisible();
         break;
       case 1:
-        content = `Your Hand ${user.name}`;
+        content = `Your Hand ${my_user.name}`;
         $("#cards_control").invisible();
         break;
       default:
-        content = `Your Hand ${user.name} : ${my_hand.length} cards`;
+        content = `Your Hand ${my_user.name} : ${my_hand.length} cards`;
         $("#cards_control").visible();
     }
   }
@@ -523,7 +554,10 @@ jQuery.fn.invisible = function () {
 
 $(document).on("keypress", function (event) {
     var keycode = event.keyCode ? event.keyCode : event.which;
-    if (keycode == "13" && state == STATE_DISTRIBUTE) {
-      distributeCards();
+    if (keycode == "13") {
+      switch(state) {
+        case STATE_DISTRIBUTE: distributeCards(); break;
+        case STATE_PLAY: endTurn(); break;
+      }
     }
 });

@@ -131,3 +131,6 @@ h2 {
 .playing_btn {
   margin-bottom: 11px
 }
+.player {
+  background-color: rgba(114, 125, 184, 0.418);
+}
