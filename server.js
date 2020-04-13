@@ -212,6 +212,16 @@ io.on("connection", socket => {
     var deck = newDeck(getData("options"));
     deck = shuffleDeck(deck, deck.length);
     storeData("deck", deck)
+    var options = getData("options");
+    var player = 0;
+
+    if(options.turn) {
+      options.turn++;
+      if(options.turn > getUsersConnected().length+1) {
+        options.turn = 2
+      }
+      player = options.turn-2
+    }
 
     emitUpdateToRoom({
       instruction: false,
@@ -221,9 +231,10 @@ io.on("connection", socket => {
       state: state(STATE_DISTRIBUTE),
       cardAside: storeData("cardAside", -1),
       pile: storeData("pile", []),
+      options: storeData("options", options),
       hand: [],
       gameData: storeData("gameData", {}) ,
-      playerNumber : storeData("playerNumber", 0)
+      playerNumber : storeData("playerNumber", player)
     });
 
   });
@@ -238,6 +249,7 @@ io.on("connection", socket => {
     if (data.deckOriginalLength != undefined) storeData("deckOriginalLength", data.deckOriginalLength);    
     if (data.pile != undefined) storeData("pile", data.pile);
     if(data.gameData != undefined) storeData("gameData", data.gameData);
+    if(data.playerNumber != undefined) storeData("playerNumber", data.playerNumber);
 
     emitUpdateToRoom(data );
   });

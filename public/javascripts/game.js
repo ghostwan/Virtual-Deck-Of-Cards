@@ -84,8 +84,20 @@ function init(roomName) {
     drawHand();
   });
 
-    room = roomName
-    socket.emit("connectRoom", roomName);  
+  $.contextMenu({
+    selector: '.user_profil_menu', 
+    callback: function(key, options) {
+      switch(key) {
+        case "turn": onTurnMenu(options); break;
+      }
+    },
+    items: {
+        "turn": {name: "Set turn", icon: "fa-hand-paper"},
+    }
+  });
+
+  room = roomName
+  socket.emit("connectRoom", roomName);  
 }
 
 window.onbeforeunload = function (event) {
@@ -187,9 +199,16 @@ socket.on("onUpdateData", function (data) {
   if (reDrawUsersInfo) drawUsersInfos();
 });
 
+
+function onTurnMenu(options) {
+  const userid = options.$trigger.attr("userid");
+  socket.emit("updateData", { what: "switch turn", playerNumber: getUserPlace(userid) });
+}
+
 function start() {
-  options["cavaliers"] = $("#option_cavaliers").is(":checked");
-  options["tricks"] = $("#option_tricks").is(":checked");
+  syncOption("cavaliers")
+  syncOption("tricks")
+  syncOption("turn")
   options["cards_distribute"] = 1;
   options["stack_visible"] = true;
 
@@ -209,6 +228,14 @@ function resetGame() {
   }
 }
 
+function getUserPlace(userID=my_user.id){
+  for (var u = 0; u < users.length; u++) {
+    if(users[u].id == userID) {
+      return u;
+    }
+  }
+}
+
 function claimTrick() {
   if (confirm("Are you sure you won the trick?")) {
     if(gameData[my_user.id] == undefined) {
@@ -217,9 +244,8 @@ function claimTrick() {
     if(gameData[my_user.id].tricks == undefined) {
       gameData[my_user.id].tricks = []
     }
-
     gameData[my_user.id].tricks.push(pile);
-    socket.emit("updateData", { what: "claim tricks", gameData: gameData, pile: [] });
+    socket.emit("updateData", { what: "claim tricks", gameData: gameData, pile: [], playerNumber: getUserPlace() });
   }
 }
 
@@ -265,8 +291,11 @@ function drawUsersInfos() {
     if(playerNumber != -1 && users[playerNumber].id == user.id) {
       userClass +=  " player"
     }
+    if(state != STATE_CONFIG) {
+      userClass += " user_profil_menu"
+    }
     var content = `
-          <div class="${userClass}">
+          <div class="${userClass}" userid=${user.id}>
             <p class="user_emoji">${user.emoji}</p>
             <p>${user.name}${number}</p>
           </div>
@@ -292,6 +321,20 @@ function drawCard(card) {
   return result;
 }
 
+function addOption(name, title, descriptionChecked, description) {
+  return `
+  <input type="checkbox" class="form-check-input" 
+    id="option_${name}" onclick = 'onOptionChange("${name}")' ${isChecked(name)? "checked" : ""}/>
+  <label class="form-check-label" for="option_${name}" >${title}
+  => ${isChecked(name)? descriptionChecked : description}
+  </label>
+  `
+}
+
+function syncOption(name) {
+  options[name] = $("#option_"+name).is(":checked");
+}
+
 function drawDeckConfig() {
   return `
       <div class="col-6 form-group">
@@ -299,17 +342,11 @@ function drawDeckConfig() {
         <br /><br />
         <button class="btn btn-outline-dark btn-lg btn-block get_deck" onclick="start()">Start</button>
         <br />
-        <input type="checkbox" class="form-check-input" 
-                id="option_cavaliers" onclick = 'onOptionChange("cavaliers")' ${isChecked("cavaliers")? "checked" : ""}/>
-        <label class="form-check-label" for="option_cavaliers" >Include cavaliers
-        => ${isChecked("cavaliers")? "56 cards" : "52 cards"}
-        </label>
+        ${addOption("cavaliers", "Include cavaliers", "56 cards", "52 cards")}
         <br />
-        <input type="checkbox" class="form-check-input" 
-                id="option_tricks" onclick = 'onOptionChange("tricks")' ${isChecked("tricks")? "checked" : ""}/>
-        <label class="form-check-label" for="option_tricks">Claim tricks
-        🂠 <b> X </b> => ${isChecked("tricks")? "tricks won" : "cards in hand"}
-        </label>
+        ${addOption("tricks", "Claim tricks 🂠 <b> X </b>", "tricks won", "cards in hand")}
+        <br />
+        ${addOption("turn", "Turn change", "turn change each round", "turn order stay the same")}
       </div>
       <div class="col-6 container h-100">
         <div class="row h-100 justify-content-center align-items-center">
@@ -362,7 +399,7 @@ function drawDeckDistribute() {
 function drawDeckPlay() {
   var content = "";
   var endTurnButton = "";
-  
+
   var card_color = "";
   if (cardAside != -1 && (cardAside["suit"] == "Hearts" || cardAside["suit"] == "Diamonds")) {
     card_color = "card_red";
