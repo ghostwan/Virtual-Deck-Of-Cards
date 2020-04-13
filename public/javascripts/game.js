@@ -292,100 +292,127 @@ function drawCard(card) {
   return result;
 }
 
-function drawDeck() {
-  $("#mainDeck").empty();
+function drawDeckConfig() {
+  return `
+      <div class="col-6 form-group">
+        <h2 class="startText">Everyone in?</h2>
+        <br /><br />
+        <button class="btn btn-outline-dark btn-lg btn-block get_deck" onclick="start()">Start</button>
+        <br />
+        <input type="checkbox" class="form-check-input" 
+                id="option_cavaliers" onclick = 'onOptionChange("cavaliers")' ${isChecked("cavaliers")? "checked" : ""}/>
+        <label class="form-check-label" for="option_cavaliers" >Include cavaliers
+        => ${isChecked("cavaliers")? "56 cards" : "52 cards"}
+        </label>
+        <br />
+        <input type="checkbox" class="form-check-input" 
+                id="option_tricks" onclick = 'onOptionChange("tricks")' ${isChecked("tricks")? "checked" : ""}/>
+        <label class="form-check-label" for="option_tricks">Claim tricks
+        🂠 <b> X </b> => ${isChecked("tricks")? "tricks won" : "cards in hand"}
+        </label>
+      </div>
+      <div class="col-6 container h-100">
+        <div class="row h-100 justify-content-center align-items-center">
+            <h2>Room ${room}</h2>
+        </div>
+      </div>
+    `;
+}
+
+function drawDeckDistribute() {
   var content = "";
   var card_color = "";
   if (cardAside != -1 && (cardAside["suit"] == "Hearts" || cardAside["suit"] == "Diamonds")) {
     card_color = "card_red";
   }
-
-  if (state == STATE_CONFIG) {
-    $("#reset_button").invisible();
-    content = `
-        <div class="col-6 form-group">
-          <h2 class="startText">Everyone in?</h2>
-          <br /><br />
-          <button class="btn btn-outline-dark btn-lg btn-block get_deck" onclick="start()">Start</button>
-          <br />
-          <input type="checkbox" class="form-check-input" 
-                 id="option_cavaliers" onclick = 'onOptionChange("cavaliers")' ${isChecked("cavaliers")? "checked" : ""}/>
-          <label class="form-check-label" for="option_cavaliers" >Include cavaliers
-          => ${isChecked("cavaliers")? "56 cards" : "52 cards"}
-          </label>
-          <br />
-          <input type="checkbox" class="form-check-input" 
-                 id="option_tricks" onclick = 'onOptionChange("tricks")' ${isChecked("tricks")? "checked" : ""}/>
-          <label class="form-check-label" for="option_tricks">Claim tricks
-          🂠 <b> X </b> => ${isChecked("tricks")? "tricks won" : "cards in hand"}
-          </label>
-        </div>
-        <div class="col-6 container h-100">
-          <div class="row h-100 justify-content-center align-items-center">
-              <h2>Room ${room}</h2>
-          </div>
-        </div>
-      `;
-  } else if (state == STATE_DISTRIBUTE) {
-    $("#reset_button").visible();
-    var message =
-      users.length == 1
+  var message = users.length == 1
         ? "Your are the only player connected! "
         : "Card to distribute to each player (" + users.length + " players)";
-    content = `
-      <div class = 'col-6'><h2>Deck: ${remainingCards} / ${deckOriginalLength} cards</h2><br>
-        <button onclick = 'shuffleDeck()' class = 'btn btn-outline-dark btn-lg btn-block'>Shuffle cards</button><br>
-        <button class = 'btn btn-outline-dark btn-lg btn-block' onclick = 'distributeCards()'>Distribute</button><br>
-        <div class="control-group form-inline">
-          <label class="mb-2" for="distribute_card">${message}</label>
-          <input  class= "mb-2" type = "number" id = "distribute_card" placeholder = "number of cards" 
-              value="${isAllCards() ? "" : options["cards_distribute"]}" ${options["cards_distribute"] == -1 ? "disabled" : ""} />
-          <div class="mx-sm-3 mb-2"> Or </div>'
-          <label class="form-check-label mb-2" for="all_cards">All cards</label>
-          <input  type='checkbox' class='form-check-input mb-2' 
-                  id='option_all_cards' ${isAllCards() ? "checked" : ""} onclick='onOptionAllCardsChange()'>
-        </div>
-      </div>`;
-    if (cardAside != -1) {
-      content += `
-        <div class = 'col-6'>
-          <span class="card_deck ${card_color}">${drawCard(cardAside)}</span>
-        </div>
-        `;
-    } else {
-      content += `
-        <div class = 'col-6'>
-          <span class="card_deck">🂠</span>
-          <button style="margin-left:25%" class='col-6 distrib-btn btn btn-primary ' onclick = 'putCardAside()'>Put a card aside</button>
-        </div>
+  content = `
+    <div class = 'col-6'><h2>Deck: ${remainingCards} / ${deckOriginalLength} cards</h2><br>
+      <button onclick = 'shuffleDeck()' class = 'btn btn-outline-dark btn-lg btn-block'>Shuffle cards</button><br>
+      <button class = 'btn btn-outline-dark btn-lg btn-block' onclick = 'distributeCards()'>Distribute</button><br>
+      <div class="control-group form-inline">
+        <label class="mb-2" for="distribute_card">${message}</label>
+        <input  class= "mb-2" type = "number" id = "distribute_card" placeholder = "number of cards" 
+            value="${isAllCards() ? "" : options["cards_distribute"]}" ${options["cards_distribute"] == -1 ? "disabled" : ""} />
+        <div class="mx-sm-3 mb-2"> Or </div>'
+        <label class="form-check-label mb-2" for="all_cards">All cards</label>
+        <input  type='checkbox' class='form-check-input mb-2' 
+                id='option_all_cards' ${isAllCards() ? "checked" : ""} onclick='onOptionAllCardsChange()'>
+      </div>
+    </div>`;
+  if (cardAside != -1) {
+    content += `
+      <div class = 'col-6'>
+        <span class="card_deck ${card_color}">${drawCard(cardAside)}</span>
+      </div>
       `;
-    }
-  } else if (state == STATE_PLAY) {
-    $("#reset_button").visible();
-    var endTurnButton = ""
-    if(isMyTurn()) {
-      endTurnButton = "<button onclick = 'endTurn()' class = 'btn btn-outline-dark btn-lg btn-block'>End turn</button><br>"
-    }
+  } else {
+    content += `
+      <div class = 'col-6'>
+        <span class="card_deck">🂠</span>
+        <button style="margin-left:25%" class='col-6 distrib-btn btn btn-primary ' onclick = 'putCardAside()'>Put a card aside</button>
+      </div>
+    `;
+  }
+  return content;
+}
 
-    if (remainingCards == 0) {
-      content = `<div class = 'col-6'><h2>Deck is empty</h2><br>
-          ${endTurnButton}
-          <button onclick = 'resetRound()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>
-        </div>
-        <div class = 'col-6'>
-          <span class="card_deck ${card_color}">${cardAside != -1 ? drawCard(cardAside) : "∅"}</span>
-        </div>
-        `;
-    } else {
-      content = `<div class = 'col-6'><h2>Deck: ${remainingCards} / ${deckOriginalLength} cards</h2><br>
-          <button onclick = 'resetRound()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>
-          ${endTurnButton}
-        </div>
-        <div class = 'col-6'>
-          <span class="card_deck ${card_color}">${cardAside != -1 ? drawCard(cardAside) : "🂠"}</span>
-          <button style="margin-left:25%" class='col-6 distrib-btn btn btn-primary ' onclick = 'takeCard()'>Draw a card</button>
-        </div>
-        `;
+function drawDeckPlay() {
+  var content = "";
+  var endTurnButton = "";
+  
+  var card_color = "";
+  if (cardAside != -1 && (cardAside["suit"] == "Hearts" || cardAside["suit"] == "Diamonds")) {
+    card_color = "card_red";
+  }
+
+  if(isMyTurn()) {
+    endTurnButton = "<button onclick = 'endTurn()' class = 'btn btn-outline-dark btn-lg btn-block'>End turn</button><br>"
+  }
+
+  if (remainingCards == 0) {
+    content = `<div class = 'col-6'><h2>Deck is empty</h2><br>
+        ${endTurnButton}
+        <button onclick = 'resetRound()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>
+      </div>
+      <div class = 'col-6'>
+        <span class="card_deck ${card_color}">${cardAside != -1 ? drawCard(cardAside) : "∅"}</span>
+      </div>
+      `;
+  } else {
+    content = `<div class = 'col-6'><h2>Deck: ${remainingCards} / ${deckOriginalLength} cards</h2><br>
+        <button onclick = 'resetRound()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>
+        ${endTurnButton}
+      </div>
+      <div class = 'col-6'>
+        <span class="card_deck ${card_color}">${cardAside != -1 ? drawCard(cardAside) : "🂠"}</span>
+        <button style="margin-left:25%" class='col-6 distrib-btn btn btn-primary ' onclick = 'takeCard()'>Draw a card</button>
+      </div>
+      `;
+  }
+  return content;
+}
+
+function drawDeck() {
+  $("#mainDeck").empty();
+  var content = "";
+  switch(state) {
+    case STATE_CONFIG: {
+      $("#reset_button").invisible();
+      content = drawDeckConfig();
+      break;
+    }
+    case STATE_DISTRIBUTE: {
+      $("#reset_button").visible();
+      content = drawDeckDistribute();
+      break;
+    }
+    case STATE_PLAY: {
+      $("#reset_button").visible();
+      content = drawDeckPlay();
+      break;
     }
   }
   $("#mainDeck").append(content);
