@@ -1,5 +1,5 @@
 # Virtual Deck Of Cards
-![alt text](icon.png)
+![alt text](public/images/icon.png)
 
 A virtual deck of cards! Play anything anywhere, with anyone!
 
@@ -25,11 +25,12 @@ Fear no more, as the virtual deck of cards is here! Simply create or sign into a
 - Distribute the whole deck or a specific number of cards among all players 
 - See How many cards each player got
 - See who's turn is
+- Change turn order
 - Draw a card from the deck
 - Play a card from your hand
-- Take a card from the playing area (for some game as yaniv or if you did a mistake)
+- Take a card from the playing area (for some game as Yaniv or if you did a mistake)
 - In trick mode, claim the trick if you won the round
-- Rearange cards in your hand or sort them
+- Rearrange cards in your hand or sort them
 - See who played a card
 - Clear the playing area
 
@@ -37,7 +38,6 @@ Fear no more, as the virtual deck of cards is here! Simply create or sign into a
 
 - GAME PLAY - RATATOUILLE - Affichage des plies remportés
 - GAME PLAY - YANIV - loguer les actions des gens voir qui a piocher 
-- GAME PLAY - ESCALIER - Faire évoluer l'ordre du tour
 - GAME PLAY - YANIV - regrouper les cartes en haut de pile 
 - GAME PLAY - YANIV -  permettre de nettoyer les cartes poser par le joueur d'avant
 - GAME PLAY - ESCALIER - Prise en compte des annonces
@@ -56,8 +56,37 @@ Fear no more, as the virtual deck of cards is here! Simply create or sign into a
 
 # Bugs
 
-- Si on distribue plus de cartes que de personnes ça foire les comptes  
+- Si on distribue plus de cartes que de personnes ça foire les comptes
 
+# Game features status
+
+| Features / Games                      | Escalier [D] | Ratatouille [W] | Yaniv  [N] | Tarot   [T] |
+| ------------------------------------- | ------------ | --------------- | ---------- | ----------- |
+| Distribute all the deck               |              | OK              |            | OK          |
+| Distribute a specific number of cards | OK           |                 | OK         |             |
+| Put a card aside                      | OK (atout)   |                 |            |             |
+| Claim trick                           | OK           | OK              |            | OK          |
+| See How many cards each player got    |              |                 | OK         |             |
+| Draw a card from the deck             |              |                 | OK         |             |
+| Take a card from the playing area     |              |                 | OK         |             |
+| Change turn automatically             | OK           |                 |            |             |
+| ------------ TO DEVELOP ------------  |              |                 |            |             |
+| Display trick won                     |              | **NEED**        |            | **NEED**    |
+| Trump cards (atouts)                  |              |                 |            | **NEED**    |
+| Group old cards played                |              |                 | OPTIM      |             |
+| Log actions                           |              |                 | OPTIM      |             |
+| Random first player                   | OPTIONNAL    | OPTIONNAL       | OPTIONNAL  |             |
+| Bidding                               | OPTIONNAL    |                 |            |             |
+| Scores calculator                     | OPTIONNAL    | OPTIONNAL       | OPTIONNAL  | OPTIONNAL   |
+| Recall the round rules                |              | OPTIONNAL       |            |             |
+
+
+D = DONE: you can play easily to this game  
+N = NOT OPTIMAL: you can play but it's not optimal features are missing  
+W = WIP:  you can't currently play important features are missing  
+T = TODO: Most of the minimum need feature are missing  
+ 
+ ---
 
 # How to play locally
 
