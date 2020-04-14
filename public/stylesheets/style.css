@@ -69,12 +69,12 @@ h2 {
   font-size: 8em;
   line-height: 105%;
 }
-.card {
+.cardInHand {
   display: inline-block;
   border: none;
   background-color: white;
 }
-.cardinPile {
+.cardInPile {
   font-size: 10em;
   background-color: white;
   display: inline-block;

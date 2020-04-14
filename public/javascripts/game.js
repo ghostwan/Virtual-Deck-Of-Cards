@@ -43,18 +43,18 @@ var room;
 function init(roomName) {
 
   // Move card from your hand to the pile
-  $("body").on("click", ".card", function () {
+  $("body").on("click", ".cardInHand", function () {
     // If reorder possible do nothing
     if ($("#option_reorder").prop("checked")) {
       return;
     }
 
-    var cardIndex = $(".card").index($(this));
+    var cardIndex = $(".cardInHand").index($(this));
     var card = my_hand[cardIndex];
     console.log("Click on your card on " + card);
 
     my_hand.splice(cardIndex, 1);
-    $(".card:eq(" + cardIndex + ")").remove();
+    $(".cardInHand:eq(" + cardIndex + ")").remove();
     card["username"] = my_user.name;
     pile.push(card);
 
@@ -64,10 +64,10 @@ function init(roomName) {
   });
 
   // Move card from the pile to your hand
-  $("body").on("click", ".cardinPile", function () {
+  $("body").on("click", ".cardInPile", function () {
     debug("click on card");
 
-    var cardIndex = $(".cardinPile").index($(this));
+    var cardIndex = $(".cardInPile").index($(this));
     var cardIndex = options["stack_visible"] ? pile.length - 1 - cardIndex : cardIndex;
     var card = pile[cardIndex];
     console.log("Click on the pile card on " + card);
@@ -292,7 +292,7 @@ function drawTricks(userid=my_user.id) {
   //     for (var c = 0; c < trick.length; c++) {
   //       var c = trick.length - 1 - c
   //       var card = trick[c];
-  //       var $item = $(`<div class="cardinPile ${getCardClass(card)}"/>`).text(drawCard(card));
+  //       var $item = $(`<div class="cardInPile ${getCardClass(card)}"/>`).text(drawCard(card));
   //       // $item.css({ position: "absolute" });
   //       $("#playArea").append($item);
   //     }
@@ -341,22 +341,23 @@ function isChecked(name) {
 function isAllCards() {
   return options["cards_distribute"] == -1;
 }
-function drawCard(card) {
-  var rank = options["cavaliers"] ? rank_cavaliers : rank_normal;
-  var unicode = options["cavaliers"] ? unicode_cavaliers : unicode_normal;
-  var result = unicode[suit.indexOf(card["suit"])][rank.indexOf(card["rank"])];
-  return result;
-}
-
-function getCardClass(card)  {
+function drawCard(card, clazz, type="div") {
   var card_color = "";
   if ((card != undefined || card != -1)  && (card["suit"] == "Hearts" || card["suit"] == "Diamonds")) {
     card_color = "card_red";
   } else {
     card_color = "card_black";
   }
-  return card_color;
+  var rank = options["cavaliers"] ? rank_cavaliers : rank_normal;
+  var unicode = options["cavaliers"] ? unicode_cavaliers : unicode_normal;
+  var result = card;
+  if(card.suit != undefined) {
+    var result = unicode[suit.indexOf(card["suit"])][rank.indexOf(card["rank"])];
+  }
+
+  return `<${type} class="${clazz} ${card_color}">${result}</${type}>`
 }
+
 
 function addOption(name, title, descriptionChecked, description) {
   return `
@@ -415,7 +416,7 @@ function drawDeckDistribute() {
   if (cardAside != -1) {
     content += `
       <div class = 'col-6'>
-        <span class="card_deck ${getCardClass(cardAside)}">${drawCard(cardAside)}</span>
+        ${drawCard(cardAside, "card_deck", "span")}
       </div>
       `;
   } else {
@@ -443,7 +444,7 @@ function drawDeckPlay() {
         <button onclick = 'resetRound()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>
       </div>
       <div class = 'col-6'>
-        <span class="card_deck ${getCardClass(cardAside)}">${cardAside != -1 ? drawCard(cardAside) : "∅"}</span>
+        ${cardAside != -1 ? drawCard(cardAside, "card_deck", "span") : '<span class="card_deck">∅</span>'}
       </div>
       `;
   } else {
@@ -452,7 +453,7 @@ function drawDeckPlay() {
         ${endTurnButton}
       </div>
       <div class = 'col-6'>
-        <span class="card_deck ${getCardClass(cardAside)}">${cardAside != -1 ? drawCard(cardAside) : "🂠"}</span>
+        ${cardAside != -1 ? drawCard(cardAside, "card_deck", "span") : '<span class="card_deck">🂠</span>'}
         <button style="margin-left:25%" class='col-6 distrib-btn btn btn-primary ' onclick = 'takeCard()'>Draw a card</button>
       </div>
       `;
@@ -544,7 +545,7 @@ function drawHand(instruction = false) {
 
   for (var i = 0; i < my_hand.length; i++) {
     card = my_hand[i];
-    var $item = $(`<div class="card ${getCardClass(card)}"/>`).text(drawCard(card));
+    var $item = $(drawCard(card, "cardInHand"))
     $("#cardDisplay").append($item);
   }
 }
@@ -576,7 +577,7 @@ function drawPile() {
   for (var i = 0; i < pile.length; i++) {
     var j = options["stack_visible"] ? pile.length - 1 - i : i;
     card = pile[j];
-    var $item = $(`<div class="cardinPile ${getCardClass(card)}"/>`).text(drawCard(card));
+    var $item = $(drawCard(card, "cardInPile"))
     var $layer = $('<div class="card_layer"/>');
     var $owner = $('<div class="card_owner"/>').text(card["username"]);
     $layer.append($item);
