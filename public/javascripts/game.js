@@ -147,6 +147,7 @@ socket.on("onUpdateData", function (data) {
   var reDrawPile = false;
   var reDrawDeck = false;
   var reDrawUsersInfo = false;
+  var reDrawTricks = false;
 
   if ( isExist(data.options) ) {
     options = data.options;
@@ -183,6 +184,9 @@ socket.on("onUpdateData", function (data) {
   if ( isExist(data.gameData) ) {
     gameData = data.gameData;
     reDrawUsersInfo = true;
+    if(options.tricks) {
+      reDrawTricks = true;
+    }
   }
   if ( isExist(data.state) ) {
     state = data.state;
@@ -197,6 +201,7 @@ socket.on("onUpdateData", function (data) {
   if (reDrawHand) drawHand(data.instruction == true);
   if (reDrawPile) drawPile();
   if (reDrawUsersInfo) drawUsersInfos();
+  if (reDrawTricks) drawTricks();
 });
 
 
@@ -236,6 +241,12 @@ function getUserPlace(userID=my_user.id){
   }
 }
 
+function getTricks(userid=my_user.id) {
+  if(gameData[userid] != undefined) {
+    return gameData[userid].tricks;
+  }
+}
+
 function claimTrick() {
   if (confirm("Are you sure you won the trick?")) {
     if(gameData[my_user.id] == undefined) {
@@ -270,6 +281,23 @@ function endTurn() {
   if(isMyTurn()) {
     socket.emit("endTurn");
   }
+}
+
+function drawTricks(userid=my_user.id) {
+  // var tricks = getTricks(userid);
+  // console.log(tricks)
+  // if(tricks != undefined) {
+  //   for (var t = 0; t < tricks.length; t++) {
+  //     var trick = tricks[t];
+  //     for (var c = 0; c < trick.length; c++) {
+  //       var c = trick.length - 1 - c
+  //       var card = trick[c];
+  //       var $item = $(`<div class="cardinPile ${getCardClass(card)}"/>`).text(drawCard(card));
+  //       // $item.css({ position: "absolute" });
+  //       $("#playArea").append($item);
+  //     }
+  //   }
+  // }
 }
 
 function drawUsersInfos() {
@@ -317,8 +345,17 @@ function drawCard(card) {
   var rank = options["cavaliers"] ? rank_cavaliers : rank_normal;
   var unicode = options["cavaliers"] ? unicode_cavaliers : unicode_normal;
   var result = unicode[suit.indexOf(card["suit"])][rank.indexOf(card["rank"])];
-  console.log(result);
   return result;
+}
+
+function getCardClass(card)  {
+  var card_color = "";
+  if ((card != undefined || card != -1)  && (card["suit"] == "Hearts" || card["suit"] == "Diamonds")) {
+    card_color = "card_red";
+  } else {
+    card_color = "card_black";
+  }
+  return card_color;
 }
 
 function addOption(name, title, descriptionChecked, description) {
@@ -358,10 +395,6 @@ function drawDeckConfig() {
 
 function drawDeckDistribute() {
   var content = "";
-  var card_color = "";
-  if (cardAside != -1 && (cardAside["suit"] == "Hearts" || cardAside["suit"] == "Diamonds")) {
-    card_color = "card_red";
-  }
   var message = users.length == 1
         ? "Your are the only player connected! "
         : "Card to distribute to each player (" + users.length + " players)";
@@ -382,7 +415,7 @@ function drawDeckDistribute() {
   if (cardAside != -1) {
     content += `
       <div class = 'col-6'>
-        <span class="card_deck ${card_color}">${drawCard(cardAside)}</span>
+        <span class="card_deck ${getCardClass(cardAside)}">${drawCard(cardAside)}</span>
       </div>
       `;
   } else {
@@ -400,11 +433,6 @@ function drawDeckPlay() {
   var content = "";
   var endTurnButton = "";
 
-  var card_color = "";
-  if (cardAside != -1 && (cardAside["suit"] == "Hearts" || cardAside["suit"] == "Diamonds")) {
-    card_color = "card_red";
-  }
-
   if(isMyTurn()) {
     endTurnButton = "<button onclick = 'endTurn()' class = 'btn btn-outline-dark btn-lg btn-block'>End turn</button><br>"
   }
@@ -415,7 +443,7 @@ function drawDeckPlay() {
         <button onclick = 'resetRound()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>
       </div>
       <div class = 'col-6'>
-        <span class="card_deck ${card_color}">${cardAside != -1 ? drawCard(cardAside) : "∅"}</span>
+        <span class="card_deck ${getCardClass(cardAside)}">${cardAside != -1 ? drawCard(cardAside) : "∅"}</span>
       </div>
       `;
   } else {
@@ -424,7 +452,7 @@ function drawDeckPlay() {
         ${endTurnButton}
       </div>
       <div class = 'col-6'>
-        <span class="card_deck ${card_color}">${cardAside != -1 ? drawCard(cardAside) : "🂠"}</span>
+        <span class="card_deck ${getCardClass(cardAside)}">${cardAside != -1 ? drawCard(cardAside) : "🂠"}</span>
         <button style="margin-left:25%" class='col-6 distrib-btn btn btn-primary ' onclick = 'takeCard()'>Draw a card</button>
       </div>
       `;
@@ -516,12 +544,7 @@ function drawHand(instruction = false) {
 
   for (var i = 0; i < my_hand.length; i++) {
     card = my_hand[i];
-    var $item = $('<div class="card"/>').text(drawCard(card));
-    if (card["suit"] == "Hearts" || card["suit"] == "Diamonds") {
-      $item.css({ color: "red" });
-    } else {
-      $item.css({ position: "relative" });
-    }
+    var $item = $(`<div class="card ${getCardClass(card)}"/>`).text(drawCard(card));
     $("#cardDisplay").append($item);
   }
 }
@@ -553,10 +576,7 @@ function drawPile() {
   for (var i = 0; i < pile.length; i++) {
     var j = options["stack_visible"] ? pile.length - 1 - i : i;
     card = pile[j];
-    var $item = $('<div class="cardinPile"/>').text(drawCard(card));
-    if (card["suit"] == "Hearts" || card["suit"] == "Diamonds") {
-      $item.css({ color: "red" });
-    }
+    var $item = $(`<div class="cardinPile ${getCardClass(card)}"/>`).text(drawCard(card));
     var $layer = $('<div class="card_layer"/>');
     var $owner = $('<div class="card_owner"/>').text(card["username"]);
     $layer.append($item);

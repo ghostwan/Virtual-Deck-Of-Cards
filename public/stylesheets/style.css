@@ -92,6 +92,9 @@ h2 {
 .card_red {
   color: red;
 }
+.card_black {
+  color: black;
+}
 #user_container {
   display: inline-block;
   justify-content: center;
