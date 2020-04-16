@@ -314,7 +314,7 @@ function newDeck(options) {
   if (options["cavaliers"]) {
     rank = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "C", "Q", "K"];
   }
-  var suit = ["Clubs", "Diamonds", "Spades", "Hearts"];
+  var suit = ["clubs", "diams", "spades", "hearts"];
   var cards = [];
   for (var i = 0; i < suit.length; i++) {
     for (var j = 0; j < rank.length; j++) {

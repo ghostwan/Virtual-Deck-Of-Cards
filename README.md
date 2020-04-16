@@ -47,7 +47,6 @@ Fear no more, as the virtual deck of cards is here! Simply create or sign into a
 - GAME PLAY - Gestion des scores
 - GAME PLAY - Preset de configuration pour des jeux existants
 - GAME PLAY - Sélectionner le nombre de deck quand on est nombreux
-- UI - Utiliser le CSS pour draw les cartes
 - GAME PLAY - TAROTS - Rajouter les cartes les atouts de tarot
 - GAME PLAY - Créer de nouvelles cartes entre 10 et valet quand on est plusieurs (11, 12, 13, 14, 15...)
 - UX - Chat écrit

@@ -4,26 +4,8 @@ const emojis = ['😄','😃','😀','😊','☺','😉','😍','😘','😚','�
     '👲','👳','👮','👷','💂','👶','👦','👧','👨','👩','👴','👵','👱','👼','👸','😺','😸','😻','😽','😼','🙀',
     '😿','😹','😾','👹','👺','🙈','🙉','🙊','💀','👽','💩'];
 
-const suit = ["Clubs", "Diamonds", "Spades", "Hearts"];
-
-const rank_normal = 
-    ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
-const unicode_normal = [
-    ["🃑", "🃒", "🃓", "🃔", "🃕", "🃖", "🃗", "🃘", "🃙", "🃚", "🃛", "🃝", "🃞"], //  Clubs (trefle)
-    ["🃁", "🃂", "🃃", "🃄", "🃅", "🃆", "🃇", "🃈", "🃉", "🃊", "🃋", "🃍", "🃎"], //  Diamonds (carreau)
-    ["🂡", "🂢", "🂣", "🂤", "🂥", "🂦", "🂧", "🂨", "🂩", "🂪", "🂫", "🂭", "🂮"], //  Spades (pique)
-    ["🂱", "🂲", "🂳", "🂴", "🂵", "🂶", "🂷", "🂸", "🂹", "🂺", "🂻", "🂽", "🂾"] //  Hearts (coeur)
-]; 
-
-const rank_cavaliers = 
-    ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "C", "Q", "K"];
-const unicode_cavaliers = [
-    ["🃑", "🃒", "🃓", "🃔", "🃕", "🃖", "🃗", "🃘", "🃙", "🃚", "🃛", "🃜", "🃝", "🃞"], //  Clubs (trefle)
-    ["🃁", "🃂", "🃃", "🃄", "🃅", "🃆", "🃇", "🃈", "🃉", "🃊", "🃋", "🃌", "🃍", "🃎"], //  Diamonds (carreau)
-    ["🂡", "🂢", "🂣", "🂤", "🂥", "🂦", "🂧", "🂨", "🂩", "🂪", "🂫", "🂬", "🂭", "🂮"], //  Spades (pique)
-    ["🂱", "🂲", "🂳", "🂴", "🂵", "🂶", "🂷", "🂸", "🂹", "🂺", "🂻", "🂼", "🂽", "🂾"]  //  Hearts (coeur)
-];
-
+const suit = ["clubs", "diams", "spades", "hearts"];
+const ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "C", "Q", "K"];
 
 var state;
 var cardAside = -1;
@@ -59,7 +41,7 @@ function init(roomName) {
     pile.push(card);
 
     gameData[my_user.id].cards --
-    socket.emit("updateData", { what: "update pile", pile: pile, gameData: gameData });
+    updateData({ what: "update pile", pile: pile, gameData: gameData })
     drawHand();
   });
 
@@ -76,7 +58,7 @@ function init(roomName) {
     pile.splice(cardIndex, 1);
 
     gameData[my_user.id].cards ++
-    socket.emit("updateData", { what: "update pile", pile: pile, gameData: gameData });
+    updateData({ what: "update pile", pile: pile, gameData: gameData })
     drawHand();
   });
 
@@ -87,15 +69,12 @@ function init(roomName) {
   $.contextMenu({
     selector: '.user_profil_menu', 
     callback: function(key, options) {
-      switch(key) {
-        case "turn": onTurnMenu(options); break;
-      }
+      onOptionMenu(key, options);
     },
     items: {
         "turn": {name: "Set turn", icon: "fa-hand-paper"},
     }
   });
-
   room = roomName
   socket.emit("connectRoom", roomName);  
 }
@@ -204,27 +183,57 @@ socket.on("onUpdateData", function (data) {
   if (reDrawTricks) drawTricks();
 });
 
+function updateOption(name, value) {
+  options[name] = value;
+  var data = {what: "update options", options: options}
+  socket.emit("updateData", data);
+}
 
-function onTurnMenu(options) {
-  const userid = options.$trigger.attr("userid");
-  socket.emit("updateData", { what: "switch turn", playerNumber: getUserPlace(userid) });
+function updateData(data) {
+  socket.emit("updateData", data);
+}
+
+function onOptionMenu(name, options) {
+  switch(name) {
+    case "turn": {
+      const userid = options.$trigger.attr("userid");
+      updateData({ what: "switch turn", playerNumber: getUserPlace(userid) })
+    }; break;
+    case "clear" : clearPlayingArea(); break;
+  }
+  
 }
 
 function start() {
   syncOption("cavaliers")
   syncOption("tricks")
   syncOption("turn")
+  syncOption("all_cards")
   options["cards_distribute"] = 1;
   options["stack_visible"] = true;
 
-  socket.emit("updateData", { what: "update options", options: options });
+  updateData({ what: "update options", options: options })
+  initPlayingArea();
   resetRound();
 }
 
 function clearPlayingArea() {
   if (confirm("Are you sure, you want to clear the playing area?")) {
-    socket.emit("updateData", { what: "clear playing area", pile: [] });
+    updateData({ what: "clear playing area", pile: [] })
+    initPlayingArea()
   }
+}
+
+function initPlayingArea() {
+  $.contextMenu({
+    selector: '#playArea', 
+    callback: function(key, options) {
+        onOptionMenu(key, options);
+    },
+    items: {
+        "clear": {name: "Clear", icon: "fa-hand-paper"},
+    }
+  });
 }
 
 function resetGame() {
@@ -256,7 +265,7 @@ function claimTrick() {
       gameData[my_user.id].tricks = []
     }
     gameData[my_user.id].tricks.push(pile);
-    socket.emit("updateData", { what: "claim tricks", gameData: gameData, pile: [], playerNumber: getUserPlace() });
+    updateData({ what: "claim tricks", gameData: gameData, pile: [], playerNumber: getUserPlace() })
   }
 }
 
@@ -338,24 +347,12 @@ function isChecked(name) {
   return options[name] == undefined ? true : options[name];
 }
 
-function isAllCards() {
-  return options["cards_distribute"] == -1;
-}
 function drawCard(card, clazz, type="div") {
-  var card_color = "";
-  if ((card != undefined || card != -1)  && (card["suit"] == "Hearts" || card["suit"] == "Diamonds")) {
-    card_color = "card_red";
-  } else {
-    card_color = "card_black";
-  }
-  var rank = options["cavaliers"] ? rank_cavaliers : rank_normal;
-  var unicode = options["cavaliers"] ? unicode_cavaliers : unicode_normal;
-  var result = card;
-  if(card.suit != undefined) {
-    var result = unicode[suit.indexOf(card["suit"])][rank.indexOf(card["rank"])];
-  }
-
-  return `<${type} class="${clazz} ${card_color}">${result}</${type}>`
+  console.log("Cards: "+card.rank.toLowerCase()+ " "+card.suit.toLowerCase());
+  return `<${type} class="card rank-${card.rank.toLowerCase()} ${card.suit} ${clazz}">
+            <span class="rank">${card.rank}</span>
+            <span class="suit">&${card.suit};</span>
+          </${type}>`
 }
 
 
@@ -385,6 +382,8 @@ function drawDeckConfig() {
         ${addOption("tricks", "Claim tricks 🂠 <b> X </b>", "tricks won", "cards in hand")}
         <br />
         ${addOption("turn", "Turn change", "turn change each round", "turn order stay the same")}
+        <br />
+        ${addOption("all_cards", "All cards", "Distribute all cards", "Distribute a specific number")}
       </div>
       <div class="col-6 container h-100">
         <div class="row h-100 justify-content-center align-items-center">
@@ -404,22 +403,15 @@ function drawDeckDistribute() {
       <button onclick = 'shuffleDeck()' class = 'btn btn-outline-dark btn-lg btn-block'>Shuffle cards</button><br>
       <button class = 'btn btn-outline-dark btn-lg btn-block' onclick = 'distributeCards()'>Distribute</button><br>
       <div class="control-group form-inline">
-        <label class="mb-2" for="distribute_card">${message}</label>
-        <input  class= "mb-2" type = "number" id = "distribute_card" placeholder = "number of cards" 
-            value="${isAllCards() ? "" : options["cards_distribute"]}" ${options["cards_distribute"] == -1 ? "disabled" : ""} />
-        <div class="mx-sm-3 mb-2"> Or </div>'
-        <label class="form-check-label mb-2" for="all_cards">All cards</label>
-        <input  type='checkbox' class='form-check-input mb-2' 
-                id='option_all_cards' ${isAllCards() ? "checked" : ""} onclick='onOptionAllCardsChange()'>
-      </div>
-    </div>`;
+        <label class="mb-2" for="distribute_card">${message}</label>`;
+        if (!options.all_cards) {
+          content+= `<input  class= "mb-2" type = "number" id = "distribute_card" placeholder = "number of cards"
+                    onchange="updateOption('cards_distribute', this.value)"  value="${options["cards_distribute"]}"} />`
+        }
+      content += `</div></div>`;
   if (cardAside != -1) {
-    content += `
-      <div class = 'col-6'>
-        ${drawCard(cardAside, "card_deck", "span")}
-      </div>
-      `;
-  } else {
+    content += `<div class = 'col-6 playingCards faceImages'> ${drawCard(cardAside, "card_aside", "span")}</div>`;
+  } else if(!options.all_cards){
     content += `
       <div class = 'col-6'>
         <span class="card_deck">🂠</span>
@@ -444,7 +436,7 @@ function drawDeckPlay() {
         <button onclick = 'resetRound()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>
       </div>
       <div class = 'col-6'>
-        ${cardAside != -1 ? drawCard(cardAside, "card_deck", "span") : '<span class="card_deck">∅</span>'}
+        <span class="card_deck">∅</span>
       </div>
       `;
   } else {
@@ -452,8 +444,8 @@ function drawDeckPlay() {
         <button onclick = 'resetRound()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>
         ${endTurnButton}
       </div>
-      <div class = 'col-6'>
-        ${cardAside != -1 ? drawCard(cardAside, "card_deck", "span") : '<span class="card_deck">🂠</span>'}
+      <div class = 'col-6 playingCards faceImages'>
+        ${cardAside != -1 ? drawCard(cardAside, "card_aside", "span") : '<span class="card_deck">🂠</span>'}
         <button style="margin-left:25%" class='col-6 distrib-btn btn btn-primary ' onclick = 'takeCard()'>Draw a card</button>
       </div>
       `;
@@ -467,6 +459,7 @@ function drawDeck() {
   switch(state) {
     case STATE_CONFIG: {
       $("#reset_button").invisible();
+      $("#playArea").empty();
       content = drawDeckConfig();
       break;
     }
@@ -571,7 +564,6 @@ function drawPile() {
   } else {
     content += '<button class = "playing_btn btn btn-outline-dark btn-lg btn-block" onclick = "clearPlayingArea()">Clear</button>';
   }
-
   $("#playArea").append(content);
 
   for (var i = 0; i < pile.length; i++) {
@@ -587,6 +579,7 @@ function drawPile() {
       $layer.css({ position: "absolute" });
     }
     $("#playArea").append($layer);
+    initPlayingArea();
   }
 }
 
@@ -595,32 +588,22 @@ function sortCard() {
     if (suit.indexOf(a.suit) < suit.indexOf(b.suit)) return -1;
     if (suit.indexOf(a.suit) > suit.indexOf(b.suit)) return 1;
 
-    return rank_cavaliers.indexOf(a.rank) - rank_cavaliers.indexOf(b.rank);
+    return ranks.indexOf(a.rank) - ranks.indexOf(b.rank);
   });
   drawHand();
 }
 
 function distributeCards() {
   var numCards = $("#distribute_card").val();
-  if ($("#option_all_cards").is(":checked")) {
+  if (options.all_cards) {
     numCards = -1;
   }
   data = { numCards: numCards, hand: my_hand };
   socket.emit("distribute", data);
 }
 
-function onOptionAllCardsChange() {
-  if ($("#option_all_cards").is(":checked")) {
-    options["cards_distribute"] = -1;
-  } else {
-    options["cards_distribute"] = 1;
-  }
-  socket.emit("updateData", { what: "update options", options: options });
-}
-
 function onOptionChange(name) {
-  options[name] = $("#option_" + name).is(":checked");
-  socket.emit("updateData", { what: "update options", options: options });
+  updateOption(name, $("#option_" + name).is(":checked"));
 }
 
 function debug(object) {

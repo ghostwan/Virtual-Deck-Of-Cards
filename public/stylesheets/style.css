@@ -66,19 +66,31 @@ h2 {
   margin-top: 10px;
 }
 #cardDisplay {
-  font-size: 8em;
+  font-size: 1.2em !important;
   line-height: 105%;
 }
 .cardInHand {
+  margin-top: 0.2em;
   display: inline-block;
   border: none;
   background-color: white;
+  text-align: center;
+  vertical-align: middle;
 }
 .cardInPile {
-  font-size: 10em;
+  font-size: 2em !important;
   background-color: white;
   display: inline-block;
   line-height: 105%;
+}
+.card_aside {
+  font-size: 2em !important;
+  -webkit-box-shadow: none !important;
+  box-shadow: none !important;
+  margin-top: 10% !important;
+  /* margin-right: unset; */
+  /* margin-bottom: unset; */
+  margin-left: 25% !important;
 }
 .card_owner {
   text-align: center;
@@ -86,7 +98,7 @@ h2 {
   background-color: white;
 }
 .card_layer {
-  margin: 0 auto;
+  margin: 0.2em auto;
   display: inline-block;
 }
 .card_red {
