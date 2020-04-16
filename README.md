@@ -29,7 +29,7 @@ Fear no more, as the virtual deck of cards is here! Simply create or sign into a
 - Draw a card from the deck
 - Play a card from your hand
 - Take a card from the playing area (for some game as Yaniv or if you did a mistake)
-- In trick mode, claim the trick if you won the round
+- In trick mode, claim the trick if you won the round, count tricks and display yours
 - Rearrange cards in your hand or sort them
 - See who played a card
 - Clear the playing area
@@ -59,7 +59,7 @@ Fear no more, as the virtual deck of cards is here! Simply create or sign into a
 
 # Game features status
 
-| Features / Games                      | Escalier [D] | Ratatouille [W] | Yaniv  [N] | Tarot   [T] |
+| Features / Games                      | Escalier [D] | Ratatouille [D] | Yaniv  [N] | Tarot   [T] |
 | ------------------------------------- | ------------ | --------------- | ---------- | ----------- |
 | Distribute all the deck               |              | OK              |            | OK          |
 | Distribute a specific number of cards | OK           |                 | OK         |             |
@@ -69,8 +69,8 @@ Fear no more, as the virtual deck of cards is here! Simply create or sign into a
 | Draw a card from the deck             |              |                 | OK         |             |
 | Take a card from the playing area     |              |                 | OK         |             |
 | Change turn automatically             | OK           |                 |            |             |
+| Display trick won                     |              | OK              |            | OK          |
 | ------------ TO DEVELOP ------------  |              |                 |            |             |
-| Display trick won                     |              | **NEED**        |            | **NEED**    |
 | Trump cards (atouts)                  |              |                 |            | **NEED**    |
 | Group old cards played                |              |                 | OPTIM      |             |
 | Log actions                           |              |                 | OPTIM      |             |

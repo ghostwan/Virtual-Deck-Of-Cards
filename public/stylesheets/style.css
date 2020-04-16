@@ -26,13 +26,16 @@
   padding: 5px 5px;
   line-height: 50px;
 }
+#tricksArea {
+  padding-left: 20px;
+}
 .get_deck {
   font-size: 30px;
 }
 h2 {
   color: grey;
 }
-.startText {
+.start_text {
   color: black;
   text-align: center;
 }
@@ -47,12 +50,6 @@ h2 {
 }
 #hand {
   margin-top: 30px;
-}
-.deckDesc {
-  font-size: 3em;
-  padding-top: 20px;
-  color: black;
-  text-align: center;
 }
 .col-form-label {
   font-size: 20px;
@@ -69,7 +66,12 @@ h2 {
   font-size: 1.2em !important;
   line-height: 105%;
 }
-.cardInHand {
+.tricks {
+  margin-bottom: 1em !important;
+  font-size: 1.2em !important;
+  height: 6.3em !important;
+}
+.card_in_hand {
   margin-top: 0.2em;
   display: inline-block;
   border: none;
@@ -77,7 +79,7 @@ h2 {
   text-align: center;
   vertical-align: middle;
 }
-.cardInPile {
+.card_in_pile {
   font-size: 2em !important;
   background-color: white;
   display: inline-block;

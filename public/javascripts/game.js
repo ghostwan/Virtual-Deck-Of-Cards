@@ -25,18 +25,18 @@ var room;
 function init(roomName) {
 
   // Move card from your hand to the pile
-  $("body").on("click", ".cardInHand", function () {
+  $("body").on("click", ".card_in_hand", function () {
     // If reorder possible do nothing
     if ($("#option_reorder").prop("checked")) {
       return;
     }
 
-    var cardIndex = $(".cardInHand").index($(this));
+    var cardIndex = $(".card_in_hand").index($(this));
     var card = my_hand[cardIndex];
     console.log("Click on your card on " + card);
 
     my_hand.splice(cardIndex, 1);
-    $(".cardInHand:eq(" + cardIndex + ")").remove();
+    $(".card_in_hand:eq(" + cardIndex + ")").remove();
     card["username"] = my_user.name;
     pile.push(card);
 
@@ -46,10 +46,10 @@ function init(roomName) {
   });
 
   // Move card from the pile to your hand
-  $("body").on("click", ".cardInPile", function () {
+  $("body").on("click", ".card_in_pile", function () {
     debug("click on card");
 
-    var cardIndex = $(".cardInPile").index($(this));
+    var cardIndex = $(".card_in_pile").index($(this));
     var cardIndex = options["stack_visible"] ? pile.length - 1 - cardIndex : cardIndex;
     var card = pile[cardIndex];
     console.log("Click on the pile card on " + card);
@@ -77,6 +77,7 @@ function init(roomName) {
   });
   room = roomName
   socket.emit("connectRoom", roomName);  
+  initPlayingArea()
 }
 
 window.onbeforeunload = function (event) {
@@ -113,7 +114,7 @@ function isExist(value) {
 }
 
 function isMyTurn() {
-  if(playerNumber != -1)  {
+  if(playerNumber != -1 && users[playerNumber] != undefined)  {
     return users[playerNumber].id == my_user.id;
   }
   return false;
@@ -213,14 +214,12 @@ function start() {
   options["stack_visible"] = true;
 
   updateData({ what: "update options", options: options })
-  initPlayingArea();
   resetRound();
 }
 
 function clearPlayingArea() {
   if (confirm("Are you sure, you want to clear the playing area?")) {
     updateData({ what: "clear playing area", pile: [] })
-    initPlayingArea()
   }
 }
 
@@ -293,20 +292,21 @@ function endTurn() {
 }
 
 function drawTricks(userid=my_user.id) {
-  // var tricks = getTricks(userid);
-  // console.log(tricks)
-  // if(tricks != undefined) {
-  //   for (var t = 0; t < tricks.length; t++) {
-  //     var trick = tricks[t];
-  //     for (var c = 0; c < trick.length; c++) {
-  //       var c = trick.length - 1 - c
-  //       var card = trick[c];
-  //       var $item = $(`<div class="cardInPile ${getCardClass(card)}"/>`).text(drawCard(card));
-  //       // $item.css({ position: "absolute" });
-  //       $("#playArea").append($item);
-  //     }
-  //   }
-  // }
+  $("#tricksArea").empty()
+  var tricks = getTricks(userid);
+  $content = ''
+  if(tricks != undefined) {
+    for (var t = 0; t < tricks.length; t++) {
+      var trick = tricks[t];
+      $content += `<ul class='hand tricks'>`;
+      for (var c = 0; c < trick.length; c++) {
+        var card = trick[c];
+        $content += `<li>${drawCard(card, "test", "a")}</li>`;
+      }
+      $content += `</ul>`;
+    }
+  }
+  $("#tricksArea").append($content);
 }
 
 function drawUsersInfos() {
@@ -325,7 +325,10 @@ function drawUsersInfos() {
       }
     }
     var userClass = "user_profil"
-    if(playerNumber != -1 && users[playerNumber].id == user.id) {
+    if(playerNumber != -1 
+      && user != undefined 
+      && users != undefined
+      && users[playerNumber].id == user.id) {
       userClass +=  " player"
     }
     if(state != STATE_CONFIG) {
@@ -373,7 +376,7 @@ function syncOption(name) {
 function drawDeckConfig() {
   return `
       <div class="col-6 form-group">
-        <h2 class="startText">Everyone in?</h2>
+        <h2 class="start_text">Everyone in?</h2>
         <br /><br />
         <button class="btn btn-outline-dark btn-lg btn-block get_deck" onclick="start()">Start</button>
         <br />
@@ -460,6 +463,7 @@ function drawDeck() {
     case STATE_CONFIG: {
       $("#reset_button").invisible();
       $("#playArea").empty();
+      $("#tricksArea").empty();
       content = drawDeckConfig();
       break;
     }
@@ -538,7 +542,7 @@ function drawHand(instruction = false) {
 
   for (var i = 0; i < my_hand.length; i++) {
     card = my_hand[i];
-    var $item = $(drawCard(card, "cardInHand"))
+    var $item = $(drawCard(card, "card_in_hand"))
     $("#cardDisplay").append($item);
   }
 }
@@ -569,7 +573,7 @@ function drawPile() {
   for (var i = 0; i < pile.length; i++) {
     var j = options["stack_visible"] ? pile.length - 1 - i : i;
     card = pile[j];
-    var $item = $(drawCard(card, "cardInPile"))
+    var $item = $(drawCard(card, "card_in_pile"))
     var $layer = $('<div class="card_layer"/>');
     var $owner = $('<div class="card_owner"/>').text(card["username"]);
     $layer.append($item);
@@ -579,7 +583,6 @@ function drawPile() {
       $layer.css({ position: "absolute" });
     }
     $("#playArea").append($layer);
-    initPlayingArea();
   }
 }
 
