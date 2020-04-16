@@ -132,3 +132,16 @@ Follow for your platform instruction [here](https://devcenter.heroku.com/article
 ### 3) Deploy the app
 
 https://devcenter.heroku.com/articles/getting-started-with-nodejs#deploy-the-app
+
+---
+
+# Credits
+
+## Cards in CSS
+
+Fork of https://github.com/selfthinker/CSS-Playing-Cards
+
+@author Anika Henke anika@selfthinker.org
+@license CC BY-SA [http://creativecommons.org/licenses/by-sa/3.0]
+@version 2011-06-14
+@link http://selfthinker.github.com/CSS-Playing-Cards/
