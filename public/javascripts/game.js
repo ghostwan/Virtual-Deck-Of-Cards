@@ -1,3 +1,6 @@
+// import i18next from 'i18next';
+// import Backend from 'i18next-http-backend';
+
 const emojis = ['😄','😃','😀','😊','☺','😉','😍','😘','😚','😗','😙','😜','😝','😛','😳','😁','😔',
     '😌','😒','😞','😣','😢','😂','😭','😪','😥','😰','😅','😓','😩','😫','😨','😱','😠','😡','😤','😖',
     '😆','😋','😷','😎','😴','😵','😲','😟','😦','😧','😈','👿','😮','😬','😐','😕','😯','😶','😇','😏','😑',
@@ -21,8 +24,9 @@ var pile = [];
 var socket = io();
 var options = {};
 var room;
+var translate;
 
-function init(roomName) {
+function main(roomName) {
 
   // Move card from your hand to the pile
   $("body").on("click", ".card_in_hand", function () {
@@ -66,29 +70,31 @@ function init(roomName) {
     drawHand();
   });
 
-  $.contextMenu({
-    selector: '.user_profil_menu', 
-    callback: function(key, options) {
-      onOptionMenu(key, options);
-    },
-    items: {
-        "turn": {name: "Set turn", icon: "fa-hand-paper"},
-    }
-  });
   room = roomName
-  socket.emit("connectRoom", roomName);  
-  initPlayingArea()
+
+  i18next.use(i18nextXHRBackend ).use(i18nextBrowserLanguageDetector)
+    .init({
+    ns: ['game'],
+    defaultNS: 'game',
+    nonExplicitWhitelist : true,
+    debug: true,
+    }, (err, t) => {
+      translate = t
+      socket.emit("connectRoom", roomName);  
+      init()
+    });
+  
 }
 
 window.onbeforeunload = function (event) {
-  event.returnValue = "Refreshing the page will make you disconnect from the game!";
+  event.returnValue = translate('Refreshing the page will make you disconnect from the game!');
 };
 
 socket.on("askInfo", function () {
   /*First initialisation*/
   if (my_user == -1) {
     var randomRoger = "roger" + Math.floor(Math.random() * 100);
-    var nameTemp = prompt("What's your name ?", randomRoger);
+    var nameTemp = prompt(translate("What's your name ?"), randomRoger);
     if (nameTemp == null) {
       nameTemp = randomRoger;
     }
@@ -218,25 +224,41 @@ function start() {
 }
 
 function clearPlayingArea() {
-  if (confirm("Are you sure, you want to clear the playing area?")) {
+  if (confirm(translate("Are you sure, you want to clear the playing area?"))) {
     updateData({ what: "clear playing area", pile: [] })
   }
 }
 
-function initPlayingArea() {
+function init() {
+  $.contextMenu({
+    selector: '.user_profil_menu', 
+    callback: function(key, options) {
+      onOptionMenu(key, options);
+    },
+    items: {
+        "turn": {name: translate("Set turn"), icon: "fa-hand-paper"},
+    }
+  });
   $.contextMenu({
     selector: '#playArea', 
     callback: function(key, options) {
         onOptionMenu(key, options);
     },
     items: {
-        "clear": {name: "Clear", icon: "fa-hand-paper"},
+        "clear": {name: translate("Clear"), icon: "fa-hand-paper"},
     }
+  });
+  $("#reset_button").text(translate("Reset"))
+  $("#sort_button").text(translate("Sort"))
+  $("#instruction").append(translate("instruction"))
+  $('#option_reorder').bootstrapToggle({
+    off: translate("Play"),
+    on: translate("Reorder")
   });
 }
 
-function resetGame() {
-  if (confirm("Are you sure, you want to reset the game?")) {
+function askResetGame() {
+  if (confirm(translate("Are you sure, you want to reset the game?"))) {
     socket.emit("resetGame");
   }
 }
@@ -255,8 +277,8 @@ function getTricks(userid=my_user.id) {
   }
 }
 
-function claimTrick() {
-  if (confirm("Are you sure you won the trick?")) {
+function askClaimTrick() {
+  if (confirm(translate("Are you sure you won the trick?"))) {
     if(gameData[my_user.id] == undefined) {
       gameData[my_user.id] = {}
     }
@@ -343,7 +365,7 @@ function drawUsersInfos() {
     $("#user_container").append(content);
   });
 
-  $(".player_number").text("Players: " + users.length);
+  $(".player_number").text(translate("Players") + users.length);
 }
 
 function isChecked(name) {
@@ -376,21 +398,21 @@ function syncOption(name) {
 function drawDeckConfig() {
   return `
       <div class="col-6 form-group">
-        <h2 class="start_text">Everyone in?</h2>
+        <h2 class="start_text">${translate("Everyone in?")}</h2>
         <br /><br />
-        <button class="btn btn-outline-dark btn-lg btn-block get_deck" onclick="start()">Start</button>
+        <button class="btn btn-outline-dark btn-lg btn-block get_deck" onclick="start()">${translate("Start")}</button>
         <br />
-        ${addOption("cavaliers", "Include cavaliers", "56 cards", "52 cards")}
+        ${addOption("cavaliers", translate("Include cavaliers"), translate("56 cards"), translate("52 cards"))}
         <br />
-        ${addOption("tricks", "Claim tricks 🂠 <b> X </b>", "tricks won", "cards in hand")}
+        ${addOption("tricks", translate("Claim tricks 🂠")+" <b> X </b>", translate("tricks won"), translate("cards in hand"))}
         <br />
-        ${addOption("turn", "Turn change", "turn change each round", "turn order stay the same")}
+        ${addOption("turn", translate("Turn change"), translate("turn change each round"), translate("turn order stay the same"))}
         <br />
-        ${addOption("all_cards", "All cards", "Distribute all cards", "Distribute a specific number")}
+        ${addOption("all_cards", translate("All cards"), translate("Distribute all cards"), translate("Distribute a specific number"))}
       </div>
       <div class="col-6 container h-100">
         <div class="row h-100 justify-content-center align-items-center">
-            <h2>Room ${room}</h2>
+            <h2>${translate("Room")} ${room}</h2>
         </div>
       </div>
     `;
@@ -399,16 +421,16 @@ function drawDeckConfig() {
 function drawDeckDistribute() {
   var content = "";
   var message = users.length == 1
-        ? "Your are the only player connected! "
-        : "Card to distribute to each player (" + users.length + " players)";
+        ? translate("Your are the only player connected! ")
+        : translate("Card to distribute to each player ") +`( ${users.length} ${translate("players")})`;
   content = `
-    <div class = 'col-6'><h2>Deck: ${remainingCards} / ${deckOriginalLength} cards</h2><br>
-      <button onclick = 'shuffleDeck()' class = 'btn btn-outline-dark btn-lg btn-block'>Shuffle cards</button><br>
-      <button class = 'btn btn-outline-dark btn-lg btn-block' onclick = 'distributeCards()'>Distribute</button><br>
-      <div class="control-group form-inline">
-        <label class="mb-2" for="distribute_card">${message}</label>`;
+    <div class = 'col-6'><h2>${translate("Deck")}: ${remainingCards} / ${deckOriginalLength} ${translate("cards")}</h2><br>
+      <button onclick = 'shuffleDeck()' class = 'btn btn-outline-dark btn-lg btn-block'>${translate("Shuffle cards")}</button><br>
+      <button class = 'btn btn-outline-dark btn-lg btn-block' onclick = 'distributeCards()'>${translate("Distribute")}</button><br>
+      <div class="control-group form-inline">`
         if (!options.all_cards) {
-          content+= `<input  class= "mb-2" type = "number" id = "distribute_card" placeholder = "number of cards"
+          content+= `<label class="mb-2" for="distribute_card">${message}</label>
+          <input  class= "mb-2" type = "number" id = "distribute_card" placeholder = "${translate("number of cards")}"
                     onchange="updateOption('cards_distribute', this.value)"  value="${options["cards_distribute"]}"} />`
         }
       content += `</div></div>`;
@@ -418,11 +440,17 @@ function drawDeckDistribute() {
     content += `
       <div class = 'col-6'>
         <span class="card_deck">🂠</span>
-        <button style="margin-left:25%" class='col-6 distrib-btn btn btn-primary ' onclick = 'putCardAside()'>Put a card aside</button>
+        <button style="margin-left:25%" class='col-6 distrib-btn btn btn-primary ' onclick = 'putCardAside()'>${translate("Put a card aside")}</button>
       </div>
     `;
   }
   return content;
+}
+
+function askResetRound() {
+  if (confirm(translate("Are you sure, you want to get all the cards?"))) {
+    resetRound()
+  }
 }
 
 function drawDeckPlay() {
@@ -430,26 +458,26 @@ function drawDeckPlay() {
   var endTurnButton = "";
 
   if(isMyTurn()) {
-    endTurnButton = "<button onclick = 'endTurn()' class = 'btn btn-outline-dark btn-lg btn-block'>End turn</button><br>"
+    endTurnButton = `<button onclick = 'endTurn()' class = 'btn btn-outline-dark btn-lg btn-block'>${translate("End turn")}</button><br>`
   }
 
   if (remainingCards == 0) {
-    content = `<div class = 'col-6'><h2>Deck is empty</h2><br>
+    content = `<div class = 'col-6'><h2>${translate("Deck is empty")}</h2><br>
         ${endTurnButton}
-        <button onclick = 'resetRound()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>
+        <button onclick = 'askResetRound()' class = 'btn btn-outline-dark btn-lg btn-block'>${translate("Get back cards")}</button><br>
       </div>
       <div class = 'col-6'>
         <span class="card_deck">∅</span>
       </div>
       `;
   } else {
-    content = `<div class = 'col-6'><h2>Deck: ${remainingCards} / ${deckOriginalLength} cards</h2><br>
-        <button onclick = 'resetRound()' class = 'btn btn-outline-dark btn-lg btn-block'>Get back cards</button><br>
+    content = `<div class = 'col-6'><h2>${translate("Deck")}: ${remainingCards} / ${deckOriginalLength} cards</h2><br>
+        <button onclick = 'askResetRound()' class = 'btn btn-outline-dark btn-lg btn-block'>${translate("Get back cards")}</button><br>
         ${endTurnButton}
       </div>
       <div class = 'col-6 playingCards faceImages'>
         ${cardAside != -1 ? drawCard(cardAside, "card_aside", "span") : '<span class="card_deck">🂠</span>'}
-        <button style="margin-left:25%" class='col-6 distrib-btn btn btn-primary ' onclick = 'takeCard()'>Draw a card</button>
+        <button style="margin-left:25%" class='col-6 distrib-btn btn btn-primary ' onclick = 'takeCard()'>${translate("Draw a card")}</button>
       </div>
       `;
   }
@@ -486,22 +514,22 @@ function drawHand(instruction = false) {
   var content = "";
 
   if (instruction) {
-    content = `Read this instructions ${my_user.name}`;
+    content = `${translate("Read this instructions")} ${my_user.name}`;
     $("#instruction").show();
     $("#cards_control").invisible();
   } else {
     $("#instruction").hide();
     switch (my_hand.length) {
       case 0:
-        content = `Your Hand ${my_user.name} is empty!`;
+        content = `${translate("Your Hand")} ${my_user.name} ${translate("is empty!")}`;
         $("#cards_control").invisible();
         break;
       case 1:
-        content = `Your Hand ${my_user.name}`;
+        content = `${translate("Your Hand")} ${my_user.name}`;
         $("#cards_control").invisible();
         break;
       default:
-        content = `Your Hand ${my_user.name} : ${my_hand.length} cards`;
+        content = `${translate("Your Hand")} ${my_user.name} : ${my_hand.length} ${translate("cards")}`;
         $("#cards_control").visible();
     }
   }
@@ -554,19 +582,19 @@ function drawPile() {
 
   $("#playArea").empty();
   var content = `
-      <h2>Playing Area</h2>
+      <h2>${translate("Playing Area")}</h2>
       <div class = "col-6 form-group">
         <input type='checkbox' class='form-check-input' id='option_stack_visible' onclick = 'onOptionChange("stack_visible")' 
         ${isChecked("stack_visible") ? "checked" : ""} />
-        <label class="form-check-label" for="option_stack_visible">View all cards</label>
+        <label class="form-check-label" for="option_stack_visible">${translate("View all cards")}</label>
       </div>`;
 
   if (options.tricks) {
     if (pile.length == users.length) {
-      content += '<button class = "playing_btn btn btn-outline-dark btn-lg btn-block" onclick = "claimTrick()">Claim trick</button>';
+      content += `<button class = "playing_btn btn btn-outline-dark btn-lg btn-block" onclick = "askClaimTrick()">${translate("Claim trick")}</button>`;
     }
   } else {
-    content += '<button class = "playing_btn btn btn-outline-dark btn-lg btn-block" onclick = "clearPlayingArea()">Clear</button>';
+    content += `<button class = "playing_btn btn btn-outline-dark btn-lg btn-block" onclick = "clearPlayingArea()">${translate("Clear")}</button>`;
   }
   $("#playArea").append(content);
 

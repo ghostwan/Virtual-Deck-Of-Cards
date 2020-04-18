@@ -41,16 +41,19 @@
       crossorigin="anonymous"
     ></script>
     <script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js"></script>
+    <script src="https://unpkg.com/i18next/i18next.js"></script>
+    <script src="https://unpkg.com/i18next-xhr-backend/i18nextXHRBackend.js"></script>
+    <script src="https://unpkg.com/i18next-browser-languagedetector/i18nextBrowserLanguageDetector.js"></script>
     <script src="/javascripts/common.js"></script>
     <script src="/javascripts/game.js"></script>
     <title>Virtual Deck - Play Anywhere with Anyone</title>
   </head>
   <body>
     <div id="screen" class="jumbotron jumbotron-fluid">
-      <button id="reset_button" class="btn btn-danger reset_button" onclick="resetGame()">Reset</button>
+      <button id="reset_button" class="btn btn-danger reset_button" onclick="askResetGame()"></button>
       <div id="main" class="container-fluid">
         <div id="playersArea" class="col-11">
-          <h2 class="player_number" style="display: inline;">Players</h2>
+          <h2 class="player_number" style="display: inline;"></h2>
           <div id="user_container"></div>
         </div>
         <div id="mainrow" class="row">
@@ -62,31 +65,20 @@
             <div id="hand" class="row">
               <div class="col-12">
                 <div id="hand_header">
-                  <h2 style="vertical-align: middle;" class="d-inline-block" id="your_hand">Your Hand</h2>
+                  <h2 style="vertical-align: middle;" class="d-inline-block" id="your_hand"></h2>
                   <div id="cards_control" class="d-inline-block">
-                    <button class="d-inline-block btn btn-info" onclick="sortCard()">Sort</button>
+                    <button id="sort_button" class="d-inline-block btn btn-info" onclick="sortCard()"></button>
                     <input
                       id="option_reorder"
                       class="d-inline-block"
                       type="checkbox"
-                      data-toggle="toggle"
                       data-width="90"
-                      data-on="Reorder"
                       onclick="drawHand()"
-                      data-off="Play"
                     />
                   </div>
                 </div>
                 <div id="cardDisplay" class="playingCards faceImages"></div>
                 <div id="instruction">
-                  To add more user to this room share this page URL with your friends! <br /><br />
-                  After the game started and after the dealer give you cards: <br />
-                  - Click on a card from your hand (this area) to play it. <br />
-                  - Click on a card from the playing area to take it back to your hand (yaniv or if you did a mistake).
-                  <br />
-                  - You can drag and drop a card from your hand to rearrange them by toggling the play/reorder switch
-                  <br />
-                  - In pile mode, you can move the card from the pile to see them.
                 </div>
               </div>
             </div>
@@ -101,7 +93,7 @@
       const queryString = window.location.search;
       const urlParams = new URLSearchParams(queryString);
       const roomID = urlParams.get("roomID");
-      init(roomID);
+      main(roomID);
     });
   </script>
 </html>
