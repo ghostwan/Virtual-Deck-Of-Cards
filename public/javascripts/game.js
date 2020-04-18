@@ -56,10 +56,18 @@ function main(roomName) {
     gameData[my_user.id].cards --
     updateData({ what: "play a card", pile: pile, gameData: gameData })
     drawHand();
+    if(options.next_turn) {
+      endTurn();
+    }
   });
 
   // Move card from the pile to your hand
   $("body").on("click", ".card_in_pile", function () {
+    // Take card from pile disable
+    if(options.block_get_cards) {
+      return;
+    }
+
     // Game disconnected
     if(socket.id == undefined) {
       return;
@@ -70,18 +78,9 @@ function main(roomName) {
       return;
     }
 
-    var cardIndex = $(".card_in_pile").index($(this));
-    var cardIndex = options["stack_visible"] ? pile.length - 1 - cardIndex : cardIndex;
-    var card = pile[cardIndex];
-    console.log("Click on the pile card on " + card);
-
-    my_hand.push(card);
-    pile.splice(cardIndex, 1);
-
-    gameData[my_user.id].cards ++
-    updateData({ what: "take back a card", pile: pile, gameData: gameData })
-    drawHand();
+    takeCardFromPile(this);
   });
+
 
   $("#option_reorder").change(function () {
     drawHand();
@@ -259,8 +258,23 @@ function onOptionMenu(name, options) {
       updateData({ what: "switch turn", playerNumber: getUserPlace(userid) })
     }; break;
     case "clear" : clearPlayingArea(); break;
+    case "take" : takeCardFromPile(options.$trigger); break;
   }
   
+}
+
+function takeCardFromPile(item) {
+  var cardIndex = $(".card_in_pile").index($(item));
+  var cardIndex = options["stack_visible"] ? pile.length - 1 - cardIndex : cardIndex;
+  var card = pile[cardIndex];
+  console.log("Click on the pile card on " + card);
+
+  my_hand.push(card);
+  pile.splice(cardIndex, 1);
+
+  gameData[my_user.id].cards ++
+  updateData({ what: "take back a card", pile: pile, gameData: gameData })
+  drawHand();
 }
 
 function start() {
@@ -269,6 +283,8 @@ function start() {
   syncOption("turn")
   syncOption("all_cards")
   syncOption("block_action")
+  syncOption("block_get_cards")
+  syncOption("next_turn")
   options["cards_distribute"] = 1;
   options["stack_visible"] = true;
 
@@ -298,7 +314,16 @@ function init() {
         onOptionMenu(key, options);
     },
     items: {
-        "clear": {name: translate("Clear"), icon: "fa-hand-paper"},
+        "clear": {name: translate("Clear"), icon: "fa-trash-alt"},
+    }
+  });
+  $.contextMenu({
+    selector: '.card_in_pile', 
+    callback: function(key, options) {
+        onOptionMenu(key, options);
+    },
+    items: {
+        "take": {name: translate("Take"), icon: "fa-hand-lizard"},
     }
   });
   $("#reset_button").text(translate("Reset"))
@@ -438,7 +463,7 @@ function addOption(name, title, descriptionChecked, description) {
   return `
   <input type="checkbox" class="form-check-input" 
     id="option_${name}" onclick = 'onOptionChange("${name}")' ${isChecked(name)? "checked" : ""}/>
-  <label class="form-check-label" for="option_${name}" >${title}
+  <label class="form-check-label option_label" for="option_${name}" >${title}
   => ${isChecked(name)? descriptionChecked : description}
   </label>
   `
@@ -456,18 +481,22 @@ function drawDeckConfig() {
           <br />
           <button class="btn btn-outline-dark btn-lg btn-block get_deck" onclick="start()">${translate("Start")}</button>
         </div>
-        <div class="col-6 h-100 container ">
-            <div class="col h-100">
-        ${addOption("cavaliers", translate("Include cavaliers"), translate("56 cards"), translate("52 cards"))}
-        <br />
-        ${addOption("tricks", translate("Claim tricks 🂠")+" <b> X </b>", translate("tricks won"), translate("cards in hand"))}
-        <br />
-        ${addOption("turn", translate("Turn change"), translate("turn change each round"), translate("turn order stay the same"))}
-        <br />
-        ${addOption("all_cards", translate("All cards"), translate("Distribute all cards"), translate("Distribute a specific number"))}
-        <br />
-        ${addOption("block_action", translate("Block actions"), translate("Only the player whose turn can do things"), translate("Action can be done by anyone at any moment"))}
-          </div>
+        <div class="col-6 h-100 container " id="optionList">
+          <div class="col h-100">
+            ${addOption("cavaliers", translate("Include cavaliers"), translate("56 cards"), translate("52 cards"))}
+            <br />
+            ${addOption("tricks", translate("Claim tricks 🂠")+" <b> X </b>", translate("tricks won"), translate("cards in hand"))}
+            <br />
+            ${addOption("turn", translate("Turn change"), translate("turn change each round"), translate("turn order stay the same"))}
+            <br />
+            ${addOption("all_cards", translate("All cards"), translate("Distribute all cards"), translate("Distribute a specific number"))}
+            <br />
+            ${addOption("block_action", translate("Block actions"), translate("Only the player whose turn can do things"), translate("Action can be done by anyone at any moment"))}
+            <br />
+            ${addOption("block_get_cards", translate("Block cards taken"), translate("Prevent to take cards from playing area"), translate("Cards can be taken from playing area"))}
+            <br />
+            ${addOption("next_turn", translate("End turn after playing"), translate("Play a card to end turn"), translate("You have to specifically end you turn"))}
+        </div>
         </div>
       </div>
     `;
@@ -530,14 +559,25 @@ function drawDeckPlay() {
       ${translate("Get back cards")}
     </button><br>`;
   }
-  if(isMyTurn()) {
+  if(!isMyTurn()) {
     content += `
-    <button onclick = 'endTurn()' class = 'btn btn-outline-dark btn-lg btn-block'>
-      ${translate("End turn")}
-    </button><br>`
+      <div class="alert alert-warning" role="alert">
+        ${translate("Wait for your turn!")}
+      </div>
+    `;
+  } else if(!options.next_turn) {
+    content += `
+      <button onclick = 'endTurn()' class = 'btn btn-outline-dark btn-lg btn-block'>
+        ${translate("End turn")}
+      </button><br>`
   } else {
-    content += translate("Wait for your turn!");
+    content += `
+    <div class="alert alert-success" role="alert">
+      ${translate("This is your turn!")}
+    </div>
+    `
   }
+
   content += "</div>"
   if (remainingCards == 0) {
     content += `
@@ -727,7 +767,12 @@ $(document).on("keypress", function (event) {
     if (keycode == "13") {
       switch(state) {
         case STATE_DISTRIBUTE: distributeCards(); break;
-        case STATE_PLAY: endTurn(); break;
+        case STATE_PLAY: {
+          if(!options.next_turn) {
+            endTurn();
+          }
+          break;
+        }
       }
     }
 });

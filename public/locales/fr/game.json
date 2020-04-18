@@ -16,7 +16,7 @@
   "Claim tricks 🂠": "Mode plis 🂠",
   "cards in hand": "cartes en main",
   "tricks won": "Plis gagnés",
-  "Turn change": "Ordre changeant de tour",
+  "Turn change": "Tour changeant",
   "turn change each round": "Le tour change (escalier)",
   "turn order stay the same": "Le tour reste dans le même ordre",
   "All cards": "Toutes les cartes",
@@ -48,10 +48,18 @@
   "Deck": "Deck",
   "Set turn":"Premier joueur",
   "Block actions": "Bloquer les actions",
-  "Only the player whose turn can do things": "Seulement le joueur a qui c'est le tour peut faire des actions",
+  "Only the player whose turn can do things": "Peut uniquement faire des actions pendant son tour",
   "Action can be done by anyone at any moment": "Tous les  joueurs peuvent joueur a n'importe quel moment",
   "Wait for the dealer to give you cards!": "Attends qu'on te distribue des cartes!",
   "Wait for your turn!": "Attends ton tour!",
   "You are disconnected!": "Tu es déconnecté!",
-  "Reconnect" : "Reconnectes toi! =)"
+  "Reconnect" : "Reconnectes toi! =)",
+  "Block cards taken" : "Bloquer la prise de carte",
+  "Prevent to take cards from playing area": "Empêche de récupérer des cartes depuis la zone de jeu",
+  "Cards can be taken from playing area": "Les cartes peuvent être récupérer depuis la zone de jeu",
+  "End turn after playing": "Fin du tour auto",
+  "Play a card to end turn": "Après avoir jouer une carte le tour se finit",
+  "You have to specifically end you turn": "Vous devez préciser la fin de votre tour",
+  "This is your turn!": "C'est a toi de jouer"
+
 }

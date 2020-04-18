@@ -159,3 +159,6 @@ h2 {
   right: 20px;
   top: -5px;
 }
+.option_label {
+  font-size: 0.85em;
+}

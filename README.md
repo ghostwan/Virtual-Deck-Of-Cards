@@ -41,6 +41,8 @@ Fear no more, as the virtual deck of cards is here! Simply create or sign into a
 - Reconnection mechanisum when socket is disconnected but server is not down
 - Add log message
 - Fix on small screen
+- Prevent to get card from playing area
+- Add option to end turn after playing a card
 
 # What's next 
 
