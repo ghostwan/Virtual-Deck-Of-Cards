@@ -34,9 +34,13 @@ Fear no more, as the virtual deck of cards is here! Simply create or sign into a
 - See who played a card
 - Clear the playing area
 
+# What's new 
+
+- Block players actions
+- French translation
+
 # What's next 
 
-- UX - Choisir sa langue
 - GAME PLAY - YANIV - loguer les actions des gens voir qui a piocher 
 - GAME PLAY - YANIV - regrouper les cartes en haut de pile 
 - GAME PLAY - YANIV -  permettre de nettoyer les cartes poser par le joueur d'avant

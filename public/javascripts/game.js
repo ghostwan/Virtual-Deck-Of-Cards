@@ -34,6 +34,10 @@ function main(roomName) {
     if ($("#option_reorder").prop("checked")) {
       return;
     }
+    // If we are in action blocked mode and it's not my turn do nothing
+    if (options.block_action && !isMyTurn()) {
+      return;
+    }
 
     var cardIndex = $(".card_in_hand").index($(this));
     var card = my_hand[cardIndex];
@@ -51,7 +55,11 @@ function main(roomName) {
 
   // Move card from the pile to your hand
   $("body").on("click", ".card_in_pile", function () {
-    debug("click on card");
+
+    // If we are in action blocked mode and it's not my turn do nothing
+    if (options.block_action && !isMyTurn()) {
+      return;
+    }
 
     var cardIndex = $(".card_in_pile").index($(this));
     var cardIndex = options["stack_visible"] ? pile.length - 1 - cardIndex : cardIndex;
@@ -216,6 +224,7 @@ function start() {
   syncOption("tricks")
   syncOption("turn")
   syncOption("all_cards")
+  syncOption("block_action")
   options["cards_distribute"] = 1;
   options["stack_visible"] = true;
 
@@ -397,11 +406,19 @@ function syncOption(name) {
 
 function drawDeckConfig() {
   return `
-      <div class="col-6 form-group">
-        <h2 class="start_text">${translate("Everyone in?")}</h2>
-        <br /><br />
-        <button class="btn btn-outline-dark btn-lg btn-block get_deck" onclick="start()">${translate("Start")}</button>
-        <br />
+      <div class="row w-100">
+        <div class="col-6 form-group">
+          <h2 class="start_text">${translate("Everyone in?")}</h2>
+          <br /><br />
+          <button class="btn btn-outline-dark btn-lg btn-block get_deck" onclick="start()">${translate("Start")}</button>
+        </div>
+        <div class="col-6 container h-100">
+          <div class="row h-100 justify-content-center align-items-center">
+              <h2>${translate("Room")} ${room}</h2>
+          </div>
+        </div>
+      </div>
+      <div class="w-100" id="optionsGroup">
         ${addOption("cavaliers", translate("Include cavaliers"), translate("56 cards"), translate("52 cards"))}
         <br />
         ${addOption("tricks", translate("Claim tricks 🂠")+" <b> X </b>", translate("tricks won"), translate("cards in hand"))}
@@ -409,11 +426,8 @@ function drawDeckConfig() {
         ${addOption("turn", translate("Turn change"), translate("turn change each round"), translate("turn order stay the same"))}
         <br />
         ${addOption("all_cards", translate("All cards"), translate("Distribute all cards"), translate("Distribute a specific number"))}
-      </div>
-      <div class="col-6 container h-100">
-        <div class="row h-100 justify-content-center align-items-center">
-            <h2>${translate("Room")} ${room}</h2>
-        </div>
+        <br />
+        ${addOption("block_action", translate("Block actions"), translate("Only the player whose turn can do things"), translate("Action can be done by anyone at any moment"))}
       </div>
     `;
 }
@@ -423,20 +437,28 @@ function drawDeckDistribute() {
   var message = users.length == 1
         ? translate("Your are the only player connected! ")
         : translate("Card to distribute to each player ") +`( ${users.length} ${translate("players")})`;
-  content = `
-    <div class = 'col-6'><h2>${translate("Deck")}: ${remainingCards} / ${deckOriginalLength} ${translate("cards")}</h2><br>
-      <button onclick = 'shuffleDeck()' class = 'btn btn-outline-dark btn-lg btn-block'>${translate("Shuffle cards")}</button><br>
-      <button class = 'btn btn-outline-dark btn-lg btn-block' onclick = 'distributeCards()'>${translate("Distribute")}</button><br>
-      <div class="control-group form-inline">`
-        if (!options.all_cards) {
-          content+= `<label class="mb-2" for="distribute_card">${message}</label>
-          <input  class= "mb-2" type = "number" id = "distribute_card" placeholder = "${translate("number of cards")}"
-                    onchange="updateOption('cards_distribute', this.value)"  value="${options["cards_distribute"]}"} />`
-        }
-      content += `</div></div>`;
+  content = `<div class = 'col-6'><h2>${translate("Deck")}: ${remainingCards} / ${deckOriginalLength} ${translate("cards")}</h2><br>`;
+
+  if (!options.block_action || isMyTurn()) {
+    content += `
+    <button onclick = 'shuffleDeck()' class = 'btn btn-outline-dark btn-lg btn-block'>${translate("Shuffle cards")}</button><br>
+    <button class = 'btn btn-outline-dark btn-lg btn-block' onclick = 'distributeCards()'>${translate("Distribute")}</button><br>
+    <div class="control-group form-inline">`
+      if (!options.all_cards) {
+        content+= `<label class="mb-2" for="distribute_card">${message}</label>
+        <input  class= "mb-2" type = "number" id = "distribute_card" placeholder = "${translate("number of cards")}"
+                  onchange="updateOption('cards_distribute', this.value)"  value="${options["cards_distribute"]}"} />`
+      }
+    content += `</div></div>`
+  }
+
+  if (options.block_action && !isMyTurn()) {
+    content += translate("Wait for the dealer to give you cards!")
+  }
+    
   if (cardAside != -1) {
     content += `<div class = 'col-6 playingCards faceImages'> ${drawCard(cardAside, "card_aside", "span")}</div>`;
-  } else if(!options.all_cards){
+  } else if(!options.all_cards && (!options.block_action || isMyTurn())){
     content += `
       <div class = 'col-6'>
         <span class="card_deck">🂠</span>
@@ -455,32 +477,41 @@ function askResetRound() {
 
 function drawDeckPlay() {
   var content = "";
-  var endTurnButton = "";
-
-  if(isMyTurn()) {
-    endTurnButton = `<button onclick = 'endTurn()' class = 'btn btn-outline-dark btn-lg btn-block'>${translate("End turn")}</button><br>`
-  }
 
   if (remainingCards == 0) {
-    content = `<div class = 'col-6'><h2>${translate("Deck is empty")}</h2><br>
-        ${endTurnButton}
-        <button onclick = 'askResetRound()' class = 'btn btn-outline-dark btn-lg btn-block'>${translate("Get back cards")}</button><br>
-      </div>
-      <div class = 'col-6'>
-        <span class="card_deck">∅</span>
-      </div>
-      `;
+    content = `<div class = 'col-6'><h2>${translate("Deck is empty")}</h2><br>`
   } else {
-    content = `<div class = 'col-6'><h2>${translate("Deck")}: ${remainingCards} / ${deckOriginalLength} cards</h2><br>
-        <button onclick = 'askResetRound()' class = 'btn btn-outline-dark btn-lg btn-block'>${translate("Get back cards")}</button><br>
-        ${endTurnButton}
-      </div>
-      <div class = 'col-6 playingCards faceImages'>
-        ${cardAside != -1 ? drawCard(cardAside, "card_aside", "span") : '<span class="card_deck">🂠</span>'}
-        <button style="margin-left:25%" class='col-6 distrib-btn btn btn-primary ' onclick = 'takeCard()'>${translate("Draw a card")}</button>
-      </div>
-      `;
+    content = `<div class = 'col-6'><h2>${translate("Deck")}: ${remainingCards} / ${deckOriginalLength} cards</h2><br>`
   }
+  if (!options.block_action || isMyTurn()) {
+    content += `
+    <button onclick = 'askResetRound()' class = 'btn btn-outline-dark btn-lg btn-block'>
+      ${translate("Get back cards")}
+    </button><br>`;
+  }
+  if(isMyTurn()) {
+    content += `
+    <button onclick = 'endTurn()' class = 'btn btn-outline-dark btn-lg btn-block'>
+      ${translate("End turn")}
+    </button><br>`
+  } else {
+    content += translate("Wait for your turn!");
+  }
+  content += "</div>"
+  if (remainingCards == 0) {
+    content += `
+    <div class = 'col-6'><span class="card_deck">∅</span></div>`;
+  } else {
+    content += `
+      <div class = 'col-6 playingCards faceImages'>
+        ${cardAside != -1 ? drawCard(cardAside, "card_aside", "span") : '<span class="card_deck">🂠</span>'}`;
+
+    if (!options.block_action || isMyTurn()) {
+      content += `<button style="margin-left:25%" class='col-6 distrib-btn btn btn-primary ' onclick = 'takeCard()'>${translate("Draw a card")}</button>`;
+    }
+    content += "</div>";
+  }     
+
   return content;
 }
 

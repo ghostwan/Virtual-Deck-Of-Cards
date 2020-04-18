@@ -151,3 +151,6 @@ h2 {
 .player {
   background-color: rgba(114, 125, 184, 0.418);
 }
+#optionsGroup {
+  padding-left: 20px;
+}
