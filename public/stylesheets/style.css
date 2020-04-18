@@ -154,3 +154,8 @@ h2 {
 #optionsGroup {
   padding-left: 20px;
 }
+#logMessage {
+  position: absolute;
+  right: 20px;
+  top: -5px;
+}

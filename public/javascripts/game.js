@@ -30,6 +30,11 @@ function main(roomName) {
 
   // Move card from your hand to the pile
   $("body").on("click", ".card_in_hand", function () {
+    // Game disconnected
+    if(socket.id == undefined) {
+      return;
+    }
+
     // If reorder possible do nothing
     if ($("#option_reorder").prop("checked")) {
       return;
@@ -49,12 +54,16 @@ function main(roomName) {
     pile.push(card);
 
     gameData[my_user.id].cards --
-    updateData({ what: "update pile", pile: pile, gameData: gameData })
+    updateData({ what: "play a card", pile: pile, gameData: gameData })
     drawHand();
   });
 
   // Move card from the pile to your hand
   $("body").on("click", ".card_in_pile", function () {
+    // Game disconnected
+    if(socket.id == undefined) {
+      return;
+    }
 
     // If we are in action blocked mode and it's not my turn do nothing
     if (options.block_action && !isMyTurn()) {
@@ -70,7 +79,7 @@ function main(roomName) {
     pile.splice(cardIndex, 1);
 
     gameData[my_user.id].cards ++
-    updateData({ what: "update pile", pile: pile, gameData: gameData })
+    updateData({ what: "take back a card", pile: pile, gameData: gameData })
     drawHand();
   });
 
@@ -91,8 +100,27 @@ function main(roomName) {
       socket.emit("connectRoom", roomName);  
       init()
     });
-  
 }
+
+function reconnect() {
+  socket.connect();
+  socket.emit("reconnectToRoom", room, my_user);  
+}
+
+socket.on('disconnect', function(){
+  $("#mainDeck").empty();
+  $content = `
+    <div class="row w-100">
+        <div class="col-8 form-group">
+          <h2 class="start_text">${translate("You are disconnected!")}</h2>
+          <br /><br />
+          <button onclick = 'reconnect()' class = 'btn btn-outline-dark btn-lg btn-block'>${translate("Reconnect")}</button><br>
+        </div>
+    </div>
+    
+  `;
+  $("#mainDeck").append($content);
+});
 
 window.onbeforeunload = function (event) {
   event.returnValue = translate('Refreshing the page will make you disconnect from the game!');
@@ -121,6 +149,11 @@ socket.on("onUpdateHand", function (data) {
   console.log(data);
   my_hand = data;
   drawHand();
+});
+
+
+socket.on("onUpdateLog", function (log) {
+  $("#logMessage").text(log);
 });
 
 function isExist(value) {
@@ -190,6 +223,9 @@ socket.on("onUpdateData", function (data) {
     cardAside = data.cardAside;
     reDrawDeck = true;
   }
+  if ( isExist(data.my_user) ) {
+    my_user=data.my_user
+  }
 
   if (reDrawDeck) drawDeck();
   if (reDrawHand) drawHand(data.instruction == true);
@@ -199,12 +235,20 @@ socket.on("onUpdateData", function (data) {
 });
 
 function updateOption(name, value) {
+  // Game disconnected
+  if(socket.id == undefined) {
+    return;
+  }
   options[name] = value;
   var data = {what: "update options", options: options}
   socket.emit("updateData", data);
 }
 
 function updateData(data) {
+  // Game disconnected
+  if(socket.id == undefined) {
+    return;
+  }
   socket.emit("updateData", data);
 }
 
@@ -234,7 +278,7 @@ function start() {
 
 function clearPlayingArea() {
   if (confirm(translate("Are you sure, you want to clear the playing area?"))) {
-    updateData({ what: "clear playing area", pile: [] })
+    updateData({ what: "clear the playing area", pile: [] })
   }
 }
 
@@ -359,6 +403,7 @@ function drawUsersInfos() {
     if(playerNumber != -1 
       && user != undefined 
       && users != undefined
+      && users[playerNumber] != undefined
       && users[playerNumber].id == user.id) {
       userClass +=  " player"
     }
@@ -382,7 +427,6 @@ function isChecked(name) {
 }
 
 function drawCard(card, clazz, type="div") {
-  console.log("Cards: "+card.rank.toLowerCase()+ " "+card.suit.toLowerCase());
   return `<${type} class="card rank-${card.rank.toLowerCase()} ${card.suit} ${clazz}">
             <span class="rank">${card.rank}</span>
             <span class="suit">&${card.suit};</span>
@@ -408,17 +452,12 @@ function drawDeckConfig() {
   return `
       <div class="row w-100">
         <div class="col-6 form-group">
-          <h2 class="start_text">${translate("Everyone in?")}</h2>
-          <br /><br />
+          <h2 class="start_text">${translate("Room")} ${room} ${translate("Everyone in?")}</h2>
+          <br />
           <button class="btn btn-outline-dark btn-lg btn-block get_deck" onclick="start()">${translate("Start")}</button>
         </div>
-        <div class="col-6 container h-100">
-          <div class="row h-100 justify-content-center align-items-center">
-              <h2>${translate("Room")} ${room}</h2>
-          </div>
-        </div>
-      </div>
-      <div class="w-100" id="optionsGroup">
+        <div class="col-6 h-100 container ">
+            <div class="col h-100">
         ${addOption("cavaliers", translate("Include cavaliers"), translate("56 cards"), translate("52 cards"))}
         <br />
         ${addOption("tricks", translate("Claim tricks 🂠")+" <b> X </b>", translate("tricks won"), translate("cards in hand"))}
@@ -428,6 +467,8 @@ function drawDeckConfig() {
         ${addOption("all_cards", translate("All cards"), translate("Distribute all cards"), translate("Distribute a specific number"))}
         <br />
         ${addOption("block_action", translate("Block actions"), translate("Only the player whose turn can do things"), translate("Action can be done by anyone at any moment"))}
+          </div>
+        </div>
       </div>
     `;
 }
@@ -511,7 +552,6 @@ function drawDeckPlay() {
     }
     content += "</div>";
   }     
-
   return content;
 }
 

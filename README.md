@@ -33,14 +33,19 @@ Fear no more, as the virtual deck of cards is here! Simply create or sign into a
 - Rearrange cards in your hand or sort them
 - See who played a card
 - Clear the playing area
+- Block players actions when it's not there turn
+- Language available (browser detection): default english, french.
 
 # What's new 
 
-- Block players actions
-- French translation
+- Reconnection mechanisum when socket is disconnected but server is not down
+- Add log message
+- Fix on small screen
 
 # What's next 
 
+- GAME PLAY - Passer au tour suivant une fois posé
+- GAME PLAY - Bloquer récupération des cartes en cliquant (2eme bouton en cas d'erreur)
 - GAME PLAY - YANIV - loguer les actions des gens voir qui a piocher 
 - GAME PLAY - YANIV - regrouper les cartes en haut de pile 
 - GAME PLAY - YANIV -  permettre de nettoyer les cartes poser par le joueur d'avant
@@ -74,10 +79,10 @@ Fear no more, as the virtual deck of cards is here! Simply create or sign into a
 | Take a card from the playing area     |              |                 | OK         |             |
 | Change turn automatically             | OK           |                 |            |             |
 | Display trick won                     |              | OK              |            | OK          |
+| Log actions                           |              |                 | OK         |             |
 | ------------ TO DEVELOP ------------  |              |                 |            |             |
 | Trump cards (atouts)                  |              |                 |            | **NEED**    |
 | Group old cards played                |              |                 | OPTIM      |             |
-| Log actions                           |              |                 | OPTIM      |             |
 | Random first player                   | OPTIONNAL    | OPTIONNAL       | OPTIONNAL  |             |
 | Bidding                               | OPTIONNAL    |                 |            |             |
 | Scores calculator                     | OPTIONNAL    | OPTIONNAL       | OPTIONNAL  | OPTIONNAL   |

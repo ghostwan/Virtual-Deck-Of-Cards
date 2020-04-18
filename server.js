@@ -34,43 +34,85 @@ io.on("connection", socket => {
     console.log(`[${room}] ==> User is ${socket.id} connecting...`);
     socket.join(room);
     socket.room = room
-    console.log(STATE_CONFIG)
     emitToUser(socket.id, "askInfo")
   });
 
-  socket.on("sendInfo", (user) => {
-    console.log(user)
-    console.log(`[${socket.room}] <===  User ${user.name} connected!`)
+  socket.on("reconnectToRoom", (room, user) => {
+    console.log(`[${room}] ==> User is ${socket.id} reconnecting...`);
+    socket.join(room);
+    socket.room = room
+    socket.user_name = user.name
 
-    if(getUsersConnected().length <= 1) {
-      // If we are the first user to connect create the room
-      var users = new Map()
-      users.set(user.id, user)
-      storeData("users", users)
-      createNewGame()
-    } else {
-      // Else ask to join an existing room
+    var gameData = getData("gameData");
+    // Try to retrieve data
+    if(gameData !== undefined) {
+      Object.defineProperty(gameData, socket.id, Object.getOwnPropertyDescriptor(gameData, user.id));
+      delete gameData[user.id];
+  
+      user.id = socket.id
       var users = getData("users")
       users.set(user.id, user)
       storeData("users", users)
+  
+      var deck = getDeck()
+      emitToUser(user.id, "onUpdateData", {
+        my_user: user,
+        users: prepareUsers(),
+        deckOriginalLength: getData("deckOriginalLength"),
+        remainingCards: deck == undefined ? -1 : deck.length,
+        cardAside: getData("cardAside"),
+        options: getData("options"), 
+        pile: getData("pile"), 
+        gameData : storeData("gameData", gameData),
+        state: state(),
+        playerNumber : getData("playerNumber")
+      });
+  
+      emitUpdateToRoom({users: prepareUsers()})
+      console.log(`[${socket.room}] <===  User ${user.name} reconnected!`)
+    }  else { // If data is not retrivable reconnect the usr
+        sendInfo()
     }
     
-    var deck = getDeck()
+  })
+
+  function sendInfo(user) {
+    if (getUsersConnected().length <= 1) {
+      // If we are the first user to connect create the room
+      var users = new Map();
+      users.set(user.id, user);
+      storeData("users", users);
+      createNewGame();
+    } else {
+      // Else ask to join an existing room
+      var users = getData("users");
+      users.set(user.id, user);
+      storeData("users", users);
+    }
+
+    var deck = getDeck();
     emitToUser(user.id, "onUpdateData", {
       users: prepareUsers(),
       instruction: true,
       deckOriginalLength: getData("deckOriginalLength"),
       remainingCards: deck == undefined ? -1 : deck.length,
       cardAside: getData("cardAside"),
-      options: getData("options"), 
-      pile: getData("pile"), 
-      gameData : getData("gameData"),
+      options: getData("options"),
+      pile: getData("pile"),
+      gameData: getData("gameData"),
       state: state(),
       hand: [],
-      playerNumber : getData("playerNumber")
+      playerNumber: getData("playerNumber"),
     });
 
-    emitUpdateToRoom({users: prepareUsers()})
+    emitUpdateToRoom({ users: prepareUsers() });
+  }
+
+  socket.on("sendInfo", (user) => {
+    console.log(user);
+    console.log(`[${socket.room}] <===  User ${user.name} connected!`);
+    socket.user_name = user.name;
+    sendInfo(user)
   });
 
   function createNewGame() {
@@ -86,9 +128,10 @@ io.on("connection", socket => {
 
   socket.on('disconnect',function(reason) {
     if(socketNotAvailble() ) {
-      console.log(`!! Can't retrieve room ID !! ${socket.id} client disconnect because ${reason}`)
+      var id = socket.user_name !== undefined? socket.user_name: socket.id;
+      console.log(`!! Can't retrieve room ID !! ${id} client disconnect because ${reason}`)
     } else {
-      log(`${socket.id} client disconnect because ${reason}`)
+      log(`disconnected`)
       var users = getData("users")
       users.delete(socket.id)
       storeData("users", users)
@@ -99,7 +142,7 @@ io.on("connection", socket => {
   socket.on("takeCard", data => {
     if(socketNotAvailble()) {return}
 
-    log(`${socket.id} draw a card`)
+    log("draw a card")
     cards = takeCards(1, getDeck(), data.hand);
     var gameData = getData("gameData") 
     if(gameData == undefined) {
@@ -243,7 +286,7 @@ io.on("connection", socket => {
   socket.on("updateData", data => {
     if(socketNotAvailble()) {return}
 
-    log("<))) "+(data.what != undefined? data.what : ""))
+    log((data.what != undefined? data.what : ""))
 
     if (data.options != undefined) storeData("options", data.options);
     if (data.deckOriginalLength != undefined) storeData("deckOriginalLength", data.deckOriginalLength);    
@@ -264,15 +307,19 @@ io.on("connection", socket => {
     if(socket == undefined 
       || socket.room == undefined
       || io.sockets.adapter.rooms[socket.room] == undefined) {
-        log("socket not available !")
+        log("socket not available !", false)
         return true;
       } else {
         return false;
       }
   }
 
-  function log(info) {
-    console.log(`[${socket.room}] ${info}`)
+  function log(info, sendLogs=true) {
+    const data = `${socket.user_name} ${info}`;
+    console.log(`[${socket.room}] ${data}`)
+    if(sendLogs) {
+      io.sockets.in(socket.room).emit("onUpdateLog", data)
+    }
   }
   function emitUpdateToRoom(data) {
     io.sockets.in(socket.room).emit("onUpdateData", data)

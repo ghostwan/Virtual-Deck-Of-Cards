@@ -51,5 +51,7 @@
   "Only the player whose turn can do things": "Seulement le joueur a qui c'est le tour peut faire des actions",
   "Action can be done by anyone at any moment": "Tous les  joueurs peuvent joueur a n'importe quel moment",
   "Wait for the dealer to give you cards!": "Attends qu'on te distribue des cartes!",
-  "Wait for your turn!": "Attends ton tour!"
+  "Wait for your turn!": "Attends ton tour!",
+  "You are disconnected!": "Tu es déconnecté!",
+  "Reconnect" : "Reconnectes toi! =)"
 }
