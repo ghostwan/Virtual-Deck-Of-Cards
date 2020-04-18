@@ -46,9 +46,6 @@ Fear no more, as the virtual deck of cards is here! Simply create or sign into a
 
 # What's next 
 
-- GAME PLAY - Passer au tour suivant une fois posé
-- GAME PLAY - Bloquer récupération des cartes en cliquant (2eme bouton en cas d'erreur)
-- GAME PLAY - YANIV - loguer les actions des gens voir qui a piocher 
 - GAME PLAY - YANIV - regrouper les cartes en haut de pile 
 - GAME PLAY - YANIV -  permettre de nettoyer les cartes poser par le joueur d'avant
 - GAME PLAY - ESCALIER - Prise en compte des annonces
