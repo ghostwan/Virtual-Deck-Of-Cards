@@ -477,7 +477,7 @@ function drawDeckConfig() {
   return `
       <div class="row w-100">
         <div class="col-6 form-group">
-          <h2 class="start_text">${translate("Room")} ${room} ${translate("Everyone in?")}</h2>
+          <h2 class="start_text">${translate("Room")} ${room} <br> ${translate("Everyone in?")}</h2>
           <br />
           <button class="btn btn-outline-dark btn-lg btn-block get_deck" onclick="start()">${translate("Start")}</button>
         </div>
@@ -523,7 +523,13 @@ function drawDeckDistribute() {
   }
 
   if (options.block_action && !isMyTurn()) {
-    content += translate("Wait for the dealer to give you cards!")
+    
+    content += `
+      <div class="alert alert-warning" role="alert">
+        ${translate("Wait for the dealer to give you cards!")}
+      </div>
+    `
+
   }
     
   if (cardAside != -1) {

@@ -46,8 +46,9 @@ Fear no more, as the virtual deck of cards is here! Simply create or sign into a
 
 # What's next 
 
+- GAME PLAY - YANIV - Mettre une carte depuis la pioche dans la zone de jeu
 - GAME PLAY - YANIV - regrouper les cartes en haut de pile 
-- GAME PLAY - YANIV -  permettre de nettoyer les cartes poser par le joueur d'avant
+- GAME PLAY - YANIV - permettre de nettoyer les cartes poser par le joueur d'avant
 - GAME PLAY - ESCALIER - Prise en compte des annonces
 - GAME PLAY - MARMOTEE - poser des cartes cacher sur la table
 - GAME PLAY - Quand quelqu'un se connecte lui permettre ou non de rejoindre la partie, sinon spectateur
