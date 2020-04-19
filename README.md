@@ -43,9 +43,14 @@ Fear no more, as the virtual deck of cards is here! Simply create or sign into a
 - Fix on small screen
 - Prevent to get card from playing area
 - Add option to end turn after playing a card
+- Put Ace a the end when ordering
 
 # What's next 
 
+- Sonnerie dès que c'est a son tour
+- carte déjà classé dès distribué
+- Donner des cartes et piocher des cartes
+- Mettre des couleurs différentes choix du joueur
 - UI - grossir / reduire taille cartes 
 - GAME PLAY - ESCALIER - Prise en compte des annonces
 - GAME PLAY - MARMOTEE - poser des cartes cacher sur la table
@@ -70,6 +75,7 @@ Fear no more, as the virtual deck of cards is here! Simply create or sign into a
 # Bugs
 
 - Si on distribue plus de cartes que de personnes ça foire les comptes
+- Server se met en down au bout d'une heure
 
 # Game features status
 

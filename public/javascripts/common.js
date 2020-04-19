@@ -2,8 +2,8 @@ const STATE_CONFIG = "config"
 const STATE_PLAY = "play"
 const STATE_DISTRIBUTE = "distribute"
 
-const RANK = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
-const RANK_CAVLIERS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "C", "Q", "K"];
+const RANK = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
+const RANK_CAVLIERS = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "C", "Q", "K", "A"];
 
 const SUITS = ["clubs", "diams", "spades", "hearts"];
 
