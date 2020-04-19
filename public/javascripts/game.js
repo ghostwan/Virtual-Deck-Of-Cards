@@ -549,7 +549,7 @@ function drawDeckDistribute() {
     content += `
       <div class = 'col-6'>
         <span class="card_deck">🂠</span>
-        <button style="margin-left:25%" class='col-6 distrib-btn btn btn-primary ' onclick = 'putCardAside()'>${translate("Put a card aside")}</button>
+        ${createButton("Put a card aside", "putCardAside()", "margin_top")}
       </div>
     `;
   }
@@ -591,7 +591,7 @@ function drawDeckPlay() {
         ${cardAside != -1 ? drawCard(cardAside, "card_aside", "span") : '<span class="card_deck">🂠</span>'}`;
 
       if (!options.block_action || isMyTurn()) {
-        content += `<button style="margin-left:25%" class='col-6 distrib-btn btn btn-primary ' onclick = 'takeCard()'>${translate("Draw a card")}</button>`;
+        content += createButton("Draw a card", "takeCard()", "margin_top")
       }
     content += "</div>";
   }     
@@ -705,10 +705,10 @@ function drawPile() {
 
   if (options.tricks) {
     if (pile.length == users.length) {
-      content += createButton("Claim trick", "askClaimTrick()", "playing_btn");
+      content += createButton("Claim trick", "askClaimTrick()", "margin_bottom");
     }
   } else {
-    content += createButton("Clear", "clearPlayingArea()", "playing_btn");
+    content += createButton("Clear", "clearPlayingArea()", "margin_bottom");
   }
   $("#playArea").append(content);
 

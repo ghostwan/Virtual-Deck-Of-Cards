@@ -145,8 +145,11 @@ h2 {
   float: right;
   visibility: hidden;
 }
-.playing_btn {
-  margin-bottom: 11px
+.margin_bottom {
+  margin-bottom: 12px
+}
+.margin_top {
+  margin-top: 12px
 }
 .player {
   background-color: rgba(114, 125, 184, 0.418);
