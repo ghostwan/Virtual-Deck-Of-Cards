@@ -45,7 +45,7 @@ io.on("connection", socket => {
 
     var gameData = getData("gameData");
     // Try to retrieve data
-    if(gameData !== undefined) {
+    try {
       Object.defineProperty(gameData, socket.id, Object.getOwnPropertyDescriptor(gameData, user.id));
       delete gameData[user.id];
   
@@ -70,14 +70,21 @@ io.on("connection", socket => {
   
       emitUpdateToRoom({users: prepareUsers()})
       console.log(`[${socket.room}] <===  User ${user.name} reconnected!`)
-    }  else { // If data is not retrivable reconnect the usr
-        sendInfo()
+    } catch(exception) { // If data is not retrivable reconnect the user
+      if(gameData != undefined) {
+        delete gameData[user.id];
+        user.id = socket.id
+        sendInfo(user)
+        console.log(`[${socket.room}] <===  User ${user.name} reconnected by emergency procedure!`)
+      } else {
+        emitToUser(socket.id, "onReconnectionFailed")
+      }
     }
     
   })
 
-  function sendInfo(user) {
-    if (getUsersConnected().length <= 1) {
+  function sendInfo(user, forceRecreation=false) {
+    if (getUsersConnected().length <= 1 || forceRecreation) {
       // If we are the first user to connect create the room
       var users = new Map();
       users.set(user.id, user);
@@ -92,6 +99,7 @@ io.on("connection", socket => {
 
     var deck = getDeck();
     emitToUser(user.id, "onUpdateData", {
+      my_user: user,
       users: prepareUsers(),
       instruction: true,
       deckOriginalLength: getData("deckOriginalLength"),
@@ -141,8 +149,9 @@ io.on("connection", socket => {
 
   socket.on("takeCard", data => {
     if(socketNotAvailble()) {return}
-
+    
     log("draw a card")
+
     cards = takeCards(1, getDeck(), data.hand);
     var gameData = getData("gameData") 
     if(gameData == undefined) {
@@ -163,6 +172,10 @@ io.on("connection", socket => {
   });
 
   socket.on("endTurn", () => {
+    if(socketNotAvailble()) {return}
+    
+    log(`end its turn`)
+
     var playerNumber = getData("playerNumber")
     playerNumber = (playerNumber+1) % getUsersConnected().length
     emitUpdateToRoom({playerNumber : storeData("playerNumber", playerNumber)})
@@ -170,8 +183,9 @@ io.on("connection", socket => {
 
   socket.on("putCardAside", () => {
     if(socketNotAvailble()) {return}
-
+    
     log(`put a card aside`)
+
     cards = takeCards(1, getDeck(), []);
     storeData("deck", cards.deck)
     emitUpdateToRoom({
@@ -182,7 +196,8 @@ io.on("connection", socket => {
 
   socket.on("distribute", data => {
     if(socketNotAvailble()) {return}
-
+    
+    
     var deck = getDeck();
     var options = getData("options")
     var numCards = data.numCards;
@@ -193,6 +208,7 @@ io.on("connection", socket => {
       numCards = Math.trunc(deck.length / users.length);
     }
     log(`distribute ${numCards} cards`)
+    
     var gameData = getData("gameData")
 
     for (var u = 0; u < users.length; u++) {
@@ -220,8 +236,9 @@ io.on("connection", socket => {
 
   socket.on("shuffleDeck", () => {
     if(socketNotAvailble()) {return}
-
+    
     log(`shuffle the deck`)
+
     var deck = getDeck()
     deck = shuffleDeck(deck, deck.length);
     storeData("deck", deck)
@@ -230,6 +247,7 @@ io.on("connection", socket => {
 
   socket.on("resetGame", () => {
     if(socketNotAvailble()) {return}
+    
     log(`reset the game`)
 
     createNewGame()
@@ -252,6 +270,7 @@ io.on("connection", socket => {
     if(socketNotAvailble()) {return}
 
     log(`reset the round`)
+    
     var deck = newDeck(getData("options"));
     deck = shuffleDeck(deck, deck.length);
     storeData("deck", deck)
@@ -357,15 +376,14 @@ io.on("connection", socket => {
 });
 
 function newDeck(options) {
-  var rank = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+  var rank = RANK;
   if (options["cavaliers"]) {
-    rank = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "C", "Q", "K"];
+    rank = RANK_CAVLIERS;
   }
-  var suit = ["clubs", "diams", "spades", "hearts"];
   var cards = [];
-  for (var i = 0; i < suit.length; i++) {
+  for (var i = 0; i < SUITS.length; i++) {
     for (var j = 0; j < rank.length; j++) {
-      var card = { rank: rank[j], suit: suit[i] };
+      var card = { rank: rank[j], suit: SUITS[i] };
       cards.push(card);
     }
   }

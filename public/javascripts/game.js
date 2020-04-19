@@ -1,15 +1,6 @@
 // import i18next from 'i18next';
 // import Backend from 'i18next-http-backend';
 
-const emojis = ['😄','😃','😀','😊','☺','😉','😍','😘','😚','😗','😙','😜','😝','😛','😳','😁','😔',
-    '😌','😒','😞','😣','😢','😂','😭','😪','😥','😰','😅','😓','😩','😫','😨','😱','😠','😡','😤','😖',
-    '😆','😋','😷','😎','😴','😵','😲','😟','😦','😧','😈','👿','😮','😬','😐','😕','😯','😶','😇','😏','😑',
-    '👲','👳','👮','👷','💂','👶','👦','👧','👨','👩','👴','👵','👱','👼','👸','😺','😸','😻','😽','😼','🙀',
-    '😿','😹','😾','👹','👺','🙈','🙉','🙊','💀','👽','💩'];
-
-const suit = ["clubs", "diams", "spades", "hearts"];
-const ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "C", "Q", "K"];
-
 var state;
 var cardAside = -1;
 var users = [];
@@ -101,19 +92,45 @@ function main(roomName) {
     });
 }
 
+function createMessage(message, type="primary") {
+  return `<div class="alert alert-${type}" role="alert">
+            ${translate(message)}
+          </div>`;
+}
+
+function createButton(title, jsAction, clazz="") {
+  return `<button onclick = '${jsAction}' class = 'btn btn-outline-dark btn-lg btn-block ${clazz}'>
+            ${translate(title)}
+          </button>`;
+};
+
 function reconnect() {
   socket.connect();
   socket.emit("reconnectToRoom", room, my_user);  
 }
+
+socket.on("onReconnectionFailed", function() {
+  $("#mainDeck").empty();
+  $content = `
+    <div class="row w-100">
+      <div class="col-8 form-group">
+        ${createMessage("Can't reconnect! Reload the page (your hand and tricks will be lost)", "danger")}
+        <br />
+        ${createButton("Reload", "document.location.reload(true)")}
+      </div>
+    </div>
+    `;
+  $("#mainDeck").append($content);
+})
 
 socket.on('disconnect', function(){
   $("#mainDeck").empty();
   $content = `
     <div class="row w-100">
         <div class="col-8 form-group">
-          <h2 class="start_text">${translate("You are disconnected!")}</h2>
-          <br /><br />
-          <button onclick = 'reconnect()' class = 'btn btn-outline-dark btn-lg btn-block'>${translate("Reconnect")}</button><br>
+          ${createMessage("You are disconnected!", "warning")}
+          <br />
+          ${createButton("Reconnect", "reconnect()")}
         </div>
     </div>
     
@@ -137,7 +154,7 @@ socket.on("askInfo", function () {
       id: socket.id,
       date: Date.now(),
       name: nameTemp,
-      emoji: emojis[Math.floor(Math.random() * emojis.length)],
+      emoji: EMOJIS[Math.floor(Math.random() * EMOJIS.length)],
     };
   }
   socket.emit("sendInfo", my_user);
@@ -459,7 +476,7 @@ function drawCard(card, clazz, type="div") {
 }
 
 
-function addOption(name, title, descriptionChecked, description) {
+function createOption(name, title, descriptionChecked, description) {
   return `
   <input type="checkbox" class="form-check-input" 
     id="option_${name}" onclick = 'onOptionChange("${name}")' ${isChecked(name)? "checked" : ""}/>
@@ -479,23 +496,23 @@ function drawDeckConfig() {
         <div class="col-6 form-group">
           <h2 class="start_text">${translate("Room")} ${room} <br> ${translate("Everyone in?")}</h2>
           <br />
-          <button class="btn btn-outline-dark btn-lg btn-block get_deck" onclick="start()">${translate("Start")}</button>
+          ${createButton("Start", "start()")}
         </div>
         <div class="col-6 h-100 container " id="optionList">
           <div class="col h-100">
-            ${addOption("cavaliers", translate("Include cavaliers"), translate("56 cards"), translate("52 cards"))}
+            ${createOption("cavaliers", translate("Include cavaliers"), translate("56 cards"), translate("52 cards"))}
             <br />
-            ${addOption("tricks", translate("Claim tricks 🂠")+" <b> X </b>", translate("tricks won"), translate("cards in hand"))}
+            ${createOption("tricks", translate("Claim tricks 🂠")+" <b> X </b>", translate("tricks won"), translate("cards in hand"))}
             <br />
-            ${addOption("turn", translate("Turn change"), translate("turn change each round"), translate("turn order stay the same"))}
+            ${createOption("turn", translate("Turn change"), translate("turn change each round"), translate("turn order stay the same"))}
             <br />
-            ${addOption("all_cards", translate("All cards"), translate("Distribute all cards"), translate("Distribute a specific number"))}
+            ${createOption("all_cards", translate("All cards"), translate("Distribute all cards"), translate("Distribute a specific number"))}
             <br />
-            ${addOption("block_action", translate("Block actions"), translate("Only the player whose turn can do things"), translate("Action can be done by anyone at any moment"))}
+            ${createOption("block_action", translate("Block actions"), translate("Only the player whose turn can do things"), translate("Action can be done by anyone at any moment"))}
             <br />
-            ${addOption("block_get_cards", translate("Block cards taken"), translate("Prevent to take cards from playing area"), translate("Cards can be taken from playing area"))}
+            ${createOption("block_get_cards", translate("Block cards taken"), translate("Prevent to take cards from playing area"), translate("Cards can be taken from playing area"))}
             <br />
-            ${addOption("next_turn", translate("End turn after playing"), translate("Play a card to end turn"), translate("You have to specifically end you turn"))}
+            ${createOption("next_turn", translate("End turn after playing"), translate("Play a card to end turn"), translate("You have to specifically end you turn"))}
         </div>
         </div>
       </div>
@@ -511,8 +528,8 @@ function drawDeckDistribute() {
 
   if (!options.block_action || isMyTurn()) {
     content += `
-    <button onclick = 'shuffleDeck()' class = 'btn btn-outline-dark btn-lg btn-block'>${translate("Shuffle cards")}</button><br>
-    <button class = 'btn btn-outline-dark btn-lg btn-block' onclick = 'distributeCards()'>${translate("Distribute")}</button><br>
+    ${createButton("Shuffle cards", "shuffleDeck()")} </br>
+    ${createButton("Distribute", "distributeCards()")} </br>
     <div class="control-group form-inline">`
       if (!options.all_cards) {
         content+= `<label class="mb-2" for="distribute_card">${message}</label>
@@ -523,13 +540,7 @@ function drawDeckDistribute() {
   }
 
   if (options.block_action && !isMyTurn()) {
-    
-    content += `
-      <div class="alert alert-warning" role="alert">
-        ${translate("Wait for the dealer to give you cards!")}
-      </div>
-    `
-
+    content += createMessage("Wait for the dealer to give you cards", "info");
   }
     
   if (cardAside != -1) {
@@ -560,28 +571,14 @@ function drawDeckPlay() {
     content = `<div class = 'col-6'><h2>${translate("Deck")}: ${remainingCards} / ${deckOriginalLength} cards</h2><br>`
   }
   if (!options.block_action || isMyTurn()) {
-    content += `
-    <button onclick = 'askResetRound()' class = 'btn btn-outline-dark btn-lg btn-block'>
-      ${translate("Get back cards")}
-    </button><br>`;
+    content += `${createButton("Get back cards", "askResetRound()")} </br>`;
   }
   if(!isMyTurn()) {
-    content += `
-      <div class="alert alert-warning" role="alert">
-        ${translate("Wait for your turn!")}
-      </div>
-    `;
+    content += `${createMessage("Wait for your turn!", "info")}`;
   } else if(!options.next_turn) {
-    content += `
-      <button onclick = 'endTurn()' class = 'btn btn-outline-dark btn-lg btn-block'>
-        ${translate("End turn")}
-      </button><br>`
+    content += `${createButton("End turn", "endTurn()")} </br>`;
   } else {
-    content += `
-    <div class="alert alert-success" role="alert">
-      ${translate("This is your turn!")}
-    </div>
-    `
+    content += `${createMessage("This is your turn!", "success")}`
   }
 
   content += "</div>"
@@ -593,9 +590,9 @@ function drawDeckPlay() {
       <div class = 'col-6 playingCards faceImages'>
         ${cardAside != -1 ? drawCard(cardAside, "card_aside", "span") : '<span class="card_deck">🂠</span>'}`;
 
-    if (!options.block_action || isMyTurn()) {
-      content += `<button style="margin-left:25%" class='col-6 distrib-btn btn btn-primary ' onclick = 'takeCard()'>${translate("Draw a card")}</button>`;
-    }
+      if (!options.block_action || isMyTurn()) {
+        content += `<button style="margin-left:25%" class='col-6 distrib-btn btn btn-primary ' onclick = 'takeCard()'>${translate("Draw a card")}</button>`;
+      }
     content += "</div>";
   }     
   return content;
@@ -708,10 +705,10 @@ function drawPile() {
 
   if (options.tricks) {
     if (pile.length == users.length) {
-      content += `<button class = "playing_btn btn btn-outline-dark btn-lg btn-block" onclick = "askClaimTrick()">${translate("Claim trick")}</button>`;
+      content += createButton("Claim trick", "askClaimTrick()", "playing_btn");
     }
   } else {
-    content += `<button class = "playing_btn btn btn-outline-dark btn-lg btn-block" onclick = "clearPlayingArea()">${translate("Clear")}</button>`;
+    content += createButton("Clear", "clearPlayingArea()", "playing_btn");
   }
   $("#playArea").append(content);
 
@@ -733,10 +730,10 @@ function drawPile() {
 
 function sortCard() {
   my_hand.sort(function (a, b) {
-    if (suit.indexOf(a.suit) < suit.indexOf(b.suit)) return -1;
-    if (suit.indexOf(a.suit) > suit.indexOf(b.suit)) return 1;
+    if (SUITS.indexOf(a.suit) < SUITS.indexOf(b.suit)) return -1;
+    if (SUITS.indexOf(a.suit) > SUITS.indexOf(b.suit)) return 1;
 
-    return ranks.indexOf(a.rank) - ranks.indexOf(b.rank);
+    return RANK_CAVLIERS.indexOf(a.rank) - RANK_CAVLIERS.indexOf(b.rank);
   });
   drawHand();
 }

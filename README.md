@@ -46,9 +46,7 @@ Fear no more, as the virtual deck of cards is here! Simply create or sign into a
 
 # What's next 
 
-- GAME PLAY - YANIV - Mettre une carte depuis la pioche dans la zone de jeu
-- GAME PLAY - YANIV - regrouper les cartes en haut de pile 
-- GAME PLAY - YANIV - permettre de nettoyer les cartes poser par le joueur d'avant
+- UI - grossir / reduire taille cartes 
 - GAME PLAY - ESCALIER - Prise en compte des annonces
 - GAME PLAY - MARMOTEE - poser des cartes cacher sur la table
 - GAME PLAY - Quand quelqu'un se connecte lui permettre ou non de rejoindre la partie, sinon spectateur
@@ -60,7 +58,14 @@ Fear no more, as the virtual deck of cards is here! Simply create or sign into a
 - GAME PLAY - Créer de nouvelles cartes entre 10 et valet quand on est plusieurs (11, 12, 13, 14, 15...)
 - UX - Chat écrit
 - UX - Chat oral / video
-- UI - Passer les checkbox en toggle
+- UI - Revoir l'ecran d'appel
+
+## Manque pour Yaniv 
+- GAME PLAY - YANIV - Mettre une carte depuis la pioche dans la zone de jeu
+- GAME PLAY - YANIV - regrouper les anciennes cartes (cartes jouer par le joueur avant)
+- GAME PLAY - YANIV - Mélanger la déffausse
+- GAME PLAY - YANIV - Retourner une carte pour la priocher la 1er fois
+  
 
 # Bugs
 

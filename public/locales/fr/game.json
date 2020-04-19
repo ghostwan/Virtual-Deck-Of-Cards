@@ -50,7 +50,7 @@
   "Block actions": "Bloquer les actions",
   "Only the player whose turn can do things": "Peut uniquement faire des actions pendant son tour",
   "Action can be done by anyone at any moment": "Tous les  joueurs peuvent joueur a n'importe quel moment",
-  "Wait for the dealer to give you cards!": "Attends qu'on te distribue des cartes!",
+  "Wait for the dealer to give you cards": "Attends qu'on te distribue des cartes!",
   "Wait for your turn!": "Attends ton tour!",
   "You are disconnected!": "Tu es déconnecté!",
   "Reconnect" : "Reconnectes toi! =)",
@@ -60,6 +60,8 @@
   "End turn after playing": "Fin du tour auto",
   "Play a card to end turn": "Après avoir jouer une carte le tour se finit",
   "You have to specifically end you turn": "Vous devez préciser la fin de votre tour",
-  "This is your turn!": "C'est a toi de jouer"
+  "This is your turn!": "C'est a toi de jouer",
+  "Can't reconnect! Reload the page (your hand and tricks will be lost)":"Ne peut pas se reconnecter! Recharge la page (ta main et tes plis seront perdus)",
+  "Reload" :  "Recharger la page"
 
 }
