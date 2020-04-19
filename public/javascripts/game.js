@@ -77,6 +77,10 @@ function main(roomName) {
     drawHand();
   });
 
+  $("#colors_option").change(function () {
+    changeCardColor();
+  });
+
   room = roomName
 
   i18next.use(i18nextXHRBackend ).use(i18nextBrowserLanguageDetector)
@@ -350,6 +354,10 @@ function init() {
     off: translate("Play"),
     on: translate("Reorder")
   });
+  $('#colors_option').bootstrapToggle({
+    off: translate("2 colors"),
+    on: translate("4 colors")
+  });
 }
 
 function askResetGame() {
@@ -405,6 +413,15 @@ function putCardAside() {
 function endTurn() {
   if(isMyTurn()) {
     socket.emit("endTurn");
+  }
+}
+
+function changeCardColor() {
+  const fourColorsclass = "fourColours"
+  if ($("#colors_option").prop("checked")) {
+    $(".playingCards").addClass(fourColorsclass);
+  } else {
+    $(".playingCards").removeClass(fourColorsclass);
   }
 }
 
@@ -603,19 +620,19 @@ function drawDeck() {
   var content = "";
   switch(state) {
     case STATE_CONFIG: {
-      $("#reset_button").invisible();
+      $("#game_controls").invisible();
       $("#playArea").empty();
       $("#tricksArea").empty();
       content = drawDeckConfig();
       break;
     }
     case STATE_DISTRIBUTE: {
-      $("#reset_button").visible();
+      $("#game_controls").visible();
       content = drawDeckDistribute();
       break;
     }
     case STATE_PLAY: {
-      $("#reset_button").visible();
+      $("#game_controls").visible();
       content = drawDeckPlay();
       break;
     }

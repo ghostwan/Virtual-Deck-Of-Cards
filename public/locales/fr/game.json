@@ -62,6 +62,8 @@
   "You have to specifically end you turn": "Vous devez préciser la fin de votre tour",
   "This is your turn!": "C'est a toi de jouer",
   "Can't reconnect! Reload the page (your hand and tricks will be lost)":"Ne peut pas se reconnecter! Recharge la page (ta main et tes plis seront perdus)",
-  "Reload" :  "Recharger la page"
+  "Reload" :  "Recharger la page",
+  "4 colors": "4 couleurs",
+  "2 colors": "2 couleurs"
 
 }

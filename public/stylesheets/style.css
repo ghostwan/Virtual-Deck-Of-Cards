@@ -35,6 +35,9 @@
 h2 {
   color: grey;
 }
+.block {
+  display: block;
+}
 .start_text {
   color: black;
   text-align: center;
@@ -136,10 +139,9 @@ h2 {
   visibility: hidden;
   margin-left: 1em;
 }
-#reset_button {
+#game_controls {
   margin: 5px;
   height: auto;
-  text-align: center;
   top: 0;
   position: absolute;
   float: right;

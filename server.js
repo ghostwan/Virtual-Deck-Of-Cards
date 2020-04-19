@@ -174,8 +174,6 @@ io.on("connection", socket => {
   socket.on("endTurn", () => {
     if(socketNotAvailble()) {return}
     
-    log(`end its turn`)
-
     var playerNumber = getData("playerNumber")
     playerNumber = (playerNumber+1) % getUsersConnected().length
     emitUpdateToRoom({playerNumber : storeData("playerNumber", playerNumber)})
