@@ -64,6 +64,8 @@
   "Can't reconnect! Reload the page (your hand and tricks will be lost)":"Ne peut pas se reconnecter! Recharge la page (ta main et tes plis seront perdus)",
   "Reload" :  "Recharger la page",
   "4 colors": "4 couleurs",
-  "2 colors": "2 couleurs"
+  "2 colors": "2 couleurs",
+  "Sound": "Avec sons",
+  "No sound": "Sans sons"
 
 }

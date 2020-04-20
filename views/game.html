@@ -52,9 +52,12 @@
     <div id="screen" class="jumbotron jumbotron-fluid">
       <div id="game_controls">
         <button id="reset_button" class="btn btn-danger block" onclick="askResetGame()"></button></br>
-        <input id="colors_option" class="block" type="checkbox" onclick="changeCardsColor()"></button>
+        <input id="colors_option" type="checkbox" onclick="changeCardsColor()"></button></br>
+        <input id="sound_option" type="checkbox" ></button></br>
       </div>
-      
+      <audio id="sound_player">
+        <source id="sound_source" type="audio/mpeg">
+      </audio>
       <div id="logMessage"></div>
       <div id="main" class="container-fluid">
         <div id="playersArea" class="col-11">

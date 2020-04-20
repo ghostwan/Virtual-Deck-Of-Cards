@@ -45,7 +45,7 @@ function main(roomName) {
     pile.push(card);
 
     gameData[my_user.id].cards --
-    updateData({ what: "play a card", pile: pile, gameData: gameData })
+    updateData({ action: actions.PLAY_CARD, pile: pile, gameData: gameData })
     drawHand();
     if(options.next_turn) {
       endTurn();
@@ -172,8 +172,8 @@ socket.on("onUpdateHand", function (data) {
 });
 
 
-socket.on("onUpdateLog", function (log) {
-  $("#logMessage").text(log);
+socket.on("onNewAction", function (who, what) {
+  $("#logMessage").text(`${who} ${what}`);
 });
 
 function isExist(value) {
@@ -195,6 +195,8 @@ socket.on("onUpdateData", function (data) {
   var reDrawDeck = false;
   var reDrawUsersInfo = false;
   var reDrawTricks = false;
+  var action = data.action
+
 
   if ( isExist(data.options) ) {
     options = data.options;
@@ -252,6 +254,7 @@ socket.on("onUpdateData", function (data) {
   if (reDrawPile) drawPile();
   if (reDrawUsersInfo) drawUsersInfos();
   if (reDrawTricks) drawTricks();
+  playAction(action);
 });
 
 function updateOption(name, value) {
@@ -260,7 +263,7 @@ function updateOption(name, value) {
     return;
   }
   options[name] = value;
-  var data = {what: "update options", options: options}
+  var data = {action: actions.UPDATE_OPTION, options: options}
   socket.emit("updateData", data);
 }
 
@@ -276,7 +279,7 @@ function onOptionMenu(name, options) {
   switch(name) {
     case "turn": {
       const userid = options.$trigger.attr("userid");
-      updateData({ what: "switch turn", playerNumber: getUserPlace(userid) })
+      updateData({ action: actions.CHANGE_TURN,  playerNumber: getUserPlace(userid) })
     }; break;
     case "clear" : clearPlayingArea(); break;
     case "take" : takeCardFromPile(options.$trigger); break;
@@ -294,7 +297,7 @@ function takeCardFromPile(item) {
   pile.splice(cardIndex, 1);
 
   gameData[my_user.id].cards ++
-  updateData({ what: "take back a card", pile: pile, gameData: gameData })
+  updateData({ action: actions.TAKE_BACK_CARD, pile: pile, gameData: gameData })
   drawHand();
 }
 
@@ -309,13 +312,13 @@ function start() {
   options["cards_distribute"] = 1;
   options["stack_visible"] = true;
 
-  updateData({ what: "update options", options: options })
+  updateData({ action: actions.UPDATE_OPTION, options: options })
   resetRound();
 }
 
 function clearPlayingArea() {
   if (confirm(translate("Are you sure, you want to clear the playing area?"))) {
-    updateData({ what: "clear the playing area", pile: [] })
+    updateData({ action: actions.CLEAR_AREA, pile: [] })
   }
 }
 
@@ -356,7 +359,13 @@ function init() {
   });
   $('#colors_option').bootstrapToggle({
     off: translate("2 colors"),
-    on: translate("4 colors")
+    on: translate("4 colors"),
+    style : "block"
+  });
+  $('#sound_option').bootstrapToggle({
+    off: translate("No sound"),
+    on: translate("Sound"),
+    style : "block"
   });
 }
 
@@ -389,7 +398,37 @@ function askClaimTrick() {
       gameData[my_user.id].tricks = []
     }
     gameData[my_user.id].tricks.push(pile);
-    updateData({ what: "claim tricks", gameData: gameData, pile: [], playerNumber: getUserPlace() })
+    updateData({ action: actions.CLAIM_TRICK, gameData: gameData, pile: [], playerNumber: getUserPlace() })
+  }
+}
+
+function playAction(action) {
+  switch(action) {
+    case actions.SHUFFLE: playSound("shuffle"); break;
+    case actions.CARD_ASIDE: playSound("turn_card"); break;
+    case actions.END_TURN: {
+      if(isMyTurn()) {
+        playSound("your_turn"); 
+        break;
+      }
+    }
+    case actions.DISTRIBUTE: playSound("distribute"); break;
+    case actions.PLAY_CARD: playSound("play_card"); break;
+    case actions.RESET_ROUND: playSound("reset_round"); break;
+    case actions.CLAIM_TRICK: playSound("claim_trick"); break;
+  }
+}
+
+function playSound(name) {
+  if ($("#sound_option").prop("checked")) {
+    var url = `audio/${name}.mp3`;
+    var audio = $("#sound_player");
+    $('#sound_source').attr("src", url);
+    audio[0].pause();
+    audio[0].load();//suspends and restores all audio element
+
+    //audio[0].play(); changed based on Sprachprofi's comment below
+    audio[0].oncanplaythrough = audio[0].play();
   }
 }
 
