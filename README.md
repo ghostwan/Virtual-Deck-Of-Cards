@@ -48,7 +48,6 @@ Fear no more, as the virtual deck of cards is here! Simply create or sign into a
 
 # What's next 
 
-- Permettre de lancer un server local accessible auxà l'exterieur (https://www.pluralsight.com/guides/exposing-your-local-node-js-app-to-the-world)
 - Sonnerie dès que c'est a son tour
 - carte déjà classé dès distribué
 - Donner des cartes et piocher des cartes
