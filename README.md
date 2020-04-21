@@ -15,6 +15,10 @@ Covid-19 is here, you are lockdown at home and want to play remotely with your f
 
 Fear no more, as the virtual deck of cards is here! Simply create or sign into a deck, and play any game with anyone.
 
+Current supported Languages: Enlgish, French
+
+
+
 # What you can currently do
 - Create a room to play any cards game with your friends!
 - Share the room's url to invite people into the game!
@@ -45,6 +49,7 @@ Fear no more, as the virtual deck of cards is here! Simply create or sign into a
 - Add option to end turn after playing a card
 - Put Ace a the end when ordering
 - Add 4 colors option
+- Add sound options
 
 # What's next 
 
@@ -105,6 +110,14 @@ N = NOT OPTIMAL: you can play but it's not optimal features are missing
 W = WIP:  you can't currently play important features are missing  
 T = TODO: Most of the minimum need feature are missing  
  
+![Colors options](misc/cards_color.png)
+![Claim trick](misc/claim_trick.png)
+![Reorder](misc/reorder.png)
+![Room creation](misc/room_creation.png)
+![Distribute amount of cards](misc/distribute_amout_of_cards.png)
+![Server](misc/server.png)
+
+
  ---
 
 # How to play locally
