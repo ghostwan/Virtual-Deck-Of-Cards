@@ -35,6 +35,9 @@
 h2 {
   color: grey;
 }
+.controls {
+  color: grey;
+}
 .block {
   display: block;
 }

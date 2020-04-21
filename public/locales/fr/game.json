@@ -65,7 +65,10 @@
   "Reload" :  "Recharger la page",
   "4 colors": "4 couleurs",
   "2 colors": "2 couleurs",
-  "Sound": "Avec sons",
-  "No sound": "Sans sons"
+  "Without": "Sans",
+  "With": "Avec",
+  "Cards colors" :"Couleurs des cartes",
+  "Cards sounds":"Sons des cartes",
+  "Game sounds" : "Sons du jeux"
 
 }

@@ -357,14 +357,16 @@ function init() {
     off: translate("Play"),
     on: translate("Reorder")
   });
-  $('#colors_option').bootstrapToggle({
-    off: translate("2 colors"),
-    on: translate("4 colors"),
-    style : "block"
-  });
-  $('#sound_option').bootstrapToggle({
-    off: translate("No sound"),
-    on: translate("Sound"),
+  setOptionToggle("colors_option", "Cards colors", "4 colors", "2 colors");
+  setOptionToggle("card_sound_option", "Cards sounds");
+  setOptionToggle("game_sound_option", "Game sounds");
+}
+
+function setOptionToggle(name, label, on="With", off="Without") {
+  $(`#${name}_label`).text(translate(label));
+  $(`#${name}`).bootstrapToggle({
+    on: translate(on),
+    off: translate(off),
     style : "block"
   });
 }
@@ -403,24 +405,24 @@ function askClaimTrick() {
 }
 
 function playAction(action) {
-  switch(action) {
-    case actions.SHUFFLE: playSound("shuffle"); break;
-    case actions.CARD_ASIDE: playSound("turn_card"); break;
-    case actions.END_TURN: {
-      if(isMyTurn()) {
-        playSound("your_turn"); 
-        break;
-      }
+  if ($("#card_sound_option").prop("checked")) {
+    switch(action) {
+      case actions.SHUFFLE: playSound("shuffle"); break;
+      case actions.CARD_ASIDE: playSound("turn_card"); break;
+      case actions.DISTRIBUTE: playSound("distribute"); break;
+      case actions.DRAW_CARD:  playSound("draw_card"); break;
+      case actions.PLAY_CARD:  playSound("play_card2"); break;
+      case actions.RESET_ROUND: playSound("reset_round"); break;
+      case actions.CLAIM_TRICK: playSound("claim_trick"); break;
     }
-    case actions.DISTRIBUTE: playSound("distribute"); break;
-    case actions.PLAY_CARD: playSound("play_card"); break;
-    case actions.RESET_ROUND: playSound("reset_round"); break;
-    case actions.CLAIM_TRICK: playSound("claim_trick"); break;
+  } else if ($("#game_sound_option").prop("checked") 
+            && isMyTurn() 
+            && action == actions.END_TURN) {
+    playSound("your_turn"); 
   }
 }
 
 function playSound(name) {
-  if ($("#sound_option").prop("checked")) {
     var url = `audio/${name}.mp3`;
     var audio = $("#sound_player");
     $('#sound_source').attr("src", url);
@@ -429,7 +431,6 @@ function playSound(name) {
 
     //audio[0].play(); changed based on Sprachprofi's comment below
     audio[0].oncanplaythrough = audio[0].play();
-  }
 }
 
 function shuffleDeck() {
