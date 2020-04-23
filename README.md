@@ -53,7 +53,6 @@ Current supported Languages: Enlgish, French
 
 # What's next 
 
-- Sonnerie dès que c'est a son tour
 - carte déjà classé dès distribué
 - Donner des cartes et piocher des cartes
 - UI - grossir / reduire taille cartes 

@@ -173,7 +173,9 @@ socket.on("onUpdateHand", function (data) {
 
 
 socket.on("onNewAction", function (who, what) {
-  $("#logMessage").text(`${who} ${what}`);
+  if(what != actions.END_TURN) {
+    $("#logMessage").text(`${who} ${translate(what)}`);
+  }
 });
 
 function isExist(value) {
@@ -405,6 +407,8 @@ function askClaimTrick() {
 }
 
 function playAction(action) {
+  console.log("Action: "+action);
+
   if ($("#card_sound_option").prop("checked")) {
     switch(action) {
       case actions.SHUFFLE: playSound("shuffle"); break;
@@ -415,14 +419,18 @@ function playAction(action) {
       case actions.RESET_ROUND: playSound("reset_round"); break;
       case actions.CLAIM_TRICK: playSound("claim_trick"); break;
     }
-  } else if ($("#game_sound_option").prop("checked") 
+  }  
+  if ($("#game_sound_option").prop("checked") 
             && isMyTurn() 
             && action == actions.END_TURN) {
-    playSound("your_turn"); 
+    console.log("This is my turn sound");
+    setTimeout(function(){ playSound("your_turn"); }, 500);
   }
 }
 
 function playSound(name) {
+    console.log("playing sound: "+name);
+
     var url = `audio/${name}.mp3`;
     var audio = $("#sound_player");
     $('#sound_source').attr("src", url);

@@ -69,6 +69,19 @@
   "With": "Avec",
   "Cards colors" :"Couleurs des cartes",
   "Cards sounds":"Sons des cartes",
-  "Game sounds" : "Sons du jeux"
-
+  "Game sounds" : "Sons du jeux",
+  "user connected" : "connecté",
+  "user disconnected" : "déconnecté",
+  "shuffle the deck" : "mélange le deck",
+  "draw a card" : "pioche",
+  "put a card aside" : "met une carte de coté",
+  "distribute" : "distribue",
+  "reset the game": "redémarre le jeu",
+  "reset the round" : "démarre un nouveau tour",
+  "play a card" : "joue une carte",
+  "update option" : "met a jour les options",
+  "change turn" : "change de tour",
+  "take back a card" : "récupère une carte",
+  "clear the playing area" : "nettoie la zone de jeu",
+  "claim trick" : "réclame le pli"
 }
