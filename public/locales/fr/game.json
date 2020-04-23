@@ -83,5 +83,6 @@
   "change turn" : "change de tour",
   "take back a card" : "récupère une carte",
   "clear the playing area" : "nettoie la zone de jeu",
-  "claim trick" : "réclame le pli"
+  "claim trick" : "réclame le pli",
+  "decks of cards": "paquets de cartes"
 }

@@ -375,10 +375,13 @@ function newDeck(options) {
     rank = RANK_CAVLIERS;
   }
   var cards = [];
-  for (var i = 0; i < SUITS.length; i++) {
-    for (var j = 0; j < rank.length; j++) {
-      var card = { rank: rank[j], suit: SUITS[i] };
-      cards.push(card);
+  var decks = options.number_decks
+  for (var d = 0; d < decks; d++) {
+    for (var i = 0; i < SUITS.length; i++) {
+      for (var j = 0; j < rank.length; j++) {
+        var card = { rank: rank[j], suit: SUITS[i] };
+        cards.push(card);
+      }
     }
   }
   return cards;

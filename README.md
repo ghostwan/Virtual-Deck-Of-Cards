@@ -50,11 +50,12 @@ Current supported Languages: Enlgish, French
 - Put Ace a the end when ordering
 - Add 4 colors option
 - Add sound options
+- Choose the number of decks to play with
 
 # What's next 
 
+- RATATOUILLE - Donner des cartes et piocher des cartes
 - carte déjà classé dès distribué
-- Donner des cartes et piocher des cartes
 - UI - grossir / reduire taille cartes 
 - GAME PLAY - ESCALIER - Prise en compte des annonces
 - GAME PLAY - MARMOTEE - poser des cartes cacher sur la table
@@ -62,7 +63,6 @@ Current supported Languages: Enlgish, French
 - GAME PLAY - Locker la partie pour que plus personnes ne puisse rentrer 
 - GAME PLAY - Gestion des scores
 - GAME PLAY - Preset de configuration pour des jeux existants
-- GAME PLAY - Sélectionner le nombre de deck quand on est nombreux
 - GAME PLAY - TAROTS - Rajouter les cartes les atouts de tarot
 - GAME PLAY - Créer de nouvelles cartes entre 10 et valet quand on est plusieurs (11, 12, 13, 14, 15...)
 - UX - Chat écrit

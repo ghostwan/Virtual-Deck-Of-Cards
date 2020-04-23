@@ -304,13 +304,15 @@ function takeCardFromPile(item) {
 }
 
 function start() {
-  syncOption("cavaliers")
-  syncOption("tricks")
-  syncOption("turn")
-  syncOption("all_cards")
-  syncOption("block_action")
-  syncOption("block_get_cards")
-  syncOption("next_turn")
+  syncCheckOption("cavaliers")
+  syncCheckOption("tricks")
+  syncCheckOption("turn")
+  syncCheckOption("all_cards")
+  syncCheckOption("block_action")
+  syncCheckOption("block_get_cards")
+  syncCheckOption("next_turn")
+  syncInputOption("number_decks")
+
   options["cards_distribute"] = 1;
   options["stack_visible"] = true;
 
@@ -551,8 +553,18 @@ function createOption(name, title, descriptionChecked, description) {
   `
 }
 
-function syncOption(name) {
+function createInputOption(name, title) {
+  return `<input  class= "mb-2" type = "number" 
+    id = "option_${name}" min="1" value="1"} />
+    <label class="form-check-label option_label" for="option_${name}" >${translate(title)}`
+}
+
+function syncCheckOption(name) {
   options[name] = $("#option_"+name).is(":checked");
+}
+
+function syncInputOption(name) {
+  options[name] = $("#option_"+name).val();
 }
 
 function drawDeckConfig() {
@@ -578,6 +590,8 @@ function drawDeckConfig() {
             ${createOption("block_get_cards", translate("Block cards taken"), translate("Prevent to take cards from playing area"), translate("Cards can be taken from playing area"))}
             <br />
             ${createOption("next_turn", translate("End turn after playing"), translate("Play a card to end turn"), translate("You have to specifically end you turn"))}
+            <br />
+            ${createInputOption("number_decks", "decks of cards")}
         </div>
         </div>
       </div>
@@ -598,8 +612,8 @@ function drawDeckDistribute() {
     <div class="control-group form-inline">`
       if (!options.all_cards) {
         content+= `<label class="mb-2" for="distribute_card">${message}</label>
-        <input  class= "mb-2" type = "number" id = "distribute_card" placeholder = "${translate("number of cards")}"
-                  onchange="updateOption('cards_distribute', this.value)"  value="${options["cards_distribute"]}"} />`
+        <input  class= "mb-2" type = "number" id = "distribute_card" min="1" max="${deckOriginalLength}" placeholder = "${translate("number of cards")}"
+                  value="${options["cards_distribute"]}"} />`
       }
     content += `</div></div>`
   }
@@ -804,6 +818,9 @@ function sortCard() {
 }
 
 function distributeCards() {
+  syncInputOption("cards_distribute")
+  updateData({ action: actions.UPDATE_OPTION, options: options })
+  
   var numCards = $("#distribute_card").val();
   if (options.all_cards) {
     numCards = -1;
