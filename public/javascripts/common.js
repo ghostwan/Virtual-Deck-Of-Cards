@@ -43,7 +43,8 @@ const configs = {
         turn: true,
         all_cards: false,
         block_get_cards: true,
-        next_turn: true
+        next_turn: true,
+        stack_visible: true,
     },
     ratatouille : { 
         tricks: true,
@@ -51,16 +52,18 @@ const configs = {
         cavaliers: true,
         turn: false,
         all_cards: true,
-        block_get_cards: true,
-        next_turn: true
+        block_get_cards: false,
+        next_turn: true,
+        stack_visible: true
     }, 
     yaniv : { 
-            tricks: false,
-            cards_distribute: 4,
-            cavaliers: true,
-            turn: false,
-            all_cards: false,
-            block_get_cards: false,
-            next_turn: false
+        tricks: false,
+        cards_distribute: 4,
+        cavaliers: true,
+        turn: false,
+        all_cards: false,
+        block_get_cards: false,
+        next_turn: false,
+        stack_visible: true
     }
 }

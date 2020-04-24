@@ -23,7 +23,7 @@
   "Distribute all cards": "Distribuer toutes les cartes",
   "Distribute a specific number": "Distribuer un certain nombre de cartes",
   "Room": "Salle de jeu",
-  "Your are the only player connected! ": "Tu es le seul joueur connecté! ",
+  "Your are the only player connected!": "Tu es le seul joueur connecté! ",
   "Card to distribute to each player ": "Nombre de carte a distribuer à chaque joueurs",
   "players": "joueurs",
   "Shuffle cards": "Mélanger les cartes",
@@ -86,5 +86,7 @@
   "claim trick" : "réclame le pli",
   "decks of cards": "paquets de cartes",
   "Game options"  :"Options de jeux",
-  "Preconfiguration"  :"Préconfiguration"
+  "Preconfiguration"  :"Préconfiguration",
+  "View only the last one": "Ne voir que la dernière posé",
+  "View all cards played": "Voir toutes les cartes posés"
 }

@@ -14,6 +14,10 @@ var my_hand = [];
 var pile = [];
 var socket = io();
 var options = {};
+
+var booleanOptionList = {}
+var numberOptionList = {}
+
 var room;
 var translate;
 
@@ -313,18 +317,19 @@ function takeCardFromPile(item) {
 }
 
 function start() {
-  syncCheckOption("cavaliers")
-  syncCheckOption("tricks")
-  syncCheckOption("turn")
-  syncCheckOption("all_cards")
-  syncCheckOption("block_action")
-  syncCheckOption("block_get_cards")
-  syncCheckOption("next_turn")
-  syncInputOption("number_decks")
 
-  options["cards_distribute"] = 1;
-  options["stack_visible"] = true;
+  forEach(booleanOptionList, function (value, prop, obj) {
+    syncBooleanOption(prop)
+  });
 
+  forEach(numberOptionList, function (value, prop, obj) {
+    syncNumberOption(prop)
+  });
+
+  if(options.cards_distribute == undefined) {
+    options.cards_distribute = 1;
+  }
+  
   updateOptions()
   resetRound();
 }
@@ -541,7 +546,7 @@ function drawUsersInfos() {
 }
 
 function isChecked(name) {
-  return options[name] == undefined ? true : options[name];
+  return options[name] == undefined ? false : options[name];
 }
 
 function drawCard(card, clazz, type="div") {
@@ -552,17 +557,23 @@ function drawCard(card, clazz, type="div") {
 }
 
 
-function createOption(name, title, descriptionChecked, description) {
-  return `
+function createBooleanOption(name, title, descriptionChecked=undefined, description=undefined) {
+  booleanOptionList[name] = 1;
+  var content = `
+    <input type="checkbox" class="form-check-input" 
   <input type="checkbox" class="form-check-input" 
-    id="option_${name}" onclick = 'onOptionChange("${name}")' ${isChecked(name)? "checked" : ""}/>
-  <label class="form-check-label option_label" for="option_${name}" >${title}
-  => ${isChecked(name)? descriptionChecked : description}
-  </label>
-  `
+    <input type="checkbox" class="form-check-input" 
+      id="option_${name}" onclick = 'onOptionChange("${name}")' ${isChecked(name)? "checked" : ""}/>
+    <label class="form-check-label option_label" for="option_${name}" >${title}`;
+  if (descriptionChecked != undefined && description != undefined) {
+    content += `=> ${isChecked(name)? descriptionChecked : description}`;
+  }
+  content += "</label>";
+  return content;
 }
 
-function createInputOption(name, title) {
+function createNumberOption(name, title) {
+  numberOptionList[name] = 1;
   return `<input  class= "mb-2" type = "number" 
     id = "option_${name}" min="1" value="1"} />
     <label class="form-check-label option_label" for="option_${name}" >${translate(title)}`
@@ -584,31 +595,33 @@ function createGameConfigs() {
   return content;
 }
 
-function syncCheckOption(name) {
+function syncBooleanOption(name) {
   options[name] = $("#option_"+name).is(":checked");
 }
 
-function syncInputOption(name) {
+function syncNumberOption(name) {
   options[name] = $("#option_"+name).val();
 }
 
 function drawOptionList() {
   return `
-  ${createOption("cavaliers", translate("Include cavaliers"), translate("56 cards"), translate("52 cards"))}
+  ${createBooleanOption("cavaliers", translate("Include cavaliers"), translate("56 cards"), translate("52 cards"))}
   <br />
-  ${createOption("tricks", translate("Claim tricks 🂠")+" <b> X </b>", translate("tricks won"), translate("cards in hand"))}
+  ${createBooleanOption("tricks", translate("Claim tricks 🂠")+" <b> X </b>", translate("tricks won"), translate("cards in hand"))}
   <br />
-  ${createOption("turn", translate("Turn change"), translate("turn change each round"), translate("turn order stay the same"))}
+  ${createBooleanOption("turn", translate("Turn change"), translate("turn change each round"), translate("turn order stay the same"))}
   <br />
-  ${createOption("all_cards", translate("All cards"), translate("Distribute all cards"), translate("Distribute a specific number"))}
+  ${createBooleanOption("all_cards", translate("All cards"), translate("Distribute all cards"), translate("Distribute a specific number"))}
   <br />
-  ${createOption("block_action", translate("Block actions"), translate("Only the player whose turn can do things"), translate("Action can be done by anyone at any moment"))}
+  ${createBooleanOption("block_action", translate("Block actions"), translate("Only the player whose turn can do things"), translate("Action can be done by anyone at any moment"))}
   <br />
-  ${createOption("block_get_cards", translate("Block cards taken"), translate("Prevent to take cards from playing area"), translate("Cards can be taken from playing area"))}
+  ${createBooleanOption("block_get_cards", translate("Block cards taken"), translate("Prevent to take cards from playing area"), translate("Cards can be taken from playing area"))}
   <br />
-  ${createOption("next_turn", translate("End turn after playing"), translate("Play a card to end turn"), translate("You have to specifically end you turn"))}
+  ${createBooleanOption("next_turn", translate("End turn after playing"), translate("Play a card to end turn"), translate("You have to specifically end you turn"))}
   <br />
-  ${createInputOption("number_decks", "decks of cards")}
+  ${createBooleanOption("stack_visible", translate("View all cards"), translate("View all cards played"), translate("View only the last one"))} 
+  <br />
+  ${createNumberOption("number_decks", "decks of cards")}
   `;
 }
 
@@ -642,14 +655,18 @@ function drawDeckDistribute() {
         : translate("Card to distribute to each player ") +`( ${users.length} ${translate("players")})`;
   content = `<div class = 'col-6'><h2>${translate("Deck")}: ${remainingCards} / ${deckOriginalLength} ${translate("cards")}</h2><br>`;
 
+  var message = users.length == 1 ? translate("Your are the only player connected!") : `${users.length} ${translate("players")}`;
+
+  content = `<div class = 'col-6'><h2>${translate("Deck")}: ${remainingCards} / ${deckOriginalLength} ${translate("cards")}</h2><br>`;
+
   if (!options.block_action || isMyTurn()) {
     content += `
     ${createButton("Shuffle cards", "shuffleDeck()")} </br>
     ${createButton("Distribute", "distributeCards()")} </br>
     <div class="control-group form-inline">`
       if (!options.all_cards) {
-        content+= `<label class="mb-2" for="distribute_card">${message}</label>
-        <input  class= "mb-2" type = "number" id = "distribute_card" min="1" max="${deckOriginalLength}" placeholder = "${translate("number of cards")}"
+        content+= `<label class="mb-2" for="distribute_card">${translate("Card to distribute to each player ")} ( ${message} )</label>
+        <input  class= "mb-2 w-100" type = "number" id = "distribute_card" min="1" max="${deckOriginalLength}" placeholder = "${translate("number of cards")}"
                   value="${options["cards_distribute"]}"} />`
       }
     content += `</div></div>`
@@ -819,9 +836,8 @@ function drawPile() {
   var content = `
       <h2>${translate("Playing Area")}</h2>
       <div class = "col-6 form-group">
-        <input type='checkbox' class='form-check-input' id='option_stack_visible' onclick = 'onOptionChange("stack_visible")' 
-        ${isChecked("stack_visible") ? "checked" : ""} />
-        <label class="form-check-label" for="option_stack_visible">${translate("View all cards")}</label>
+        ${createBooleanOption("next_turn", translate("End turn after playing"))} <br>
+        ${createBooleanOption("back_card", translate("Hide card value"))}
       </div>`;
 
   if (options.tricks) {
@@ -836,7 +852,12 @@ function drawPile() {
   for (var i = 0; i < pile.length; i++) {
     var j = options["stack_visible"] ? pile.length - 1 - i : i;
     card = pile[j];
-    var $item = $(drawCard(card, "card_in_pile"))
+    var $item = ""
+    if (options.back_card) {
+      $item = `<div class="card back card_in_pile">*</div>`;
+    } else {
+      $item = $(drawCard(card, "card_in_pile"));
+    }
     var $layer = $('<div class="card_layer"/>');
     var $owner = $('<div class="card_owner"/>').text(card["username"]);
     $layer.append($item);
@@ -860,7 +881,7 @@ function sortCard() {
 }
 
 function distributeCards() {
-  syncInputOption("cards_distribute")
+  syncNumberOption("cards_distribute")
   
   var numCards = $("#distribute_card").val();
   if (options.all_cards) {
