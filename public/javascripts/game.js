@@ -81,6 +81,16 @@ function main(roomName) {
     changeCardColor();
   });
 
+  $("body").on("click", ".dropdown-item", function (e) {
+    console.log("click")
+      e.preventDefault(); // cancel the link behaviour
+      var selText = $(this).text();
+      $("#gameStyleDrop").text(selText);
+      options = configs[selText]
+      options.config_name = selText
+      updateOptions();
+  });
+
   room = roomName
 
   i18next.use(i18nextXHRBackend ).use(i18nextBrowserLanguageDetector)
@@ -259,12 +269,11 @@ socket.on("onUpdateData", function (data) {
   playAction(action);
 });
 
-function updateOption(name, value) {
+function updateOptions() {
   // Game disconnected
   if(socket.id == undefined) {
     return;
   }
-  options[name] = value;
   var data = {action: actions.UPDATE_OPTION, options: options}
   socket.emit("updateData", data);
 }
@@ -316,7 +325,7 @@ function start() {
   options["cards_distribute"] = 1;
   options["stack_visible"] = true;
 
-  updateData({ action: actions.UPDATE_OPTION, options: options })
+  updateOptions()
   resetRound();
 }
 
@@ -559,12 +568,59 @@ function createInputOption(name, title) {
     <label class="form-check-label option_label" for="option_${name}" >${translate(title)}`
 }
 
+function createGameConfigs() {
+  var content = 
+  `<div class="dropdown">
+      <button class="btn btn-warning dropdown-toggle" type="button" id="gameStyleDrop"
+        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        ${options.config_name == undefined? translate("Preconfiguration"): options.config_name}
+      </button>
+      <div class="dropdown-menu" aria-labelledby="gameStyleDrop">`;
+        forEach(configs, function (value, prop, obj) {
+          content += `<a class="dropdown-item" href="#">${prop}</a>`;
+        });
+      content += `</div>`;
+  content += `</div>`
+  return content;
+}
+
 function syncCheckOption(name) {
   options[name] = $("#option_"+name).is(":checked");
 }
 
 function syncInputOption(name) {
   options[name] = $("#option_"+name).val();
+}
+
+function drawOptionList() {
+  return `
+  ${createOption("cavaliers", translate("Include cavaliers"), translate("56 cards"), translate("52 cards"))}
+  <br />
+  ${createOption("tricks", translate("Claim tricks 🂠")+" <b> X </b>", translate("tricks won"), translate("cards in hand"))}
+  <br />
+  ${createOption("turn", translate("Turn change"), translate("turn change each round"), translate("turn order stay the same"))}
+  <br />
+  ${createOption("all_cards", translate("All cards"), translate("Distribute all cards"), translate("Distribute a specific number"))}
+  <br />
+  ${createOption("block_action", translate("Block actions"), translate("Only the player whose turn can do things"), translate("Action can be done by anyone at any moment"))}
+  <br />
+  ${createOption("block_get_cards", translate("Block cards taken"), translate("Prevent to take cards from playing area"), translate("Cards can be taken from playing area"))}
+  <br />
+  ${createOption("next_turn", translate("End turn after playing"), translate("Play a card to end turn"), translate("You have to specifically end you turn"))}
+  <br />
+  ${createInputOption("number_decks", "decks of cards")}
+  `;
+}
+
+
+function drawPileConfig() {
+  return `
+      <h2> ${translate("Game options")} </h2>
+      ${createGameConfigs()}
+      <div id="option_list" class="col h-100">
+      ${drawOptionList()}
+    </div>
+  `;
 }
 
 function drawDeckConfig() {
@@ -574,25 +630,6 @@ function drawDeckConfig() {
           <h2 class="start_text">${translate("Room")} ${room} <br> ${translate("Everyone in?")}</h2>
           <br />
           ${createButton("Start", "start()")}
-        </div>
-        <div class="col-6 h-100 container " id="optionList">
-          <div class="col h-100">
-            ${createOption("cavaliers", translate("Include cavaliers"), translate("56 cards"), translate("52 cards"))}
-            <br />
-            ${createOption("tricks", translate("Claim tricks 🂠")+" <b> X </b>", translate("tricks won"), translate("cards in hand"))}
-            <br />
-            ${createOption("turn", translate("Turn change"), translate("turn change each round"), translate("turn order stay the same"))}
-            <br />
-            ${createOption("all_cards", translate("All cards"), translate("Distribute all cards"), translate("Distribute a specific number"))}
-            <br />
-            ${createOption("block_action", translate("Block actions"), translate("Only the player whose turn can do things"), translate("Action can be done by anyone at any moment"))}
-            <br />
-            ${createOption("block_get_cards", translate("Block cards taken"), translate("Prevent to take cards from playing area"), translate("Cards can be taken from playing area"))}
-            <br />
-            ${createOption("next_turn", translate("End turn after playing"), translate("Play a card to end turn"), translate("You have to specifically end you turn"))}
-            <br />
-            ${createInputOption("number_decks", "decks of cards")}
-        </div>
         </div>
       </div>
     `;
@@ -679,27 +716,32 @@ function drawDeckPlay() {
 
 function drawDeck() {
   $("#mainDeck").empty();
-  var content = "";
+  $("#playArea").empty();
+  var deckContent = "";
+  var playContent = "";
   switch(state) {
     case STATE_CONFIG: {
       $("#game_controls").invisible();
-      $("#playArea").empty();
       $("#tricksArea").empty();
-      content = drawDeckConfig();
+      deckContent = drawDeckConfig();
+      playContent = drawPileConfig();
+      $("#playArea").append(playContent);
       break;
     }
     case STATE_DISTRIBUTE: {
       $("#game_controls").visible();
-      content = drawDeckDistribute();
+      deckContent = drawDeckDistribute();
+      drawPile();
       break;
     }
     case STATE_PLAY: {
       $("#game_controls").visible();
-      content = drawDeckPlay();
+      deckContent = drawDeckPlay();
+      drawPile();
       break;
     }
   }
-  $("#mainDeck").append(content);
+  $("#mainDeck").append(deckContent);
 }
 
 function drawHand(instruction = false) {
@@ -819,7 +861,6 @@ function sortCard() {
 
 function distributeCards() {
   syncInputOption("cards_distribute")
-  updateData({ action: actions.UPDATE_OPTION, options: options })
   
   var numCards = $("#distribute_card").val();
   if (options.all_cards) {
@@ -830,7 +871,8 @@ function distributeCards() {
 }
 
 function onOptionChange(name) {
-  updateOption(name, $("#option_" + name).is(":checked"));
+  options[name] = $("#option_" + name).is(":checked");
+  updateOptions();
 }
 
 function debug(object) {

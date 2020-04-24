@@ -51,6 +51,7 @@ Current supported Languages: Enlgish, French
 - Add 4 colors option
 - Add sound options
 - Choose the number of decks to play with
+- Add game prefconfiguration
 
 # What's next 
 
@@ -62,7 +63,6 @@ Current supported Languages: Enlgish, French
 - GAME PLAY - Quand quelqu'un se connecte lui permettre ou non de rejoindre la partie, sinon spectateur
 - GAME PLAY - Locker la partie pour que plus personnes ne puisse rentrer 
 - GAME PLAY - Gestion des scores
-- GAME PLAY - Preset de configuration pour des jeux existants
 - GAME PLAY - TAROTS - Rajouter les cartes les atouts de tarot
 - GAME PLAY - Créer de nouvelles cartes entre 10 et valet quand on est plusieurs (11, 12, 13, 14, 15...)
 - UX - Chat écrit

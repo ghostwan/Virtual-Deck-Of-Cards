@@ -34,3 +34,33 @@ const actions = {
     CLEAR_AREA: "clear the playing area",
     CLAIM_TRICK: "claim trick"
 }
+
+const configs = {
+    escalier : { 
+        tricks: true,
+        cards_distribute: 2,
+        cavaliers: true,
+        turn: true,
+        all_cards: false,
+        block_get_cards: true,
+        next_turn: true
+    },
+    ratatouille : { 
+        tricks: true,
+        cards_distribute: -1,
+        cavaliers: true,
+        turn: false,
+        all_cards: true,
+        block_get_cards: true,
+        next_turn: true
+    }, 
+    yaniv : { 
+            tricks: false,
+            cards_distribute: 4,
+            cavaliers: true,
+            turn: false,
+            all_cards: false,
+            block_get_cards: false,
+            next_turn: false
+    }
+}

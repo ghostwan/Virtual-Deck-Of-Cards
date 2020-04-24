@@ -84,5 +84,7 @@
   "take back a card" : "récupère une carte",
   "clear the playing area" : "nettoie la zone de jeu",
   "claim trick" : "réclame le pli",
-  "decks of cards": "paquets de cartes"
+  "decks of cards": "paquets de cartes",
+  "Game options"  :"Options de jeux",
+  "Preconfiguration"  :"Préconfiguration"
 }
