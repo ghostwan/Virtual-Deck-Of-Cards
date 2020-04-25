@@ -39,21 +39,11 @@ function main(roomName) {
       return;
     }
 
-    var cardIndex = $(".card_in_hand").index($(this));
-    var card = my_hand[cardIndex];
-    console.log("Click on your card on " + card);
-
-    my_hand.splice(cardIndex, 1);
-    $(".card_in_hand:eq(" + cardIndex + ")").remove();
-    card["username"] = my_user.name;
-    pile.push(card);
-
-    gameData[my_user.id].cards --
-    updateData({ action: actions.PLAY_CARD, pile: pile, gameData: gameData })
-    drawHand();
+    putCardOnPile(this)
     if(options.next_turn) {
       endTurn();
     }
+    
   });
 
   // Move card from the pile to your hand
@@ -292,27 +282,72 @@ function updateData(data) {
 
 function onOptionMenu(name, options) {
   switch(name) {
-    case "turn": {
+    case menus.SET_TURN: {
       const userid = options.$trigger.attr("userid");
       updateData({ action: actions.CHANGE_TURN,  playerNumber: getUserPlace(userid) })
     }; break;
-    case "clear" : clearPlayingArea(); break;
-    case "take" : takeCardFromPile(options.$trigger); break;
+    case menus.CLEAR : clearPlayingArea(); break;
+    case menus.TAKE_CARD : takeCardFromPile(options.$trigger); break;
+    case menus.TAKE_ALL_CARDS : takeCardFromPile(); break;
+    case menus.PLAY_ALL_CARDS : putCardOnPile(); break;
+    case menus.SHUFFLE : shuffleCard(); break;
   }
-  
 }
 
-function takeCardFromPile(item) {
-  var cardIndex = $(".card_in_pile").index($(item));
-  var cardIndex = options["stack_visible"] ? pile.length - 1 - cardIndex : cardIndex;
-  var card = pile[cardIndex];
-  console.log("Click on the pile card on " + card);
+function takeCardFromPile(item=undefined) {
+  var action;
+  if(item != undefined) {
+    action = actions.TAKE_BACK_CARD;
+    var cardIndex = $(".card_in_pile").index($(item));
+    var cardIndex = options.stack_visible ? pile.length - 1 - cardIndex : cardIndex;
+    var card = pile[cardIndex];
+  
+    my_hand.push(card);
+    pile.splice(cardIndex, 1);
+  
+    gameData[my_user.id].cards ++
+  } else {
+    action = actions.TAKE_BACK_ALL_CARDS;
+    for (c = 0; c < pile.length; c++) {
+      var card = pile[c];
+      my_hand.push(card);
+      
+      gameData[my_user.id].cards ++
+    }
+    pile = [];
+  }
+  updateData({ action: action, pile: pile, gameData: gameData })
+  drawHand();
+}
 
-  my_hand.push(card);
-  pile.splice(cardIndex, 1);
+function putCardOnPile(item=undefined) {
+  var action;
+  if(item != undefined) {
+    action = actions.PLAY_CARD;
 
-  gameData[my_user.id].cards ++
-  updateData({ action: actions.TAKE_BACK_CARD, pile: pile, gameData: gameData })
+    var cardIndex = $(".card_in_hand").index($(item));
+    var card = my_hand[cardIndex];
+
+    my_hand.splice(cardIndex, 1);
+    $(".card_in_hand:eq(" + cardIndex + ")").remove();
+    card["username"] = my_user.name;
+    pile.push(card);
+
+    gameData[my_user.id].cards --
+  } else {
+    action = actions.PLAY_ALL_CARDS;
+    for (c = 0; c < my_hand.length; c++) {
+      var card = my_hand[c];
+      $(".card_in_hand:eq(" + cardIndex + ")").remove();
+      card["username"] = my_user.name;
+      pile.push(card);
+
+      gameData[my_user.id].cards --
+    }
+    my_hand = [];
+  }
+
+  updateData({ action: action, pile: pile, gameData: gameData })
   drawHand();
 }
 
@@ -347,7 +382,7 @@ function init() {
       onOptionMenu(key, options);
     },
     items: {
-        "turn": {name: translate("Set turn"), icon: "fa-hand-paper"},
+        [menus.SET_TURN]: {name: translate(menus.SET_TURN), icon: "fa-hand-paper"},
     }
   });
   $.contextMenu({
@@ -356,7 +391,7 @@ function init() {
         onOptionMenu(key, options);
     },
     items: {
-        "clear": {name: translate("Clear"), icon: "fa-trash-alt"},
+        [menus.CLEAR]: {name: translate(menus.CLEAR), icon: "fa-trash-alt"},
     }
   });
   $.contextMenu({
@@ -365,7 +400,18 @@ function init() {
         onOptionMenu(key, options);
     },
     items: {
-        "take": {name: translate("Take"), icon: "fa-hand-lizard"},
+        [menus.TAKE_CARD]: {name: translate(menus.TAKE_CARD), icon: "fa-hand-lizard"},
+        [menus.TAKE_ALL_CARDS]: {name: translate(menus.TAKE_ALL_CARDS), icon: "fa-hand-lizard"},
+    }
+  });
+  $.contextMenu({
+    selector: '.card_in_hand', 
+    callback: function(key, options) {
+        onOptionMenu(key, options);
+    },
+    items: {
+        [menus.PLAY_ALL_CARDS]: {name: translate(menus.PLAY_ALL_CARDS), icon: "fa-hand-lizard"},
+        [menus.SHUFFLE]: {name: translate(menus.SHUFFLE), icon: "fa-hand-lizard"},
     }
   });
   $("#reset_button").text(translate("Reset"))
@@ -835,9 +881,9 @@ function drawPile() {
   $("#playArea").empty();
   var content = `
       <h2>${translate("Playing Area")}</h2>
-      <div class = "col-6 form-group">
+      <div class = "col-10 form-group">
         ${createBooleanOption("next_turn", translate("End turn after playing"))} <br>
-        ${createBooleanOption("back_card", translate("Hide card value"))}
+        ${createBooleanOption("back_card", translate("Hide card value"))} <br>
       </div>`;
 
   if (options.tricks) {
@@ -878,6 +924,11 @@ function sortCard() {
     return RANK_CAVLIERS.indexOf(a.rank) - RANK_CAVLIERS.indexOf(b.rank);
   });
   drawHand();
+}
+
+function shuffleCard() {
+  my_hand = shuffle(my_hand);
+  drawHand()
 }
 
 function distributeCards() {

@@ -18,3 +18,13 @@ var forEach = function (collection, callback, scope) {
 		}
 	}
 };
+
+function shuffle(array) {
+    var shuffledArray = [];
+    for (var i = array.length - 1; i > -1; i--) {
+      var index = Math.floor(Math.random() * i);
+      shuffledArray.push(array[index]);
+      array.splice(index, 1);
+    }
+    return shuffledArray;
+}

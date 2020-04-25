@@ -52,10 +52,11 @@ Current supported Languages: Enlgish, French
 - Add sound options
 - Choose the number of decks to play with
 - Add game prefconfiguration
+- Put all cards on the table or take all card from the table
+- Hide cards value 
 
 # What's next 
 
-- RATATOUILLE - Donner des cartes et piocher des cartes
 - carte déjà classé dès distribué
 - UI - grossir / reduire taille cartes 
 - GAME PLAY - ESCALIER - Prise en compte des annonces
@@ -73,7 +74,6 @@ Current supported Languages: Enlgish, French
 - GAME PLAY - YANIV - Mettre une carte depuis la pioche dans la zone de jeu
 - GAME PLAY - YANIV - regrouper les anciennes cartes (cartes jouer par le joueur avant)
 - GAME PLAY - YANIV - Mélanger la déffausse
-- GAME PLAY - YANIV - Retourner une carte pour la priocher la 1er fois
   
 
 # Bugs
@@ -97,7 +97,9 @@ Current supported Languages: Enlgish, French
 | Log actions                           |              |                 | OK         |             |
 | ------------ TO DEVELOP ------------  |              |                 |            |             |
 | Trump cards (atouts)                  |              |                 |            | **NEED**    |
-| Group old cards played                |              |                 | OPTIM      |             |
+| Draw a card on the playing area       |              |                 | **NEED**   |             |
+| Put old cards in discard pile         |              |                 | OPTIM      |             |
+| Shuffle the discard pile              |              |                 | **NEED**   |             |
 | Random first player                   | OPTIONNAL    | OPTIONNAL       | OPTIONNAL  |             |
 | Bidding                               | OPTIONNAL    |                 |            |             |
 | Scores calculator                     | OPTIONNAL    | OPTIONNAL       | OPTIONNAL  | OPTIONNAL   |

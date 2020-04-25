@@ -4,6 +4,7 @@ var http = require("http");
 var fs = require("fs")
 var vm = require('vm')
 vm.runInThisContext(fs.readFileSync(__dirname + "/public/javascripts/common.js"))
+vm.runInThisContext(fs.readFileSync(__dirname + "/public/javascripts/tools.js"))
 
 var app = express();
 var server = http.Server(app)
@@ -231,7 +232,7 @@ io.on("connection", socket => {
     if(socketNotAvailble()) {return}
     
     var deck = getDeck()
-    deck = shuffleDeck(deck, deck.length);
+    deck = shuffle(deck);
     storeData("deck", deck)
     emitUpdateToRoom(actions.SHUFFLE, {remainingCards: deck.length})
   });
@@ -259,7 +260,7 @@ io.on("connection", socket => {
     if(socketNotAvailble()) {return}
 
     var deck = newDeck(getData("options"));
-    deck = shuffleDeck(deck, deck.length);
+    deck = shuffle(deck);
     storeData("deck", deck)
     var options = getData("options");
     var player = 0;
@@ -396,13 +397,4 @@ function takeCards(numcards, deck, hand) {
   return data;
 }
 
-function shuffleDeck(deck, num) {
-  var shuffledDeck = [];
-  for (var i = num - 1; i > -1; i--) {
-    var index = Math.floor(Math.random() * i);
-    shuffledDeck.push(deck[index]);
-    deck.splice(index, 1);
-  }
-  return shuffledDeck;
-}
 

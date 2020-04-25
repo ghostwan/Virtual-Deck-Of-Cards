@@ -28,11 +28,22 @@ const actions = {
     RESET_GAME: "reset the game",
     RESET_ROUND: "reset the round",
     PLAY_CARD: "play a card",
+    PLAY_ALL_CARDS: "play all cards",
     UPDATE_OPTION: "update option",
     CHANGE_TURN: "change turn",
     TAKE_BACK_CARD: "take back a card",
+    TAKE_BACK_ALL_CARDS: "take back all cards",
     CLEAR_AREA: "clear the playing area",
     CLAIM_TRICK: "claim trick"
+}
+
+const menus = {
+    SET_TURN: "your turn",
+    CLEAR: "clear",
+    SHUFFLE: "shuffle",
+    TAKE_CARD: "take",
+    TAKE_ALL_CARDS: "take all cards",
+    PLAY_ALL_CARDS: "play all cards"
 }
 
 const configs = {
