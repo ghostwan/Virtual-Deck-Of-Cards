@@ -282,16 +282,34 @@ function updateData(data) {
 
 function onOptionMenu(name, options) {
   switch(name) {
-    case menus.SET_TURN: {
+    case actions.CHANGE_TURN: {
       const userid = options.$trigger.attr("userid");
-      updateData({ action: actions.CHANGE_TURN,  playerNumber: getUserPlace(userid) })
+      updateData({ action: name,  playerNumber: getUserPlace(userid) })
     }; break;
-    case menus.CLEAR : clearPlayingArea(); break;
-    case menus.TAKE_CARD : takeCardFromPile(options.$trigger); break;
-    case menus.TAKE_ALL_CARDS : takeCardFromPile(); break;
-    case menus.PLAY_ALL_CARDS : putCardOnPile(); break;
-    case menus.SHUFFLE : shuffleCard(); break;
+    case actions.RANDOM_FIRST_PLAYER: {
+      updateData({ action: name,  playerNumber: Math.floor(Math.random() * users.length)  })
+    }; break;
+    case actions.CLEAR_AREA : clearPlayingArea(); break;
+    case actions.TAKE_BACK_CARD : takeCardFromPile(options.$trigger); break;
+    case actions.TAKE_CARD_ASIDE : takeCardAside(); break;
+    case actions.REMOVE_CARD_ASIDE : removeCardAside(); break;
+    case actions.TAKE_BACK_ALL_CARDS : takeCardFromPile(); break;
+    case actions.PLAY_ALL_CARDS : putCardOnPile(); break;
+    case actions.SHUFFLE_HAND : shuffleCard(); break;
   }
+}
+
+function takeCardAside() {
+  my_hand.push(cardAside);
+  cardAside = -1;
+  gameData[my_user.id].cards ++
+  updateData({ action: actions.TAKE_CARD_ASIDE, cardAside: cardAside, gameData: gameData })
+  drawHand();
+}
+
+function removeCardAside() {
+  cardAside = -1;
+  updateData({ action: actions.REMOVE_CARD_ASIDE, cardAside: cardAside })
 }
 
 function takeCardFromPile(item=undefined) {
@@ -375,45 +393,40 @@ function clearPlayingArea() {
   }
 }
 
-function init() {
+function createMenu(selector, items) {
   $.contextMenu({
-    selector: '.user_profil_menu', 
+    selector: selector, 
     callback: function(key, options) {
       onOptionMenu(key, options);
     },
-    items: {
-        [menus.SET_TURN]: {name: translate(menus.SET_TURN), icon: "fa-hand-paper"},
-    }
+    items: items
   });
-  $.contextMenu({
-    selector: '#playArea', 
-    callback: function(key, options) {
-        onOptionMenu(key, options);
-    },
-    items: {
-        [menus.CLEAR]: {name: translate(menus.CLEAR), icon: "fa-trash-alt"},
-    }
+}
+
+function init() {
+
+  createMenu(".user_profil_menu", {
+    [actions.CHANGE_TURN]: {name: translate("your turn"), icon: "fa-hand-paper"},
+    [actions.RANDOM_FIRST_PLAYER]: {name: translate("choose randomly"), icon: "fa-hand-paper"}
   });
-  $.contextMenu({
-    selector: '.card_in_pile', 
-    callback: function(key, options) {
-        onOptionMenu(key, options);
-    },
-    items: {
-        [menus.TAKE_CARD]: {name: translate(menus.TAKE_CARD), icon: "fa-hand-lizard"},
-        [menus.TAKE_ALL_CARDS]: {name: translate(menus.TAKE_ALL_CARDS), icon: "fa-hand-lizard"},
-    }
+  createMenu("#playArea", {[actions.CLEAR_AREA]: {name: translate("clear"), icon: "fa-trash-alt"}});
+  createMenu(".card_in_pile", {
+    [actions.TAKE_BACK_CARD]: {name: translate("take"), icon: "fa-hand-lizard"},
+    [actions.TAKE_BACK_ALL_CARDS]: {name: translate(actions.TAKE_BACK_ALL_CARDS), icon: "fa-hand-lizard"},
   });
-  $.contextMenu({
-    selector: '.card_in_hand', 
-    callback: function(key, options) {
-        onOptionMenu(key, options);
-    },
-    items: {
-        [menus.PLAY_ALL_CARDS]: {name: translate(menus.PLAY_ALL_CARDS), icon: "fa-hand-lizard"},
-        [menus.SHUFFLE]: {name: translate(menus.SHUFFLE), icon: "fa-hand-lizard"},
-    }
+  createMenu(".card_in_hand", {
+    [actions.PLAY_ALL_CARDS]: {name: translate(actions.PLAY_ALL_CARDS), icon: "fa-hand-lizard"},
+    [actions.SHUFFLE_HAND]: {name: translate("shuffle"), icon: "fa-hand-lizard"},
   });
+  createMenu(".card_aside", {
+    [actions.TAKE_CARD_ASIDE]: {name: translate("take"), icon: "fa-hand-lizard"},
+    [actions.REMOVE_CARD_ASIDE]: {name: translate("remove"), icon: "fa-hand-lizard"},
+  });
+  createMenu(".player_number", {
+    [actions.TAKE_CARD_ASIDE]: {name: translate("take"), icon: "fa-hand-lizard"},
+  });
+  
+
   $("#reset_button").text(translate("Reset"))
   $("#sort_button").text(translate("Sort"))
   $("#instruction").append(translate("instruction"))
@@ -473,7 +486,7 @@ function playAction(action) {
 
   if ($("#card_sound_option").prop("checked")) {
     switch(action) {
-      case actions.SHUFFLE: playSound("shuffle"); break;
+      case actions.SHUFFLE_DECK: playSound("shuffle"); break;
       case actions.CARD_ASIDE: playSound("turn_card"); break;
       case actions.DISTRIBUTE: playSound("distribute"); break;
       case actions.DRAW_CARD:  playSound("draw_card"); break;
@@ -715,19 +728,21 @@ function drawDeckDistribute() {
         <input  class= "mb-2 w-100" type = "number" id = "distribute_card" min="1" max="${deckOriginalLength}" placeholder = "${translate("number of cards")}"
                   value="${options["cards_distribute"]}"} />`
       }
-    content += `</div></div>`
+    content += `</div>`
   }
 
   if (options.block_action && !isMyTurn()) {
     content += createMessage("Wait for the dealer to give you cards", "info");
   }
+
+  content += "</div>"
     
   if (cardAside != -1) {
     content += `<div class = 'col-6 playingCards faceImages'> ${drawCard(cardAside, "card_aside", "span")}</div>`;
   } else if(!options.all_cards && (!options.block_action || isMyTurn())){
     content += `
-      <div class = 'col-6'>
-        <span class="card_deck">🂠</span>
+      <div class = 'col-6 playingCards'>
+        ${drawStack()}
         ${createButton("Put a card aside", "putCardAside()", "margin_top")}
       </div>
     `;
@@ -739,6 +754,14 @@ function askResetRound() {
   if (confirm(translate("Are you sure, you want to get all the cards?"))) {
     resetRound()
   }
+}
+
+function drawStack() {
+  var cardsContent = "";
+  for (i = 0; i < 4; i ++ ) {
+    cardsContent += `<li><div class="card back deck_stack_card">*</div></li>`
+  }
+  return `<ul class="deck_stack deck">${cardsContent}</ul>`;
 }
 
 function drawDeckPlay() {
@@ -759,19 +782,23 @@ function drawDeckPlay() {
   } else {
     content += `${createMessage("This is your turn!", "success")}`
   }
-
   content += "</div>"
-  if (remainingCards == 0) {
-    content += `
-    <div class = 'col-6'><span class="card_deck">∅</span></div>`;
-  } else {
-    content += `
-      <div class = 'col-6 playingCards faceImages'>
-        ${cardAside != -1 ? drawCard(cardAside, "card_aside", "span") : '<span class="card_deck">🂠</span>'}`;
 
-      if (!options.block_action || isMyTurn()) {
-        content += createButton("Draw a card", "takeCard()", "margin_top")
-      }
+  if (remainingCards == 0) {
+    content += `<div class = 'col-6'><span class="card_deck">∅</span></div>`;
+  } else {
+    content += `<div class = 'col-6 playingCards faceImages'>`;
+
+    if(cardAside != -1) {
+      content += drawCard(cardAside, "card_aside", "span");
+    }
+    else {
+      content += drawStack();
+    }
+
+    if (!options.block_action || isMyTurn()) {
+      content += createButton("Draw a card", "takeCard()", "margin_top")
+    }
     content += "</div>";
   }     
   return content;
@@ -891,7 +918,7 @@ function drawPile() {
       content += createButton("Claim trick", "askClaimTrick()", "margin_bottom");
     }
   } else {
-    content += createButton("Clear", "clearPlayingArea()", "margin_bottom");
+    // content += createButton("Clear", "clearPlayingArea()", "margin_bottom");
   }
   $("#playArea").append(content);
 

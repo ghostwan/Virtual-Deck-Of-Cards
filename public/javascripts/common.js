@@ -20,7 +20,8 @@ const actions = {
     CONNECTION_FAIL: "my connection failed",
     DISCONNECT_USER: "user disconnected",
     GOT_CARD: "I got a card",
-    SHUFFLE: "shuffle the deck",
+    SHUFFLE_DECK: "shuffle the deck",
+    SHUFFLE_HAND: "shuffle hand",
     DRAW_CARD: "draw a card",
     END_TURN: "end turn",
     CARD_ASIDE: "put a card aside",
@@ -33,17 +34,11 @@ const actions = {
     CHANGE_TURN: "change turn",
     TAKE_BACK_CARD: "take back a card",
     TAKE_BACK_ALL_CARDS: "take back all cards",
+    TAKE_CARD_ASIDE: "take card aside",
+    RANDOM_FIRST_PLAYER: "choose first player randomly",
+    REMOVE_CARD_ASIDE: "remove card aside",
     CLEAR_AREA: "clear the playing area",
     CLAIM_TRICK: "claim trick"
-}
-
-const menus = {
-    SET_TURN: "your turn",
-    CLEAR: "clear",
-    SHUFFLE: "shuffle",
-    TAKE_CARD: "take",
-    TAKE_ALL_CARDS: "take all cards",
-    PLAY_ALL_CARDS: "play all cards"
 }
 
 const configs = {
@@ -54,6 +49,7 @@ const configs = {
         turn: true,
         all_cards: false,
         block_get_cards: true,
+        block_action: true,
         next_turn: true,
         stack_visible: true,
     },
@@ -63,7 +59,8 @@ const configs = {
         cavaliers: true,
         turn: false,
         all_cards: true,
-        block_get_cards: false,
+        block_get_cards: true,
+        block_action: false,
         next_turn: true,
         stack_visible: true
     }, 
@@ -74,6 +71,7 @@ const configs = {
         turn: false,
         all_cards: false,
         block_get_cards: false,
+        block_action: true,
         next_turn: false,
         stack_visible: true
     }

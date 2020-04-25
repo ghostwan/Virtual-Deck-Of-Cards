@@ -234,7 +234,7 @@ io.on("connection", socket => {
     var deck = getDeck()
     deck = shuffle(deck);
     storeData("deck", deck)
-    emitUpdateToRoom(actions.SHUFFLE, {remainingCards: deck.length})
+    emitUpdateToRoom(actions.SHUFFLE_DECK, {remainingCards: deck.length})
   });
 
   socket.on("resetGame", () => {

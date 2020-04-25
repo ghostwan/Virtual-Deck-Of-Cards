@@ -95,11 +95,21 @@ h2 {
   font-size: 2em !important;
   -webkit-box-shadow: none !important;
   box-shadow: none !important;
-  margin-top: 10% !important;
+  margin-top: 20% !important;
   /* margin-right: unset; */
   /* margin-bottom: unset; */
-  margin-left: 25% !important;
+  margin-left: 30% !important;
 }
+.deck_stack {
+  margin-top: 30% !important;
+  margin-left: 30% !important;
+}
+.deck_stack_card {
+  font-size: 2em !important;
+  -webkit-box-shadow: none !important;
+  box-shadow: none !important;
+}
+
 .card_owner {
   text-align: center;
   vertical-align: middle;

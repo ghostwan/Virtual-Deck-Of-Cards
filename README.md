@@ -54,10 +54,11 @@ Current supported Languages: Enlgish, French
 - Add game prefconfiguration
 - Put all cards on the table or take all card from the table
 - Hide cards value 
+- take the card aside
+- random first player
 
 # What's next 
 
-- carte déjà classé dès distribué
 - UI - grossir / reduire taille cartes 
 - GAME PLAY - ESCALIER - Prise en compte des annonces
 - GAME PLAY - MARMOTEE - poser des cartes cacher sur la table
@@ -71,7 +72,7 @@ Current supported Languages: Enlgish, French
 - UI - Revoir l'ecran d'appel
 
 ## Manque pour Yaniv 
-- GAME PLAY - YANIV - Mettre une carte depuis la pioche dans la zone de jeu
+- GAME PLAY - YANIV - Afficher la main des gens
 - GAME PLAY - YANIV - regrouper les anciennes cartes (cartes jouer par le joueur avant)
 - GAME PLAY - YANIV - Mélanger la déffausse
   
