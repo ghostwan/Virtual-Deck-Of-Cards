@@ -223,7 +223,7 @@ io.on("connection", socket => {
     emitUpdateToRoom(actions.DISTRIBUTE, {
       remainingCards: deck.length, 
       options: options, 
-      state: state(states.PLAY), 
+      state: options.exchange? state(states.EXCHANGE) : state(states.PLAY), 
       gameData: gameData
     }, `distribute ${numCards} cards`)
   });

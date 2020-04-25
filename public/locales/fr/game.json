@@ -84,7 +84,8 @@
   "update option" : "met a jour les options",
   "change turn" : "change de tour",
   "take back a card" : "récupère une carte",
-  "take back all cards" : "recupère toutes les cartes",
+  "take back all cards" : "prendre toutes les cartes",
+  "take this card": "prendre cette carte",
   "clear the playing area" : "nettoie la zone de jeu",
   "claim trick" : "réclame le pli",
   "decks of cards": "paquets de cartes",
@@ -93,7 +94,6 @@
   "View only the last one": "Ne voir que la dernière posé",
   "View all cards played": "Voir toutes les cartes posés",
   "Hide card value" :  "Cacher la valeur des cartes",
-  "take": "prendre",
   "remove": "enlever",
   "choose first player randomly" : "choisit aléatoirement le premier joueur",
   "choose randomly" : "choisis aléatoirement"

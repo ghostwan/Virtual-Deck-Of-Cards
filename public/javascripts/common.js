@@ -31,6 +31,7 @@ const actions = {
     DISTRIBUTE: "distribute",
     RESET_GAME: "reset the game",
     RESET_ROUND: "reset the round",
+    READY_TO_PLAY: "ready to play",
     PLAY_CARD: "play a card",
     PLAY_ALL_CARDS: "play all cards",
     UPDATE_OPTION: "update option",
@@ -53,7 +54,7 @@ const configs = {
         all_cards: false,
         block_get_cards: true,
         block_action: true,
-        next_turn: true,
+        end_turn_draw: true,
         stack_visible: true,
     },
     ratatouille : { 
@@ -63,9 +64,10 @@ const configs = {
         turn: false,
         all_cards: true,
         block_get_cards: true,
-        block_action: false,
-        next_turn: true,
-        stack_visible: true
+        block_action: true,
+        end_turn_draw: true,
+        stack_visible: true,
+        exchange: true
     }, 
     yaniv : { 
         tricks: false,
@@ -75,7 +77,7 @@ const configs = {
         all_cards: false,
         block_get_cards: false,
         block_action: true,
-        next_turn: false,
+        end_turn_draw: false,
         stack_visible: true
     }
 }

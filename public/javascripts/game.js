@@ -34,13 +34,17 @@ function main(roomName) {
     if ($("#option_reorder").prop("checked")) {
       return;
     }
-    // If we are in action blocked mode and it's not my turn do nothing
-    if (options.block_action && !isMyTurn()) {
+
+    // If we are playing and in action blocked mode and it's not my turn do nothing
+    if (state == states.PLAY 
+      && options.block_action 
+      && !isMyTurn()) {
       return;
     }
 
     putCardOnPile(this)
-    if(options.next_turn) {
+    // If we are playing and if there is to end the turn on draw, end the turn
+    if(state == states.PLAY && options.end_turn_draw) {
       endTurn();
     }
     
@@ -48,18 +52,20 @@ function main(roomName) {
 
   // Move card from the pile to your hand
   $("body").on("click", ".card_in_pile", function () {
-    // Take card from pile disable
-    if(options.block_get_cards) {
-      return;
-    }
-
     // Game disconnected
     if(socket.id == undefined) {
       return;
     }
+    
+    // If we are playing abd take card from pile is disabled
+    if(state == states.PLAY && options.block_get_cards) {
+      return;
+    }
 
-    // If we are in action blocked mode and it's not my turn do nothing
-    if (options.block_action && !isMyTurn()) {
+    // If we are playing and in action blocked mode and it's not my turn do nothing
+    if (state == states.PLAY 
+      && options.block_action 
+      && !isMyTurn()) {
       return;
     }
 
@@ -280,32 +286,6 @@ function updateData(data) {
   socket.emit("updateData", data);
 }
 
-function onOptionMenu(name, op) {
-  switch(name) {
-    case actions.CHANGE_TURN: {
-      const userid = op.$trigger.attr("userid");
-      const num = getUserPlace(userid)
-      if(options.turn) {
-        options.turn = num+2;
-      }
-      updateData({ action: name,  playerNumber:  num, options: options })
-    }; break;
-    case actions.RANDOM_FIRST_PLAYER: {
-      const num = Math.floor(Math.random() * users.length);
-      if(options.turn) {
-        options.turn = num+2;
-      }
-      updateData({ action: name,  playerNumber: num, options: options  })
-    }; break;
-    case actions.CLEAR_AREA : clearPlayingArea(); break;
-    case actions.TAKE_BACK_CARD : takeCardFromPile(op.$trigger); break;
-    case actions.TAKE_CARD_ASIDE : takeCardAside(); break;
-    case actions.REMOVE_CARD_ASIDE : removeCardAside(); break;
-    case actions.TAKE_BACK_ALL_CARDS : takeCardFromPile(); break;
-    case actions.PLAY_ALL_CARDS : putCardOnPile(); break;
-    case actions.SHUFFLE_HAND : shuffleCard(); break;
-  }
-}
 
 function takeCardAside() {
   my_hand.push(cardAside);
@@ -417,21 +397,18 @@ function init() {
     [actions.CHANGE_TURN]: {name: translate("your turn"), icon: "fa-hand-paper"},
     [actions.RANDOM_FIRST_PLAYER]: {name: translate("choose randomly"), icon: "fa-hand-paper"}
   });
-  createMenu("#playArea", {[actions.CLEAR_AREA]: {name: translate("clear"), icon: "fa-trash-alt"}});
   createMenu(".card_in_pile", {
-    [actions.TAKE_BACK_CARD]: {name: translate("take"), icon: "fa-hand-lizard"},
-    [actions.TAKE_BACK_ALL_CARDS]: {name: translate(actions.TAKE_BACK_ALL_CARDS), icon: "fa-hand-lizard"},
+    [actions.TAKE_BACK_CARD]: {name: translate("take this card"), icon: "fa-hand-lizard"},
+    [actions.TAKE_BACK_ALL_CARDS]: {name: translate(actions.TAKE_BACK_ALL_CARDS), icon: "fa-hand-lizard", visible: function(key, opt){return options.exchange;}},
+    [actions.CLEAR_AREA]: {name: translate("clear"), icon: "fa-trash-alt"}
   });
   createMenu(".card_in_hand", {
-    [actions.PLAY_ALL_CARDS]: {name: translate(actions.PLAY_ALL_CARDS), icon: "fa-hand-lizard"},
+    [actions.PLAY_ALL_CARDS]: {name: translate(actions.PLAY_ALL_CARDS), icon: "fa-hand-lizard", visible: function(key, opt){return options.exchange;}},
     [actions.SHUFFLE_HAND]: {name: translate("shuffle"), icon: "fa-hand-lizard"},
   });
   createMenu(".card_aside", {
-    [actions.TAKE_CARD_ASIDE]: {name: translate("take"), icon: "fa-hand-lizard"},
+    [actions.TAKE_CARD_ASIDE]: {name: translate("take this card"), icon: "fa-hand-lizard"},
     [actions.REMOVE_CARD_ASIDE]: {name: translate("remove"), icon: "fa-hand-lizard"},
-  });
-  createMenu(".player_number", {
-    [actions.TAKE_CARD_ASIDE]: {name: translate("take"), icon: "fa-hand-lizard"},
   });
   
 
@@ -445,6 +422,33 @@ function init() {
   setOptionToggle("colors_option", "Cards colors", "4 colors", "2 colors");
   setOptionToggle("card_sound_option", "Cards sounds");
   setOptionToggle("game_sound_option", "Game sounds");
+}
+
+function onOptionMenu(name, op) {
+  switch(name) {
+    case actions.CHANGE_TURN: {
+      const userid = op.$trigger.attr("userid");
+      const num = getUserPlace(userid)
+      if(options.turn) {
+        options.turn = num+2;
+      }
+      updateData({ action: name,  playerNumber:  num, options: options })
+    }; break;
+    case actions.RANDOM_FIRST_PLAYER: {
+      const num = Math.floor(Math.random() * users.length);
+      if(options.turn) {
+        options.turn = num+2;
+      }
+      updateData({ action: name,  playerNumber: num, options: options  })
+    }; break;
+    case actions.CLEAR_AREA : clearPlayingArea(); break;
+    case actions.TAKE_BACK_CARD : takeCardFromPile(op.$trigger); break;
+    case actions.TAKE_CARD_ASIDE : takeCardAside(); break;
+    case actions.REMOVE_CARD_ASIDE : removeCardAside(); break;
+    case actions.TAKE_BACK_ALL_CARDS : takeCardFromPile(); break;
+    case actions.PLAY_ALL_CARDS : putCardOnPile(); break;
+    case actions.SHUFFLE_HAND : shuffleCard(); break;
+  }
 }
 
 function setOptionToggle(name, label, on="With", off="Without") {
@@ -505,7 +509,7 @@ function playAction(action) {
             && isMyTurn() 
             && action == actions.END_TURN) {
     console.log("This is my turn sound");
-    setTimeout(function(){ playSound("your_turn"); }, 500);
+    setTimeout(function(){ playSound("your_turn3"); }, 500);
   }
 }
 
@@ -682,9 +686,11 @@ function drawOptionList() {
   <br />
   ${createBooleanOption("block_get_cards", translate("Block cards taken"), translate("Prevent to take cards from playing area"), translate("Cards can be taken from playing area"))}
   <br />
-  ${createBooleanOption("next_turn", translate("End turn after playing"), translate("Play a card to end turn"), translate("You have to specifically end you turn"))}
+  ${createBooleanOption("end_turn_draw", translate("End turn after playing"), translate("Play a card to end turn"), translate("You have to specifically end you turn"))}
   <br />
   ${createBooleanOption("stack_visible", translate("View all cards"), translate("View all cards played"), translate("View only the last one"))} 
+  <br />
+  ${createBooleanOption("exchange", translate("Need to exchange card"), translate("Moment to exchange before playing"), translate("Play after distribution"))} 
   <br />
   ${createNumberOption("number_decks", "decks of cards")}
   `;
@@ -762,12 +768,46 @@ function askResetRound() {
   }
 }
 
+function readyToPlay() {
+  updateData({action: actions.READY_TO_PLAY, state: states.PLAY})
+}
+
 function drawStack() {
   var cardsContent = "";
   for (i = 0; i < 4; i ++ ) {
     cardsContent += `<li><div class="card back deck_stack_card">*</div></li>`
   }
   return `<ul class="deck_stack deck">${cardsContent}</ul>`;
+}
+
+function drawDeckExchange() {
+  var content = "";
+
+  if (remainingCards == 0) {
+    content = `<div class = 'col-6'><h2>${translate("Deck is empty")}</h2><br>`
+  } else {
+    content = `<div class = 'col-6'><h2>${translate("Deck")}: ${remainingCards} / ${deckOriginalLength} cards</h2><br>`
+  }
+  content += `${createButton("Get back cards", "askResetRound()")} </br>`;
+  content += `${createButton("Ready to play", "readyToPlay()")} </br>`;
+  content += "</div>"
+
+  if (remainingCards == 0) {
+    content += `<div class = 'col-6'><span class="card_deck">∅</span></div>`;
+  } else {
+    content += `<div class = 'col-6 playingCards faceImages'>`;
+
+    if(cardAside != -1) {
+      content += drawCard(cardAside, "card_aside", "span");
+    }
+    else {
+      content += drawStack();
+    }
+
+    content += createButton("Draw a card", "takeCard()", "margin_top")
+    content += "</div>";
+  }     
+  return content;
 }
 
 function drawDeckPlay() {
@@ -783,7 +823,7 @@ function drawDeckPlay() {
   }
   if(!isMyTurn()) {
     content += `${createMessage("Wait for your turn!", "info")}`;
-  } else if(!options.next_turn) {
+  } else if(!options.end_turn_draw) {
     content += `${createButton("End turn", "endTurn()")} </br>`;
   } else {
     content += `${createMessage("This is your turn!", "success")}`
@@ -827,6 +867,12 @@ function drawDeck() {
     case states.DISTRIBUTE: {
       $("#game_controls").visible();
       deckContent = drawDeckDistribute();
+      drawPile();
+      break;
+    }
+    case states.EXCHANGE: {
+      $("#game_controls").visible();
+      deckContent = drawDeckExchange();
       drawPile();
       break;
     }
@@ -915,7 +961,7 @@ function drawPile() {
   var content = `
       <h2>${translate("Playing Area")}</h2>
       <div class = "col-10 form-group">
-        ${createBooleanOption("next_turn", translate("End turn after playing"))} <br>
+        ${createBooleanOption("end_turn_draw", translate("End turn after playing"))} <br>
         ${createBooleanOption("back_card", translate("Hide card value"))} <br>
       </div>`;
 
@@ -1000,7 +1046,7 @@ $(document).on("keypress", function (event) {
       switch(state) {
         case states.DISTRIBUTE : distributeCards(); break;
         case states.PLAY: {
-          if(!options.next_turn) {
+          if(!options.end_turn_draw) {
             endTurn();
           }
           break;
