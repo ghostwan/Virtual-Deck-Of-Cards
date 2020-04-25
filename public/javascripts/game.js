@@ -280,17 +280,25 @@ function updateData(data) {
   socket.emit("updateData", data);
 }
 
-function onOptionMenu(name, options) {
+function onOptionMenu(name, op) {
   switch(name) {
     case actions.CHANGE_TURN: {
-      const userid = options.$trigger.attr("userid");
-      updateData({ action: name,  playerNumber: getUserPlace(userid) })
+      const userid = op.$trigger.attr("userid");
+      const num = getUserPlace(userid)
+      if(options.turn) {
+        options.turn = num+2;
+      }
+      updateData({ action: name,  playerNumber:  num, options: options })
     }; break;
     case actions.RANDOM_FIRST_PLAYER: {
-      updateData({ action: name,  playerNumber: Math.floor(Math.random() * users.length)  })
+      const num = Math.floor(Math.random() * users.length);
+      if(options.turn) {
+        options.turn = num+2;
+      }
+      updateData({ action: name,  playerNumber: num, options: options  })
     }; break;
     case actions.CLEAR_AREA : clearPlayingArea(); break;
-    case actions.TAKE_BACK_CARD : takeCardFromPile(options.$trigger); break;
+    case actions.TAKE_BACK_CARD : takeCardFromPile(op.$trigger); break;
     case actions.TAKE_CARD_ASIDE : takeCardAside(); break;
     case actions.REMOVE_CARD_ASIDE : removeCardAside(); break;
     case actions.TAKE_BACK_ALL_CARDS : takeCardFromPile(); break;
@@ -469,16 +477,14 @@ function getTricks(userid=my_user.id) {
 }
 
 function askClaimTrick() {
-  if (confirm(translate("Are you sure you won the trick?"))) {
-    if(gameData[my_user.id] == undefined) {
-      gameData[my_user.id] = {}
-    }
-    if(gameData[my_user.id].tricks == undefined) {
-      gameData[my_user.id].tricks = []
-    }
-    gameData[my_user.id].tricks.push(pile);
-    updateData({ action: actions.CLAIM_TRICK, gameData: gameData, pile: [], playerNumber: getUserPlace() })
+  if(gameData[my_user.id] == undefined) {
+    gameData[my_user.id] = {}
   }
+  if(gameData[my_user.id].tricks == undefined) {
+    gameData[my_user.id].tricks = []
+  }
+  gameData[my_user.id].tricks.push(pile);
+  updateData({ action: actions.CLAIM_TRICK, gameData: gameData, pile: [], playerNumber: getUserPlace() })
 }
 
 function playAction(action) {
@@ -571,7 +577,7 @@ function drawUsersInfos() {
   users.forEach((user) => {
     var number = "";
     var data = gameData[user.id];
-    if(state == STATE_CONFIG) {
+    if(state == states.CONFIGURE) {
       number = `🂠 <b> X </b>`
     } else if(data != undefined) {
       if(options.tricks) {
@@ -589,7 +595,7 @@ function drawUsersInfos() {
       && users[playerNumber].id == user.id) {
       userClass +=  " player"
     }
-    if(state != STATE_CONFIG) {
+    if(state != states.CONFIGURE) {
       userClass += " user_profil_menu"
     }
     var content = `
@@ -810,7 +816,7 @@ function drawDeck() {
   var deckContent = "";
   var playContent = "";
   switch(state) {
-    case STATE_CONFIG: {
+    case states.CONFIGURE: {
       $("#game_controls").invisible();
       $("#tricksArea").empty();
       deckContent = drawDeckConfig();
@@ -818,13 +824,13 @@ function drawDeck() {
       $("#playArea").append(playContent);
       break;
     }
-    case STATE_DISTRIBUTE: {
+    case states.DISTRIBUTE: {
       $("#game_controls").visible();
       deckContent = drawDeckDistribute();
       drawPile();
       break;
     }
-    case STATE_PLAY: {
+    case states.PLAY: {
       $("#game_controls").visible();
       deckContent = drawDeckPlay();
       drawPile();
@@ -901,7 +907,7 @@ function drawHand(instruction = false) {
 }
 
 function drawPile() {
-  if(state == STATE_CONFIG) {
+  if(state == states.CONFIGURE) {
     return
   }
 
@@ -992,8 +998,8 @@ $(document).on("keypress", function (event) {
     var keycode = event.keyCode ? event.keyCode : event.which;
     if (keycode == "13") {
       switch(state) {
-        case STATE_DISTRIBUTE: distributeCards(); break;
-        case STATE_PLAY: {
+        case states.DISTRIBUTE : distributeCards(); break;
+        case states.PLAY: {
           if(!options.next_turn) {
             endTurn();
           }

@@ -59,11 +59,12 @@ Current supported Languages: Enlgish, French
 
 # What's next 
 
+- GAME PLAY - Zone d'echange
+- GAME PLAY - Locker la partie pour que plus personnes ne puisse rentrer 
 - UI - grossir / reduire taille cartes 
 - GAME PLAY - ESCALIER - Prise en compte des annonces
 - GAME PLAY - MARMOTEE - poser des cartes cacher sur la table
 - GAME PLAY - Quand quelqu'un se connecte lui permettre ou non de rejoindre la partie, sinon spectateur
-- GAME PLAY - Locker la partie pour que plus personnes ne puisse rentrer 
 - GAME PLAY - Gestion des scores
 - GAME PLAY - TAROTS - Rajouter les cartes les atouts de tarot
 - GAME PLAY - Créer de nouvelles cartes entre 10 et valet quand on est plusieurs (11, 12, 13, 14, 15...)
@@ -180,3 +181,7 @@ Fork of https://github.com/selfthinker/CSS-Playing-Cards
 @license CC BY-SA [http://creativecommons.org/licenses/by-sa/3.0]
 @version 2011-06-14
 @link http://selfthinker.github.com/CSS-Playing-Cards/
+
+## Sounds
+
+From [Zapsplat.com](https://www.zapsplat.com/)

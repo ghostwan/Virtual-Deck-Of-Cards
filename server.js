@@ -127,7 +127,7 @@ io.on("connection", socket => {
   });
 
   function createNewGame() {
-    storeData("state", STATE_CONFIG)
+    storeData("state", states.CONFIGURE)
     storeData("pile", [])
     storeData("options", {})
     storeData("gameData", {})
@@ -223,7 +223,7 @@ io.on("connection", socket => {
     emitUpdateToRoom(actions.DISTRIBUTE, {
       remainingCards: deck.length, 
       options: options, 
-      state: state(STATE_PLAY), 
+      state: state(states.PLAY), 
       gameData: gameData
     }, `distribute ${numCards} cards`)
   });
@@ -278,7 +278,7 @@ io.on("connection", socket => {
       deckOriginalLength: storeData("deckOriginalLength", deck.length),
       remainingCards: deck.length,
       options: getData("options"),
-      state: state(STATE_DISTRIBUTE),
+      state: state(states.DISTRIBUTE),
       cardAside: storeData("cardAside", -1),
       pile: storeData("pile", []),
       options: storeData("options", options),

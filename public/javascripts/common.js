@@ -1,7 +1,3 @@
-const STATE_CONFIG = "config"
-const STATE_PLAY = "play"
-const STATE_DISTRIBUTE = "distribute"
-
 const RANK = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
 const RANK_CAVLIERS = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "C", "Q", "K", "A"];
 
@@ -12,6 +8,13 @@ const EMOJIS = ['😄','😃','😀','😊','☺','😉','😍','😘','😚','�
     '😆','😋','😷','😎','😴','😵','😲','😟','😦','😧','😈','👿','😮','😬','😐','😕','😯','😶','😇','😏','😑',
     '👲','👳','👮','👷','💂','👶','👦','👧','👨','👩','👴','👵','👱','👼','👸','😺','😸','😻','😽','😼','🙀',
     '😿','😹','😾','👹','👺','🙈','🙉','🙊','💀','👽','💩'];
+
+const states = {
+    CONFIGURE : "config",
+    EXCHANGE: "exchange",
+    PLAY: "play",
+    DISTRIBUTE: "distribute"
+}
 
 const actions = {
     CONNECTING: "I am connecting...",
