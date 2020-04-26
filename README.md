@@ -217,3 +217,4 @@ Use of :
 - [jQuery Menu](https://swisnl.github.io/jQuery-contextMenu/) for right click menus.
 - [jQuery UI](https://jqueryui.com/) for UI interacrions.
 - [Popper.js](https://popper.js.org/) for positioning.
+- [Foreach](https://github.com/toddmotto/foreach) for object iteration.
