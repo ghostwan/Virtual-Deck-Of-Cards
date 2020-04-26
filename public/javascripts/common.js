@@ -42,7 +42,8 @@ const actions = {
     RANDOM_FIRST_PLAYER: "choose first player randomly",
     REMOVE_CARD_ASIDE: "remove card aside",
     CLEAR_AREA: "clear the playing area",
-    CLAIM_TRICK: "claim trick"
+    CLAIM_TRICK: "claim trick",
+    REVEAL_PLAYERS_CARDS: "reveal players cards"
 }
 
 const configs = {

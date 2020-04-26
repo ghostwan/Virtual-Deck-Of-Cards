@@ -204,6 +204,10 @@ function isMyTurn() {
   return false;
 }
 
+socket.on("onRevealCards", function (data) {
+  drawRevealCards(data);
+});
+
 socket.on("onUpdateData", function (data) {
   console.log(">>>>> New data broadcast >>>>>");
   console.log(data);
@@ -271,6 +275,7 @@ socket.on("onUpdateData", function (data) {
   if (reDrawPile) drawPile();
   if (reDrawUsersInfo) drawUsersInfos();
   if (reDrawTricks) drawTricks();
+  // if (reDrawPlayersHand) drawPlayerHands();
   playAction(action);
 });
 
@@ -295,7 +300,7 @@ function updateData(data) {
 function takeCardAside() {
   my_hand.push(cardAside);
   cardAside = -1;
-  gameData[my_user.id].cards ++
+  gameData[my_user.id].cards = my_hand
   updateData({ action: actions.TAKE_CARD_ASIDE, cardAside: cardAside, gameData: gameData })
   drawHand();
 }
@@ -316,14 +321,14 @@ function takeCardFromPile(item=undefined) {
     my_hand.push(card);
     pile.splice(cardIndex, 1);
   
-    gameData[my_user.id].cards ++
+    gameData[my_user.id].cards = my_hand
   } else {
     action = actions.TAKE_BACK_ALL_CARDS;
     for (c = 0; c < pile.length; c++) {
       var card = pile[c];
       my_hand.push(card);
       
-      gameData[my_user.id].cards ++
+      gameData[my_user.id].cards = my_hand
     }
     pile = [];
   }
@@ -344,7 +349,7 @@ function putCardOnPile(item=undefined) {
     card["username"] = my_user.name;
     pile.push(card);
 
-    gameData[my_user.id].cards --
+    gameData[my_user.id].cards = my_hand
   } else {
     action = actions.PLAY_ALL_CARDS;
     for (c = 0; c < my_hand.length; c++) {
@@ -353,9 +358,9 @@ function putCardOnPile(item=undefined) {
       card["username"] = my_user.name;
       pile.push(card);
 
-      gameData[my_user.id].cards --
     }
     my_hand = [];
+    gameData[my_user.id].cards = my_hand
   }
 
   updateData({ action: action, pile: pile, gameData: gameData })
@@ -398,9 +403,12 @@ function createMenu(selector, items) {
 
 function init() {
 
+  createMenu(".player_number", {
+    [actions.RANDOM_FIRST_PLAYER]: {name: translate("choose randomly"), icon: "fa-hand-paper"},
+    [actions.REVEAL_PLAYERS_CARDS]: {name: translate(actions.REVEAL_PLAYERS_CARDS), icon: "fa-hand-paper"}
+  });
   createMenu(".user_profil_menu", {
     [actions.CHANGE_TURN]: {name: translate("your turn"), icon: "fa-hand-paper"},
-    [actions.RANDOM_FIRST_PLAYER]: {name: translate("choose randomly"), icon: "fa-hand-paper"}
   });
   createMenu(".card_in_pile", {
     [actions.TAKE_BACK_CARD]: {name: translate("take this card"), icon: "fa-hand-lizard"},
@@ -445,6 +453,11 @@ function onOptionMenu(name, op) {
         options.turn = num+2;
       }
       updateData({ action: name,  playerNumber: num, options: options  })
+    }; break;
+    case actions.REVEAL_PLAYERS_CARDS: {
+      if (confirm(translate("Are you sure, you want to reveal to everyone players cards?"))) {
+        socket.emit("revealCards");
+      }
     }; break;
     case actions.CLEAR_AREA : clearPlayingArea(); break;
     case actions.TAKE_BACK_CARD : takeCardFromPile(op.$trigger); break;
@@ -564,10 +577,11 @@ function changeCardColor() {
 }
 
 function drawTricks(userid=my_user.id) {
-  $("#tricksArea").empty()
+  $("#sideArea").empty()
   var tricks = getTricks(userid);
-  $content = ''
+  var $content = ''
   if(tricks != undefined) {
+    $("#sideArea").append(`<h4>${translate("Tricks")}</h4>`)
     for (var t = 0; t < tricks.length; t++) {
       var trick = tricks[t];
       $content += `<ul class='hand tricks'>`;
@@ -578,7 +592,25 @@ function drawTricks(userid=my_user.id) {
       $content += `</ul>`;
     }
   }
-  $("#tricksArea").append($content);
+  $("#sideArea").append($content);
+}
+
+function drawRevealCards(gameData) {
+  $("#sideArea").empty()
+  console.log(gameData)
+  $("#sideArea").append(`<h4>${translate("Players cards")}</h4>`)
+  var $content = ''
+  forEach(gameData, function (value, prop, obj) {
+    if(value.cards) {
+      // $content += `<p><${users[value]}</p>`;
+      $content += `<ul class='hand tricks'>`;
+      value.cards.forEach(card => {
+        $content += `<li>${drawCard(card, "test", "a")}</li>`;
+      });
+      $content += `</ul>`;
+    }
+  });
+  $("#sideArea").append($content);
 }
 
 function drawUsersInfos() {
@@ -593,7 +625,7 @@ function drawUsersInfos() {
         if(data != undefined && data.tricks != undefined)
           number = " 🂠 <b>" + data.tricks.length + "</b>";
       } else if (data != undefined && data.cards != undefined) {
-        number = " 🂠 <b>" + data.cards + "</b>";
+        number = " 🂠 <b>" + data.cards.length + "</b>";
       }
     }
     var userClass = "user_profil"
@@ -863,7 +895,7 @@ function drawDeck() {
   switch(state) {
     case states.CONFIGURE: {
       $("#game_controls").invisible();
-      $("#tricksArea").empty();
+      $("#sideArea").empty();
       deckContent = drawDeckConfig();
       playContent = drawPileConfig();
       $("#playArea").append(playContent);

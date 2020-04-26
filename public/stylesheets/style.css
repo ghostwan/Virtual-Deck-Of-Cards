@@ -26,13 +26,13 @@
   padding: 5px 5px;
   line-height: 50px;
 }
-#tricksArea {
+#sideArea {
   padding-left: 20px;
 }
 .get_deck {
   font-size: 30px;
 }
-h2 {
+h1, h2, h3, h4 {
   color: grey;
 }
 .controls {

@@ -96,5 +96,6 @@
   "Hide card value" :  "Cacher la valeur des cartes",
   "remove": "enlever",
   "choose first player randomly" : "choisit aléatoirement le premier joueur",
-  "choose randomly" : "choisis aléatoirement"
+  "choose randomly" : "choisis aléatoirement",
+  "Tricks" : "Plis"
 }

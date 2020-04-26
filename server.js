@@ -19,7 +19,6 @@ server.listen(PORT, () => {
   console.log(`VDOC server listenning on ${PORT}`);
 });
 
-
 app.get("/", (req, res) => {
   console.log('Requesting index.html');
   res.sendFile(__dirname + "/views/index.html");
@@ -110,7 +109,7 @@ io.on("connection", socket => {
       cardAside: getData("cardAside"),
       options: getData("options"),
       pile: getData("pile"),
-      gameData: getData("gameData"),
+      gameData: obfuscate(getData("gameData")),
       state: state(),
       hand: [],
       playerNumber: getData("playerNumber"),
@@ -149,6 +148,10 @@ io.on("connection", socket => {
     }
   });
 
+  socket.on("revealCards", () => {
+    io.sockets.in(socket.room).emit("onRevealCards", getData("gameData"))
+  });
+
   socket.on("takeCard", data => {
     if(socketNotAvailble()) {return}
     
@@ -159,14 +162,15 @@ io.on("connection", socket => {
     }
     if(gameData[socket.id] == undefined) {
       gameData[socket.id] = {}
-      gameData[socket.id].cards = 0
+      gameData[socket.id].cards = []
     }
-    gameData[socket.id].cards ++;
-    
+    gameData[socket.id].cards = cards.hand;
+    gameData = storeData("gameData", gameData);
+
     storeData("deck", cards.deck)
     emitUpdateToRoom(actions.DRAW_CARD, {
       remainingCards: cards.deck.length, 
-      gameData: storeData("gameData", gameData)
+      gameData: obfuscate(gameData)
     })
     emitToUser(socket.id, "onUpdateHand", cards.hand)
   });
@@ -216,7 +220,7 @@ io.on("connection", socket => {
       if(gameData[users[u]] == undefined) {
         gameData[users[u]] = {}
       }
-      gameData[users[u]].cards = hand.length
+      gameData[users[u]].cards = hand
     }
     storeData("gameData", gameData)
     storeData("deck", deck)
@@ -224,7 +228,7 @@ io.on("connection", socket => {
       remainingCards: deck.length, 
       options: options, 
       state: options.exchange? state(states.EXCHANGE) : state(states.PLAY), 
-      gameData: gameData
+      gameData: obfuscate(gameData)
     }, `distribute ${numCards} cards`)
   });
 
@@ -292,12 +296,17 @@ io.on("connection", socket => {
   // Broadcast function, sync datas a cross all client from a room
   socket.on("updateData", data => {
     if(socketNotAvailble()) {return}
-
     
     if (data.options != undefined) storeData("options", data.options);
     if (data.deckOriginalLength != undefined) storeData("deckOriginalLength", data.deckOriginalLength);    
     if (data.pile != undefined) storeData("pile", data.pile);
-    if(data.gameData != undefined) storeData("gameData", data.gameData);
+    if(data.gameData != undefined) {
+      // Avoid storing obfuscate data
+      if(!isDataObfuscate(data.gameData)) {
+        storeData("gameData", data.gameData);
+      }
+      data.gameData = obfuscate(data.gameData);
+    }
     if(data.playerNumber != undefined) storeData("playerNumber", data.playerNumber);
     
     log(data.action)
@@ -395,6 +404,42 @@ function takeCards(numcards, deck, hand) {
   }
   data = { hand: hand, deck: deck };
   return data;
+}
+
+function isDataObfuscate(gameData) {
+  if(gameData) {
+    forEach(gameData, function (value, prop, obj) {
+      if(value.cards) {
+        value.cards.forEach(card => {
+          if(card.suit == "obfus") {
+            return true;
+          }
+        });
+      }
+    });
+  }
+  return false;
+}
+
+function obfuscate(gameData) {
+  return gameData;
+  //FIXME There is a bug somewhere which store obfuscate data in the meantime don't obfuscate
+  // if(gameData) {
+  //   forEach(gameData, function (value, prop, obj) {
+  //     if(value.cards) {
+  //       value.cards.forEach(card => {
+  //         if(card.suit != "obfus") {
+  //           card.rank = "obfus";
+  //           card.suit = "obfus";
+  //         } else {
+  //           // Already obfuscate
+  //           return gameData; 
+  //         }
+  //       });
+  //     }
+  //   });
+  // }
+  // return gameData;
 }
 
 

@@ -8,6 +8,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Ghostwan",
+  "repository": "git@github.com:ghostwan/Virtual-Deck-Of-Cards.git",
   "license": "MIT",
   "dependencies": {
     "ejs": "^2.6.1",
