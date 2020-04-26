@@ -26,7 +26,7 @@ Current supported Languages: English, French
 - Put a card aside for game as "oh hell"
 - Take the card put aside for game as "yaniv"
 - Distribute the whole deck or a specific number of cards among all players 
-- See How many cards each player got
+- See how many cards each player got
 - Rearrange cards in your hand, sort them, shuffle them! you name it! 
 - See who's turn is and change it if needed (choose a specific player or random)
 - Draw a card from the deck
@@ -36,10 +36,10 @@ Current supported Languages: English, French
 - See who played a card
 - Clear the playing area
 - Option to claim trick and see who won tricks
-- Option to Exchange card : Hide values, put all cards on the table and ask someone to pick one
+- Option to exchange card : Hide values, put all cards on the table and ask someone to pick one
 - Option to block players actions when it's not there turn (to prevent chaos =) )
 - Option to end turn after playing a card
-- Option to prevent to block retrieving card from playing area (game with trick don't need it)
+- Option to block card retrieving from playing area (game with trick don't need it)
 - Option to display 4 colors for your cards
 - Option to play sound for a more realistic party
 - Option for the number of deck to play with
@@ -89,7 +89,6 @@ Current supported Languages: English, French
 | Log actions                           |              |                 | OK         |             |
 | ------------ TO DEVELOP ------------  |              |                 |            |             |
 | Trump cards (atouts)                  |              |                 |            | **NEED**    |
-| Draw a card on the playing area       |              |                 | **NEED**   |             |
 | Put old cards in discard pile         |              |                 | OPTIM      |             |
 | Shuffle the discard pile              |              |                 | **NEED**   |             |
 | Random first player                   | OPTIONNAL    | OPTIONNAL       | OPTIONNAL  |             |
@@ -101,13 +100,13 @@ Current supported Languages: English, French
 D = DONE: you can play easily to this game  
 N = NOT OPTIMAL: you can play but it's not optimal features are missing  
 W = WIP:  you can't currently play important features are missing  
-T = TODO: Most of the minimum need feature are missing  
+T = TODO: Most of the minimum needed features to play are missing  
  
-![Colors options](misc/cards_color.png)
-![Claim trick](misc/claim_trick.png)
-![Reorder](misc/reorder.png)
 ![Room creation](misc/room_creation.png)
 ![Distribute amount of cards](misc/distribute_amout_of_cards.png)
+![Reorder](misc/reorder.png)
+![Claim trick](misc/claim_trick.png)
+![Colors options](misc/cards_color.png)
 ![Server](misc/server.png)
 
 
