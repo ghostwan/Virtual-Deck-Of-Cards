@@ -21,7 +21,7 @@ var numberOptionList = {}
 var room;
 var translate;
 
-function main(roomName) {
+function main(roomName, lang) {
 
   // Move card from your hand to the pile
   $("body").on("click", ".card_in_hand", function () {
@@ -93,13 +93,18 @@ function main(roomName) {
 
   room = roomName
 
+  var config = {
+      ns: ['game'],
+      defaultNS: 'game',
+      nonExplicitWhitelist : true,
+    };
+
+  if (lang) {
+    config.lng = lang
+  }
+
   i18next.use(i18nextXHRBackend ).use(i18nextBrowserLanguageDetector)
-    .init({
-    ns: ['game'],
-    defaultNS: 'game',
-    nonExplicitWhitelist : true,
-    debug: true,
-    }, (err, t) => {
+    .init(config, (err, t) => {
       translate = t
       socket.emit("connectRoom", roomName);  
       init()

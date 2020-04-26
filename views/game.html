@@ -104,7 +104,8 @@
       const queryString = window.location.search;
       const urlParams = new URLSearchParams(queryString);
       const roomID = urlParams.get("roomID");
-      main(roomID);
+      const lang = urlParams.get("lang");
+      main(roomID, lang);
     });
   </script>
 </html>

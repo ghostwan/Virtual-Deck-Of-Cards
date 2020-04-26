@@ -15,51 +15,42 @@ Covid-19 is here, you are lockdown at home and want to play remotely with your f
 
 Fear no more, as the virtual deck of cards is here! Simply create or sign into a deck, and play any game with anyone.
 
-Current supported Languages: Enlgish, French
-
-
+Current supported Languages: English, French
 
 # What you can currently do
 - Create a room to play any cards game with your friends!
 - Share the room's url to invite people into the game!
 - See who's connected to the room
 - Choose your name roger!
-- Configure deck, game style...
+- Configure deck, game pre config, options...
 - Put a card aside for game as "oh hell"
+- Take the card put aside for game as "yaniv"
 - Distribute the whole deck or a specific number of cards among all players 
 - See How many cards each player got
-- See who's turn is
-- Change turn order
+- Rearrange cards in your hand, sort them, shuffle them! you name it! 
+- See who's turn is and change it if needed (choose a specific player or random)
 - Draw a card from the deck
 - Play a card from your hand
 - Take a card from the playing area (for some game as Yaniv or if you did a mistake)
-- In trick mode, claim the trick if you won the round, count tricks and display yours
-- Rearrange cards in your hand or sort them
+- Hide card value in playing area (poker style ;) ) 
 - See who played a card
 - Clear the playing area
-- Block players actions when it's not there turn
-- Language available (browser detection): default english, french.
+- Option to claim trick and see who won tricks
+- Option to Exchange card : Hide values, put all cards on the table and ask someone to pick one
+- Option to block players actions when it's not there turn (to prevent chaos =) )
+- Option to end turn after playing a card
+- Option to prevent to block retrieving card from playing area (game with trick don't need it)
+- Option to display 4 colors for your cards
+- Option to play sound for a more realistic party
+- Option for the number of deck to play with
+- Translation (browser detection or query parameter 'lang') default is english.
 
 # What's new 
 
-- Reconnection mechanisum when socket is disconnected but server is not down
-- Add log message
-- Fix on small screen
-- Prevent to get card from playing area
-- Add option to end turn after playing a card
-- Put Ace a the end when ordering
-- Add 4 colors option
-- Add sound options
-- Choose the number of decks to play with
-- Add game prefconfiguration
-- Put all cards on the table or take all card from the table
-- Hide cards value 
-- take the card aside
-- random first player
+- Force language manually with query parameters 'lang=fr'
 
 # What's next 
 
-- GAME PLAY - Zone d'echange
 - GAME PLAY - Locker la partie pour que plus personnes ne puisse rentrer 
 - UI - grossir / reduire taille cartes 
 - GAME PLAY - ESCALIER - Prise en compte des annonces
@@ -81,7 +72,6 @@ Current supported Languages: Enlgish, French
 # Bugs
 
 - Si on distribue plus de cartes que de personnes ça foire les comptes
-- Server se met en down au bout d'une heure
 
 # Game features status
 
@@ -125,6 +115,7 @@ T = TODO: Most of the minimum need feature are missing
 
 # How to play locally
 
+
 ### 1)  Install Node JS 
 
 Follow for your platform instruction [here](https://nodejs.org/en/download/package-manager)
@@ -137,23 +128,28 @@ in a console:
 
 ### 3) Start node package 
 
-in a console:
-- go to where you cloned the virtual deck
+in a terminal open where you cloned the virtual deck and then
 
 > npm start
+
+or the startup script
+
+> ./start.sh
 
 ### 4) Open a navigator
 
 > http://localhost:3000/
 
-Fro other computer on the local network use computer IP
+Use computer private ip to connect on local network from other computers.
 
-# How to deploy remotely
+# How to play remotely with your friends
 
-## Use Heroku
+## Deploy on Heroku
 
-Heroku is a platform as a service (PaaS) that enables developers to build, run, and operate applications entirely in the cloud. 
+Heroku is a platform as a service (PaaS) that enables developers to build, run, and operate applications entirely in the cloud.  
 It as a free plan enough for this app needs.
+
+**Warning Heroku free plan servers can idle after sometime which will result in a game loss!**
 
 https://www.heroku.com/
 
@@ -169,19 +165,56 @@ Follow for your platform instruction [here](https://devcenter.heroku.com/article
 
 https://devcenter.heroku.com/articles/getting-started-with-nodejs#deploy-the-app
 
+## Use a tunnel to your local server
+
+You can use tunnel as [ngrok](https://ngrok.com/). See [tunnel.sh](tunnel.sh).  
+After creating an account, [configure you computer](https://dashboard.ngrok.com/get-started/setup) 
+and putting ngrok in your path.
+
+In a terminal start your local server:
+> ./start.sh
+
+And then in another terminal start the tunnel: 
+> ./tunnel.sh
+
 ---
 
 # Credits
 
+## Code base 
+
+This project is a fork of [Jing Xuan](https://github.com/jing-xuan) 
+project [Virtual-Deck-Of-Cards](https://github.com/jing-xuan/Virtual-Deck-Of-Cards)
+
 ## Cards in CSS
 
-Fork of https://github.com/selfthinker/CSS-Playing-Cards
+Fork of [CSS-Playing-Cards](https://github.com/selfthinker/CSS-Playing-Cards) 
 
 @author Anika Henke anika@selfthinker.org
 @license CC BY-SA [http://creativecommons.org/licenses/by-sa/3.0]
 @version 2011-06-14
 @link http://selfthinker.github.com/CSS-Playing-Cards/
 
-## Sounds
+## Game sounds
 
 From [Zapsplat.com](https://www.zapsplat.com/)
+
+## Menu icons
+
+From [font awesome](https://fontawesome.com/)
+
+## Translation framework 
+
+With [i18next](https://www.i18next.com/) and all its contributors.
+
+## Other Server / Client librairies
+
+Use of :
+- [Node JS](https://nodejs.org/en/) for server side.
+- [Socket.IO](https://socket.io/) for server / client communication.
+- [Bootstrap](https://getbootstrap.com/) for client side
+- [Bootstrap toggle](https://gitbrent.github.io/bootstrap4-toggle/) for toggle rendering.
+- [jQuery](https://jquery.com/) for dom manipulation.
+- [jQuery Menu](https://swisnl.github.io/jQuery-contextMenu/) for right click menus.
+- [jQuery UI](https://jqueryui.com/) for UI interacrions.
+- [Popper.js](https://popper.js.org/) for positioning.
