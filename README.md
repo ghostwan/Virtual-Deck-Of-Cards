@@ -180,6 +180,8 @@ And then in another terminal start the tunnel:
 
 # Credits
 
+You can fork this repository as long as you respect the Licence, credit me and other contributors.
+
 ## Code base 
 
 This project is a fork of [Jing Xuan](https://github.com/jing-xuan) 
