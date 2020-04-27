@@ -48,9 +48,12 @@ Current supported Languages: English, French
 # What's new 
 
 - Force language manually with query parameters 'lang=fr'
+- Add action menu to display people hands at the end
+- Add cards obfuscation
 
 # What's next 
 
+- Mélange la defausse
 - GAME PLAY - Locker la partie pour que plus personnes ne puisse rentrer 
 - UI - grossir / reduire taille cartes 
 - GAME PLAY - ESCALIER - Prise en compte des annonces

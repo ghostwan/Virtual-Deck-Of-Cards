@@ -149,7 +149,7 @@ io.on("connection", socket => {
   });
 
   socket.on("revealCards", () => {
-    io.sockets.in(socket.room).emit("onRevealCards", getData("gameData"))
+    io.sockets.in(socket.room).emit("onRevealCards", unobfuscateData(getData("gameData")))
   });
 
   socket.on("takeCard", data => {
@@ -172,7 +172,8 @@ io.on("connection", socket => {
       remainingCards: cards.deck.length, 
       gameData: obfuscate(gameData)
     })
-    emitToUser(socket.id, "onUpdateHand", cards.hand)
+    var cardsInHand = unobfuscateCards(cards.hand)
+    emitToUser(socket.id, "onUpdateHand", cardsInHand)
   });
 
   socket.on("endTurn", () => {
@@ -301,11 +302,8 @@ io.on("connection", socket => {
     if (data.deckOriginalLength != undefined) storeData("deckOriginalLength", data.deckOriginalLength);    
     if (data.pile != undefined) storeData("pile", data.pile);
     if(data.gameData != undefined) {
-      // Avoid storing obfuscate data
-      if(!isDataObfuscate(data.gameData)) {
-        storeData("gameData", data.gameData);
-      }
       data.gameData = obfuscate(data.gameData);
+      storeData("gameData", data.gameData);
     }
     if(data.playerNumber != undefined) storeData("playerNumber", data.playerNumber);
     
@@ -406,40 +404,67 @@ function takeCards(numcards, deck, hand) {
   return data;
 }
 
-function isDataObfuscate(gameData) {
-  if(gameData) {
-    forEach(gameData, function (value, prop, obj) {
-      if(value.cards) {
-        value.cards.forEach(card => {
-          if(card.suit == "obfus") {
-            return true;
-          }
-        });
-      }
-    });
-  }
-  return false;
+function debug(object) {
+  console.log("<<<<<< DEBUG >>>>>>>>")
+  console.log(JSON.stringify(object, null, 2))
+  console.log(">>>>>> DEBUG <<<<<<<<")
 }
 
 function obfuscate(gameData) {
+  if(gameData) {
+    forEach(gameData, function (value, prop, obj) {
+      if(value.cards) {
+        var tempCards = value.cards
+        for (c = 0; c < tempCards.length; c ++) {
+          // If data not obfuscate yet, obfuscate
+          var card = tempCards[c];
+          if(SUITS.includes(card.suit)) {
+            card.rank = card.rank.normalise_to_ascii().crypt_symmetric();
+            card.suit = card.suit.normalise_to_ascii().crypt_symmetric();
+          }
+        }
+      }
+    });
+  }
   return gameData;
-  //FIXME There is a bug somewhere which store obfuscate data in the meantime don't obfuscate
-  // if(gameData) {
-  //   forEach(gameData, function (value, prop, obj) {
-  //     if(value.cards) {
-  //       value.cards.forEach(card => {
-  //         if(card.suit != "obfus") {
-  //           card.rank = "obfus";
-  //           card.suit = "obfus";
-  //         } else {
-  //           // Already obfuscate
-  //           return gameData; 
-  //         }
-  //       });
-  //     }
-  //   });
-  // }
-  // return gameData;
 }
 
+function unobfuscateData(gameData) {
+  if(gameData) {
+    forEach(gameData, function (value, prop, obj) {
+      unobfuscateCards(value.cards);
+    });
+  }
+  return gameData;
+}
+
+function unobfuscateCards(array) {
+  if(array) {
+    for (c = 0; c < array.length; c ++) {
+      // If data obfuscate unobfuscate
+      var card = array[c];
+      if(!SUITS.includes(card.suit )) {
+        card.rank = card.rank.normalise_to_ascii().crypt_symmetric();
+        card.suit = card.suit.normalise_to_ascii().crypt_symmetric();
+      }
+    }
+  }
+  return array;
+}
+
+String.prototype.normalise_to_ascii   = function(){return unescape(encodeURIComponent(this)); }
+String.prototype.normalise_to_unicode = function(){return decodeURIComponent(escape(this)); }
+
+String.prototype.crypt_symmetric = function(key){
+  var me = this + "";                                             //unlink reference
+
+  key = Number(String(Number(key))) === key ? Number(key) : 13;   //optionaly provide key for symmetric-like-""encryption"".
+
+  me = me.split('')                                               //to array of characters.
+         .map(function(c){return c.charCodeAt(0);})               //to array of numbers (each is character's ASCII value)
+         .map(function(i){return i ^ key;        })               //XOR ""ENCRYPTION""
+         ;
+  me = String.fromCharCode.apply(undefined, me);                  //one-liner trick: array-of-numbers to array-of-characters (ASCII value), join to single string. may result in buffer-overflow on long string!
+  return me;
+};
 

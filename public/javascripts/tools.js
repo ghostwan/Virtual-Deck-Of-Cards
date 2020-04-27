@@ -28,19 +28,3 @@ function shuffle(array) {
     }
     return shuffledArray;
 }
-
-String.prototype.normalise_to_ascii   = function(){return unescape(encodeURIComponent(this)); }
-String.prototype.normalise_to_unicode = function(){return decodeURIComponent(escape(this)); }
-
-String.prototype.crypt_symmetric = function(key){
-  var me = this + "";                                             //unlink reference
-
-  key = Number(String(Number(key))) === key ? Number(key) : 13;   //optionaly provide key for symmetric-like-""encryption"".
-
-  me = me.split('')                                               //to array of characters.
-         .map(function(c){return c.charCodeAt(0);})               //to array of numbers (each is character's ASCII value)
-         .map(function(i){return i ^ key;        })               //XOR ""ENCRYPTION""
-         ;
-  me = String.fromCharCode.apply(undefined, me);                  //one-liner trick: array-of-numbers to array-of-characters (ASCII value), join to single string. may result in buffer-overflow on long string!
-  return me;
-};

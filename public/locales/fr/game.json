@@ -76,6 +76,7 @@
   "shuffle the deck" : "mélange le deck",
   "draw a card" : "pioche",
   "put a card aside" : "met une carte de coté",
+  "shuffle hand": "mélange sa main",
   "distribute" : "distribue",
   "reset the game": "redémarre le jeu",
   "reset the round" : "démarre un nouveau tour",
@@ -86,6 +87,8 @@
   "take back a card" : "récupère une carte",
   "take back all cards" : "prendre toutes les cartes",
   "take this card": "prendre cette carte",
+  "take card aside": "prend la carte de coté",
+  "remove card aside" : "enlève le carte de coté",
   "clear the playing area" : "nettoie la zone de jeu",
   "claim trick" : "réclame le pli",
   "decks of cards": "paquets de cartes",
@@ -97,5 +100,8 @@
   "remove": "enlever",
   "choose first player randomly" : "choisit aléatoirement le premier joueur",
   "choose randomly" : "choisis aléatoirement",
-  "Tricks" : "Plis"
+  "Tricks" : "Plis",
+  "Players cards": "Cartes des joueurs",
+  "ready to play": "prêt a jouer",
+  "reveal players cards" : "révèle les cartes des joueurs"
 }

@@ -1,6 +1,3 @@
-// import i18next from 'i18next';
-// import Backend from 'i18next-http-backend';
-
 var state;
 var cardAside = -1;
 var users = [];
@@ -205,7 +202,9 @@ function isMyTurn() {
 }
 
 socket.on("onRevealCards", function (data) {
-  drawRevealCards(data);
+  console.log("=====> Data in clear")
+  console.log(data)
+  drawPileRevealCards(data);
 });
 
 socket.on("onUpdateData", function (data) {
@@ -595,24 +594,6 @@ function drawTricks(userid=my_user.id) {
   $("#sideArea").append($content);
 }
 
-function drawRevealCards(gameData) {
-  $("#sideArea").empty()
-  console.log(gameData)
-  $("#sideArea").append(`<h4>${translate("Players cards")}</h4>`)
-  var $content = ''
-  forEach(gameData, function (value, prop, obj) {
-    if(value.cards) {
-      // $content += `<p><${users[value]}</p>`;
-      $content += `<ul class='hand tricks'>`;
-      value.cards.forEach(card => {
-        $content += `<li>${drawCard(card, "test", "a")}</li>`;
-      });
-      $content += `</ul>`;
-    }
-  });
-  $("#sideArea").append($content);
-}
-
 function drawUsersInfos() {
   $("#user_container").empty();
   users.forEach((user) => {
@@ -733,16 +714,6 @@ function drawOptionList() {
   `;
 }
 
-
-function drawPileConfig() {
-  return `
-      <h2> ${translate("Game options")} </h2>
-      ${createGameConfigs()}
-      <div id="option_list" class="col h-100">
-      ${drawOptionList()}
-    </div>
-  `;
-}
 
 function drawDeckConfig() {
   return `
@@ -921,6 +892,7 @@ function drawDeck() {
     }
   }
   $("#mainDeck").append(deckContent);
+  changeCardColor()
 }
 
 function drawHand(instruction = false) {
@@ -989,6 +961,16 @@ function drawHand(instruction = false) {
   }
 }
 
+function drawPileConfig() {
+  return `
+      <h2> ${translate("Game options")} </h2>
+      ${createGameConfigs()}
+      <div id="option_list" class="col h-100">
+      ${drawOptionList()}
+    </div>
+  `;
+}
+
 function drawPile() {
   if(state == states.CONFIGURE) {
     return
@@ -1030,6 +1012,36 @@ function drawPile() {
     }
     $("#playArea").append($layer);
   }
+}
+
+function getUser(id) {
+  for (u = 0; u < users.length; u++) {
+    var user = users[u];
+    if(users[u].id == id) {
+      return user;
+    }
+  }
+}
+
+function drawPileRevealCards(gameData) {
+  $("#playArea").empty()
+  $("#playArea").append(`<h2>${translate("Players cards")}</h2>`)
+  var $content = ''
+  forEach(gameData, function (value, prop, obj) {
+    if(value.cards) {
+      $content += `<p>${getUser(prop).name}</p>`;
+      if (value.cards.length == 0) {
+        $content += `<span class="empty_pile">∅</span>`;
+      } else {
+        $content += `<ul class='hand tricks'>`;
+        value.cards.forEach(card => {
+          $content += `<li>${drawCard(card, "test", "a")}</li>`;
+        });
+        $content += `</ul>`;
+      }
+    }
+  });
+  $("#playArea").append($content);
 }
 
 function sortCard() {
