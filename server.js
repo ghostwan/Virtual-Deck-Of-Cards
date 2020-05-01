@@ -48,6 +48,8 @@ io.on("connection", socket => {
     try {
       Object.defineProperty(gameData, socket.id, Object.getOwnPropertyDescriptor(gameData, user.id));
       delete gameData[user.id];
+      delete gameData[socket.id].user_disconnected
+      storeData("gameData", gameData)
   
       user.id = socket.id
       var users = getData("users")
@@ -64,12 +66,12 @@ io.on("connection", socket => {
         cardAside: getData("cardAside"),
         options: getData("options"), 
         pile: getData("pile"), 
-        gameData : storeData("gameData", gameData),
+        gameData : getGameData(),
         state: state(),
         playerNumber : getData("playerNumber")
       });
   
-      emitUpdateToRoom(actions.CONNECT_USER, { users: prepareUsers()})
+      emitUpdateToRoom(actions.CONNECT_USER, { users: prepareUsers(), gameData : getGameData()})
       console.log(`[${socket.room}] <===  User ${user.name} reconnected!`)
     } catch(exception) { // If data is not retrivable reconnect the user
       if(gameData != undefined) {
@@ -115,7 +117,7 @@ io.on("connection", socket => {
       playerNumber: getData("playerNumber"),
     });
 
-    emitUpdateToRoom(actions.CONNECT_USER, { users: prepareUsers() });
+    emitUpdateToRoom(actions.CONNECT_USER, { users: prepareUsers(), gameData: getGameData() });
   }
 
   socket.on("sendInfo", (user) => {
@@ -144,12 +146,16 @@ io.on("connection", socket => {
       var users = getData("users")
       users.delete(socket.id)
       storeData("users", users)
-      emitUpdateToRoom(actions.DISCONNECT_USER, { users: prepareUsers()})
+
+      var gameData = getData("gameData") 
+      gameData[socket.id].user_disconnected = true
+
+      emitUpdateToRoom(actions.DISCONNECT_USER, { users: prepareUsers(), gameData: getGameData()});
     }
   });
 
   socket.on("revealCards", () => {
-    io.sockets.in(socket.room).emit("onRevealCards", unobfuscateData(getData("gameData")))
+    io.sockets.in(socket.room).emit("onRevealCards", getGameData(false));
   });
 
   socket.on("takeCard", data => {
@@ -165,12 +171,12 @@ io.on("connection", socket => {
       gameData[socket.id].cards = []
     }
     gameData[socket.id].cards = cards.hand;
-    gameData = storeData("gameData", gameData);
+    storeData("gameData", gameData);
 
     storeData("deck", cards.deck)
     emitUpdateToRoom(actions.DRAW_CARD, {
       remainingCards: cards.deck.length, 
-      gameData: obfuscate(gameData)
+      gameData: getGameData()
     })
     var cardsInHand = unobfuscateCards(cards.hand)
     emitToUser(socket.id, "onUpdateHand", cardsInHand)
@@ -229,7 +235,7 @@ io.on("connection", socket => {
       remainingCards: deck.length, 
       options: options, 
       state: options.exchange? state(states.EXCHANGE) : state(states.PLAY), 
-      gameData: obfuscate(gameData)
+      gameData: getGameData()
     }, `distribute ${numCards} cards`)
   });
 
@@ -362,6 +368,14 @@ io.on("connection", socket => {
     return getData("deck")
   }
 
+  function getGameData(obfuscated=true) {
+    if(obfuscated) {
+      return obfuscate(getData("gameData"));
+    } else {
+      return unobfuscateData(getData("gameData"))
+    }
+  }
+
   function getUsersConnected() {
     return Object.keys(io.sockets.adapter.rooms[socket.room].sockets)
   }
@@ -376,6 +390,12 @@ io.on("connection", socket => {
     }
   }
 });
+
+function newDeckFromDiscardPile(option) {
+  // var deck = newDeck(option);
+  // var hands = 
+}
+
 
 function newDeck(options) {
   var rank = RANK;

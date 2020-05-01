@@ -638,7 +638,7 @@ function isChecked(name) {
 
 function drawCard(card, clazz, type="div") {
   return `<${type} class="card rank-${card.rank.toLowerCase()} ${card.suit} ${clazz}">
-            <span class="rank">${card.rank}</span>
+            <span class="rank">${translate(card.rank)}</span>
             <span class="suit">&${card.suit};</span>
           </${type}>`
 }
@@ -1028,8 +1028,11 @@ function drawPileRevealCards(gameData) {
   $("#playArea").append(`<h2>${translate("Players cards")}</h2>`)
   var $content = ''
   forEach(gameData, function (value, prop, obj) {
-    if(value.cards) {
-      $content += `<p>${getUser(prop).name}</p>`;
+    if(value.cards && !value.user_disconnected) {
+      var user = getUser(prop);
+      if(user) {
+        $content += `<p>${user.name}</p>`;
+      }
       if (value.cards.length == 0) {
         $content += `<span class="empty_pile">∅</span>`;
       } else {

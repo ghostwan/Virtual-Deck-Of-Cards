@@ -134,26 +134,6 @@
     left: .25em;
     background: #fff;
 }
-[lang=de] .playingCards .card.rank-j .rank:after {
-    content: "B";
-}
-[lang=fr] .playingCards .card.rank-j .rank:after {
-    content: "V";
-}
-[lang=de] .playingCards .card.rank-c .rank:after {
-    content: "C";
-}
-[lang=fr] .playingCards .card.rank-c .rank:after {
-    content: "C";
-}
-[lang=de] .playingCards .card.rank-q .rank:after,
-[lang=fr] .playingCards .card.rank-q .rank:after {
-    content: "D";
-}
-[lang=fr] .playingCards .card.rank-k .rank:after {
-    content: "R";
-}
-
 /* joker (top left symbol) */
 .playingCards .card.joker .rank {
     position: absolute;

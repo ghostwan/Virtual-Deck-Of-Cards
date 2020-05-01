@@ -67,7 +67,6 @@ Current supported Languages: English, French
 - UI - Revoir l'ecran d'appel
 
 ## Manque pour Yaniv 
-- GAME PLAY - YANIV - Afficher la main des gens
 - GAME PLAY - YANIV - regrouper les anciennes cartes (cartes jouer par le joueur avant)
 - GAME PLAY - YANIV - Mélanger la déffausse
   
@@ -90,11 +89,11 @@ Current supported Languages: English, French
 | Change turn automatically             | OK           |                 |            |             |
 | Display trick won                     |              | OK              |            | OK          |
 | Log actions                           |              |                 | OK         |             |
+| Random first player                   | OK           | OK              | OK         |             |
 | ------------ TO DEVELOP ------------  |              |                 |            |             |
 | Trump cards (atouts)                  |              |                 |            | **NEED**    |
 | Put old cards in discard pile         |              |                 | OPTIM      |             |
 | Shuffle the discard pile              |              |                 | **NEED**   |             |
-| Random first player                   | OPTIONNAL    | OPTIONNAL       | OPTIONNAL  |             |
 | Bidding                               | OPTIONNAL    |                 |            |             |
 | Scores calculator                     | OPTIONNAL    | OPTIONNAL       | OPTIONNAL  | OPTIONNAL   |
 | Recall the round rules                |              | OPTIONNAL       |            |             |

@@ -1,4 +1,8 @@
 {
+  "K": "R",
+  "Q": "D",
+  "C": "C",
+  "J": "V",
   "Playing Area": "Zone de jeu",
   "instruction": "Pour ajouter plus d'utilisateurs à cette salle de jeu, partages l'URL de cette page avec tes amis! (si tu en as) <br> Après que la partie ai commencé et après avoir récupérez tes cartes: <br> - Cliques sur une carte de ta main (cette endroit) pour la jouer. <br> - Cliques sur une carte de la zone de jeu, pour la récupérez dans ta main (pour le yaniv ou en cas d'erreur). <br> - En mode 'Déplacer' (Cliques sur le switch 'Jouer') tu peux drag and droper les cartes pour les réarranger. <br> - En mode pile, tu peux déplacer les cartes pour voir celles d'en dessous.",
   "Refreshing the page will make you disconnect from the game!": "Recharger la page te déconnectera de la partie!",
