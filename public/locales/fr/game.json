@@ -108,5 +108,10 @@
   "Players cards": "Cartes des joueurs",
   "ready to play": "prêt a jouer",
   "reveal players cards" : "révèle les cartes des joueurs",
-  "Get and shuffle discard pile" : "Récupérer et mélanger la défausse"
+  "Get and shuffle discard pile" : "Récupérer et mélanger la défausse",
+  "pile up" : "rassembler",
+  "disperse": "disperser",
+  "Inverse pile display": "Inverser l'affichage de la pile",
+  "The last card played is the first display (can't pile up cards)" : "La dernière carte jouée est la première affiché (ne peut pas ressembler les cartes)",
+  "The last card played in the last display (can pile up cards)": "La dernière carte jouée est la dernière affiché (peut ressembler les cartes)"
 }

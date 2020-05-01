@@ -316,7 +316,7 @@ function takeCardFromPile(item=undefined) {
     var cardIndex = $(".card_in_pile").index($(item));
     var cardIndex = options.stack_visible ? pile.length - 1 - cardIndex : cardIndex;
     var card = pile[cardIndex];
-  
+
     my_hand.push(card);
     pile.splice(cardIndex, 1);
   
@@ -353,6 +353,7 @@ function putCardOnPile(item=undefined) {
     action = actions.PLAY_ALL_CARDS;
     for (c = 0; c < my_hand.length; c++) {
       var card = my_hand[c];
+
       $(".card_in_hand:eq(" + cardIndex + ")").remove();
       card["username"] = my_user.name;
       pile.push(card);
@@ -393,6 +394,26 @@ function clearPlayingArea() {
   }
 }
 
+function cleanCard(card) {
+  delete card.hidden
+  delete card.pile_up
+}
+
+
+function pileUpPlayingArea() {
+    pile.forEach(card => {
+      card.pile_up = true
+    });
+    updateData({ action: actions.PILE_UP_AREA, pile: pile })
+}
+
+function dispersePlayingArea() {
+  pile.forEach(card => {
+    card.pile_up = false
+  });
+  updateData({ action: actions.DISPERSE_AREA, pile: pile })
+}
+
 function createMenu(selector, items) {
   $.contextMenu({
     selector: selector, 
@@ -415,7 +436,9 @@ function init() {
   createMenu(".card_in_pile", {
     [actions.TAKE_BACK_CARD]: {name: translate("take this card"), icon: "fa-hand-lizard"},
     [actions.TAKE_BACK_ALL_CARDS]: {name: translate(actions.TAKE_BACK_ALL_CARDS), icon: "fa-hand-lizard", visible: function(key, opt){return options.exchange;}},
-    [actions.CLEAR_AREA]: {name: translate("clear"), icon: "fa-trash-alt"}
+    [actions.CLEAR_AREA]: {name: translate("clear"), icon: "fa-trash-alt", visible: function(key, opt){return options.tricks;}},
+    [actions.PILE_UP_AREA]: {name: translate("pile up"), icon: "fa-align-justify", visible: function(key, opt){return !options.inverse_pile;}},
+    [actions.DISPERSE_AREA]: {name: translate("disperse"), icon: "fa-columns", visible: function(key, opt){return !options.inverse_pile;}}
   });
   createMenu(".card_in_hand", {
     [actions.PLAY_ALL_CARDS]: {name: translate(actions.PLAY_ALL_CARDS), icon: "fa-hand-lizard", visible: function(key, opt){return options.exchange;}},
@@ -462,6 +485,8 @@ function onOptionMenu(name, op) {
       }
     }; break;
     case actions.CLEAR_AREA : clearPlayingArea(); break;
+    case actions.PILE_UP_AREA: pileUpPlayingArea(); break;
+    case actions.DISPERSE_AREA: dispersePlayingArea(); break;
     case actions.TAKE_BACK_CARD : takeCardFromPile(op.$trigger); break;
     case actions.TAKE_CARD_ASIDE : takeCardAside(); break;
     case actions.REMOVE_CARD_ASIDE : removeCardAside(); break;
@@ -639,7 +664,10 @@ function isChecked(name) {
   return options[name] == undefined ? false : options[name];
 }
 
-function drawCard(card, clazz, type="div") {
+function drawCard(card, clazz, type="div", needToClean=true) {
+  if(!needToClean) {
+    cleanCard(card)
+  }
   return `<${type} class="card rank-${card.rank.toLowerCase()} ${card.suit} ${clazz}">
             <span class="rank">${translate(card.rank)}</span>
             <span class="suit">&${card.suit};</span>
@@ -712,6 +740,11 @@ function drawOptionList() {
   ${createBooleanOption("stack_visible", translate("View all cards"), translate("View all cards played"), translate("View only the last one"))} 
   <br />
   ${createBooleanOption("exchange", translate("Need to exchange card"), translate("Moment to exchange before playing"), translate("Play after distribution"))} 
+  <br />
+  ${createBooleanOption("inverse_pile", 
+                        translate("Inverse pile display"), 
+                        translate("The last card played is the first display (can't pile up cards)"), 
+                        translate("The last card played in the last display (can pile up cards)"))} 
   <br />
   ${createNumberOption("number_decks", "decks of cards")}
   `;
@@ -1001,7 +1034,7 @@ function drawPile() {
   $("#playArea").append(content);
 
   for (var i = 0; i < pile.length; i++) {
-    var j = options["stack_visible"] ? pile.length - 1 - i : i;
+    var j = options["stack_visible"] || options["inverse_pile"] ? pile.length - 1 - i : i;
     card = pile[j];
     if(card.hidden) {
       continue;
@@ -1010,13 +1043,13 @@ function drawPile() {
     if (options.back_card) {
       $item = `<div class="card back card_in_pile">*</div>`;
     } else {
-      $item = $(drawCard(card, "card_in_pile"));
+      $item = $(drawCard(card, "card_in_pile", false));
     }
     var $layer = $('<div class="card_layer"/>');
     var $owner = $('<div class="card_owner"/>').text(card["username"]);
     $layer.append($item);
     $layer.append($owner);
-    if (!options["stack_visible"]) {
+    if (!options["stack_visible"] || card.pile_up) {
       $layer.draggable({ containment: "parent" });
       $layer.css({ position: "absolute" });
     }

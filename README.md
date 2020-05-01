@@ -49,7 +49,8 @@ Current supported Languages: English, French
 # What's new 
 
 - Get back discard pile
-- Translation for figures
+- Pile up / disperse card in pile
+- French translation for figures
 
 # What's next 
 
@@ -64,10 +65,6 @@ Current supported Languages: English, French
 - UX - Chat écrit
 - UX - Chat oral / video
 - UI - Revoir l'ecran d'appel
-
-## Manque pour Yaniv 
-- GAME PLAY - YANIV - regrouper les anciennes cartes (cartes jouer par le joueur avant)
-  
 
 # Bugs
 
@@ -88,8 +85,8 @@ Current supported Languages: English, French
 | Display trick won                     |              | OK              |            | OK          |
 | Log actions                           |              |                 | OK         |             |
 | Random first player                   | OK           | OK              | OK         |             |
-| Put old cards in discard pile         |              |                 | OK      |             |
-| Shuffle the discard pile              |              |                 | OK   |             |
+| Put old cards in discard pile         |              |                 | OK         |             |
+| Shuffle the discard pile              |              |                 | OK         |             |
 | ------------ TO DEVELOP ------------  |              |                 |            |             |
 | Trump cards (atouts)                  |              |                 |            | **NEED**    |
 | Bidding                               | OPTIONNAL    |                 |            |             |
