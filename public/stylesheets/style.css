@@ -138,6 +138,19 @@ h1, h2, h3, h4 {
 .user_emoji {
   font-size: 2em;
 }
+
+.color_effect {
+  -webkit-animation:color_effect 1.2s infinite;
+}
+
+@-webkit-keyframes color_effect {
+  0%       { background-color: rgba(114, 125, 184, 0.418); }
+  25%, 75% { background-color: rgba(114, 125, 184, 0.548); }
+  50%      { background-color: rgba(114, 139, 184, 0.733); }
+  100%     { background-color: rgba(114, 125, 184, 0.418); }
+}
+
+
 .user_profil {
   margin: 10px;
   display: inline-block;

@@ -17,6 +17,7 @@ var numberOptionList = {}
 
 var room;
 var translate;
+var animationID;
 
 function main(roomName, lang) {
 
@@ -643,7 +644,10 @@ function drawUsersInfos() {
       && users != undefined
       && users[playerNumber] != undefined
       && users[playerNumber].id == user.id) {
-      userClass +=  " player"
+      userClass +=  " player "
+      if(isMyTurn()) {
+        userClass += " color_effect"
+      }
     }
     if(state != states.CONFIGURE) {
       userClass += " user_profil_menu"
@@ -657,6 +661,7 @@ function drawUsersInfos() {
     $("#user_container").append(content);
   });
 
+  $("body").on("click", ".color_effect", function () {  $(".color_effect").removeClass("color_effect"); });
   $(".player_number").text(translate("Players") + users.length);
 }
 
