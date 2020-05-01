@@ -311,13 +311,13 @@
 
 .playingCards.faceImages .card.rank-c {
     background-repeat: no-repeat;
-    background-position: .4em .35em;
+    background-position: .7em .1em;
     /* bottom: 2.3em; */
-    -moz-background-size: 2.6em;
-    -o-background-size: 2.6em;
-    -webkit-background-size: 2.6em;
-    -khtml-background-size: 2.6em;
-    background-size: 2.6em;
+    -moz-background-size: 2.1em;
+    -o-background-size: 2.1em;
+    -webkit-background-size: 2.1em;
+    -khtml-background-size: 2.1em;
+    background-size: 2.1em;
 }
 .playingCards.faceImages .card.joker,
 .playingCards.faceImages .card.rank-j,
@@ -346,10 +346,10 @@
 .playingCards.faceImages .card.rank-j.spades { background-image: url(faces/JS.gif); }
 .playingCards.faceImages .card.rank-j.clubs  { background-image: url(faces/JC.gif); }
 
-.playingCards.faceImages .card.rank-c.diams  { background-image: url(faces/CD.png); }
-.playingCards.faceImages .card.rank-c.hearts { background-image: url(faces/CH.png); }
-.playingCards.faceImages .card.rank-c.spades { background-image: url(faces/CS.png); }
-.playingCards.faceImages .card.rank-c.clubs  { background-image: url(faces/CC.png); }
+.playingCards.faceImages .card.rank-c.diams  { background-image: url(faces/CD.jpg); }
+.playingCards.faceImages .card.rank-c.hearts { background-image: url(faces/CH.jpg); }
+.playingCards.faceImages .card.rank-c.spades { background-image: url(faces/CS.jpg); }
+.playingCards.faceImages .card.rank-c.clubs  { background-image: url(faces/CC.jpg); }
 
 .playingCards.faceImages .card.rank-q.diams  { background-image: url(faces/QD.gif); }
 .playingCards.faceImages .card.rank-q.hearts { background-image: url(faces/QH.gif); }
