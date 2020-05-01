@@ -1039,7 +1039,10 @@ function drawPile() {
   $("#playArea").append(content);
 
   for (var i = 0; i < pile.length; i++) {
-    var j = options["stack_visible"] || options["inverse_pile"] ? pile.length - 1 - i : i;
+    var j = i;
+    if(options["stack_visible"] && options["inverse_pile"]) {
+      j = pile.length - 1 - i;
+    }
     card = pile[j];
     if(card.hidden) {
       continue;
