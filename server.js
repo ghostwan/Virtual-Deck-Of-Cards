@@ -148,7 +148,9 @@ io.on("connection", socket => {
       storeData("users", users)
 
       var gameData = getData("gameData") 
-      gameData[socket.id].user_disconnected = true
+      if(gameData && socket.id && gameData[socket.id]) {
+        gameData[socket.id].user_disconnected = true
+      }
 
       emitUpdateToRoom(actions.DISCONNECT_USER, { users: prepareUsers(), gameData: getGameData()});
     }
@@ -193,7 +195,7 @@ io.on("connection", socket => {
   socket.on("putCardAside", () => {
     if(socketNotAvailble()) {return}
     
-    cards = takeCards(1, getDeck(), []);
+    var cards = takeCards(1, getDeck(), []);
     storeData("deck", cards.deck)
     emitUpdateToRoom(actions.CARD_ASIDE, {
       remainingCards: cards.deck.length, 
@@ -237,6 +239,27 @@ io.on("connection", socket => {
       state: options.exchange? state(states.EXCHANGE) : state(states.PLAY), 
       gameData: getGameData()
     }, `distribute ${numCards} cards`)
+  });
+
+  socket.on("getDiscardPile", () => {
+
+    var pile = getData("pile");
+    var deck = getDeck();
+    var numCards  = pile.length;
+
+    for (c = 0; c < numCards; c++) {
+      var card = pile[c];
+      deck.push(card);
+    }
+    pile = [];
+
+    storeData("pile", []);
+    storeData("deck", shuffle(deck));
+
+    emitUpdateToRoom(actions.GET_DISCARD_PILE, {
+      remainingCards: deck.length, 
+      pile: [],
+    }, `get back ${numCards} cards from discard pile`)
   });
 
   socket.on("shuffleDeck", () => {
@@ -390,11 +413,6 @@ io.on("connection", socket => {
     }
   }
 });
-
-function newDeckFromDiscardPile(option) {
-  // var deck = newDeck(option);
-  // var hands = 
-}
 
 
 function newDeck(options) {

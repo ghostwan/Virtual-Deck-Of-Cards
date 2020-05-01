@@ -43,7 +43,8 @@ const actions = {
     REMOVE_CARD_ASIDE: "remove card aside",
     CLEAR_AREA: "clear the playing area",
     CLAIM_TRICK: "claim trick",
-    REVEAL_PLAYERS_CARDS: "reveal players cards"
+    REVEAL_PLAYERS_CARDS: "reveal players cards",
+    GET_DISCARD_PILE:"get discard pile"
 }
 
 const configs = {

@@ -202,8 +202,6 @@ function isMyTurn() {
 }
 
 socket.on("onRevealCards", function (data) {
-  console.log("=====> Data in clear")
-  console.log(data)
   drawPileRevealCards(data);
 });
 
@@ -305,8 +303,10 @@ function takeCardAside() {
 }
 
 function removeCardAside() {
+  cardAside.hidden = true
+  pile.push(cardAside)
   cardAside = -1;
-  updateData({ action: actions.REMOVE_CARD_ASIDE, cardAside: cardAside })
+  updateData({ action: actions.REMOVE_CARD_ASIDE, cardAside: cardAside, pile: pile })
 }
 
 function takeCardFromPile(item=undefined) {
@@ -386,7 +386,10 @@ function start() {
 
 function clearPlayingArea() {
   if (confirm(translate("Are you sure, you want to clear the playing area?"))) {
-    updateData({ action: actions.CLEAR_AREA, pile: [] })
+    pile.forEach(card => {
+      card.hidden = true
+    });
+    updateData({ action: actions.CLEAR_AREA, pile: pile })
   }
 }
 
@@ -780,6 +783,10 @@ function readyToPlay() {
   updateData({action: actions.READY_TO_PLAY, state: states.PLAY})
 }
 
+function getDiscardPile(){
+  socket.emit("getDiscardPile");
+}
+
 function drawStack() {
   var cardsContent = "";
   for (i = 0; i < 4; i ++ ) {
@@ -988,14 +995,17 @@ function drawPile() {
     if (pile.length == users.length) {
       content += createButton("Claim trick", "askClaimTrick()", "margin_bottom");
     }
-  } else {
-    // content += createButton("Clear", "clearPlayingArea()", "margin_bottom");
+  } else if(pile.length != 0) {
+      content += createButton("Get and shuffle discard pile", "getDiscardPile()", "margin_bottom");
   }
   $("#playArea").append(content);
 
   for (var i = 0; i < pile.length; i++) {
     var j = options["stack_visible"] ? pile.length - 1 - i : i;
     card = pile[j];
+    if(card.hidden) {
+      continue;
+    }
     var $item = ""
     if (options.back_card) {
       $item = `<div class="card back card_in_pile">*</div>`;

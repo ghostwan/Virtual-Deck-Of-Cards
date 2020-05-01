@@ -35,6 +35,7 @@ Current supported Languages: English, French
 - Hide card value in playing area (poker style ;) ) 
 - See who played a card
 - Clear the playing area
+- Add the end display people hands
 - Option to claim trick and see who won tricks
 - Option to exchange card : Hide values, put all cards on the table and ask someone to pick one
 - Option to block players actions when it's not there turn (to prevent chaos =) )
@@ -47,13 +48,11 @@ Current supported Languages: English, French
 
 # What's new 
 
-- Force language manually with query parameters 'lang=fr'
-- Add action menu to display people hands at the end
-- Add cards obfuscation
+- Get back discard pile
+- Translation for figures
 
 # What's next 
 
-- Mélange la defausse
 - GAME PLAY - Locker la partie pour que plus personnes ne puisse rentrer 
 - UI - grossir / reduire taille cartes 
 - GAME PLAY - ESCALIER - Prise en compte des annonces
@@ -68,7 +67,6 @@ Current supported Languages: English, French
 
 ## Manque pour Yaniv 
 - GAME PLAY - YANIV - regrouper les anciennes cartes (cartes jouer par le joueur avant)
-- GAME PLAY - YANIV - Mélanger la déffausse
   
 
 # Bugs
@@ -90,10 +88,10 @@ Current supported Languages: English, French
 | Display trick won                     |              | OK              |            | OK          |
 | Log actions                           |              |                 | OK         |             |
 | Random first player                   | OK           | OK              | OK         |             |
+| Put old cards in discard pile         |              |                 | OK      |             |
+| Shuffle the discard pile              |              |                 | OK   |             |
 | ------------ TO DEVELOP ------------  |              |                 |            |             |
 | Trump cards (atouts)                  |              |                 |            | **NEED**    |
-| Put old cards in discard pile         |              |                 | OPTIM      |             |
-| Shuffle the discard pile              |              |                 | **NEED**   |             |
 | Bidding                               | OPTIONNAL    |                 |            |             |
 | Scores calculator                     | OPTIONNAL    | OPTIONNAL       | OPTIONNAL  | OPTIONNAL   |
 | Recall the round rules                |              | OPTIONNAL       |            |             |
