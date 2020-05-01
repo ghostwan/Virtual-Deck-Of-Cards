@@ -254,7 +254,8 @@ io.on("connection", socket => {
     pile = [];
 
     storeData("pile", []);
-    storeData("deck", shuffle(deck));
+    deck = shuffle(deck)
+    storeData("deck", deck);
 
     emitUpdateToRoom(actions.GET_DISCARD_PILE, {
       remainingCards: deck.length, 
