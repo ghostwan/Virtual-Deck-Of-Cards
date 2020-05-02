@@ -160,10 +160,13 @@ io.on("connection", socket => {
     io.sockets.in(socket.room).emit("onRevealCards", getGameData(false));
   });
 
-  socket.on("takeCard", data => {
+  socket.on("takeCardInHand", data => {
     if(socketNotAvailble()) {return}
     
-    cards = takeCards(1, getDeck(), data.hand);
+    var result = takeCards(1, getDeck(), data.hand);
+    var deck = result.from;
+    var hand = result.to;
+
     var gameData = getData("gameData") 
     if(gameData == undefined) {
       gameData = {}
@@ -172,16 +175,30 @@ io.on("connection", socket => {
       gameData[socket.id] = {}
       gameData[socket.id].cards = []
     }
-    gameData[socket.id].cards = cards.hand;
+    gameData[socket.id].cards = hand;
     storeData("gameData", gameData);
 
-    storeData("deck", cards.deck)
+    storeData("deck", deck)
     emitUpdateToRoom(actions.DRAW_CARD, {
-      remainingCards: cards.deck.length, 
+      remainingCards: deck.length, 
       gameData: getGameData()
     })
-    var cardsInHand = unobfuscateCards(cards.hand)
+    var cardsInHand = unobfuscateCards(hand)
     emitToUser(socket.id, "onUpdateHand", cardsInHand)
+  });
+
+  socket.on("addCardToPile", numCards => {
+    if(socketNotAvailble()) {return}
+
+    var result = takeCards(numCards, getDeck(), getData("pile"));
+    var deck = result.from;
+    var pile = result.to;
+
+    emitUpdateToRoom(actions.PUT_CARD_PILE, {
+      remainingCards: deck.length, 
+      pile: storeData("pile", pile)
+    })
+
   });
 
   socket.on("endTurn", () => {
@@ -195,12 +212,15 @@ io.on("connection", socket => {
   socket.on("putCardAside", () => {
     if(socketNotAvailble()) {return}
     
-    var cards = takeCards(1, getDeck(), []);
-    storeData("deck", cards.deck)
+    var result = takeCards(1, getDeck(), []);
+    var deck = result.from;
+    var hand = result.to;
+
+    storeData("deck", deck)
     emitUpdateToRoom(actions.CARD_ASIDE, {
-      remainingCards: cards.deck.length, 
-      cardAside: storeData("cardAside", cards.hand[0])
-    })
+      remainingCards: deck.length, 
+      cardAside: storeData("cardAside", hand[0])
+    });
   });
 
   socket.on("distribute", data => {
@@ -209,7 +229,7 @@ io.on("connection", socket => {
     var deck = getDeck();
     var options = getData("options")
     var numCards = data.numCards;
-    options["cards_distribute"] = numCards;
+    options.cards_distribute = numCards;
     var users = getUsersConnected();
     
     if (numCards == -1) {
@@ -221,8 +241,8 @@ io.on("connection", socket => {
     for (var u = 0; u < users.length; u++) {
       hand = [];
       result = takeCards(numCards, deck, hand);
-      deck = result["deck"];
-      hand = result["hand"];
+      deck = result.from;
+      hand = result.to;
       
       emitToUser(users[u], "onUpdateHand", hand);
       
@@ -236,13 +256,12 @@ io.on("connection", socket => {
     emitUpdateToRoom(actions.DISTRIBUTE, {
       remainingCards: deck.length, 
       options: options, 
-      state: options.exchange? state(states.EXCHANGE) : state(states.PLAY), 
+      state: options.preparation? state(states.PREPARATION) : state(states.PLAY), 
       gameData: getGameData()
     }, `distribute ${numCards} cards`)
   });
 
   socket.on("getDiscardPile", () => {
-
     var pile = getData("pile");
     var deck = getDeck();
     var numCards  = pile.length;
@@ -417,16 +436,22 @@ io.on("connection", socket => {
 
 
 function newDeck(options) {
-  var rank = RANK;
-  if (options["cavaliers"]) {
-    rank = RANK_CAVLIERS;
-  }
   var cards = [];
-  var decks = options.number_decks
-  for (var d = 0; d < decks; d++) {
-    for (var i = 0; i < SUITS.length; i++) {
-      for (var j = 0; j < rank.length; j++) {
-        var card = { rank: rank[j], suit: SUITS[i] };
+  var numberOfdecks = options.number_decks
+  for (var d = 0; d < numberOfdecks; d++) {
+    for (var s = 0; s < SUITS.length; s++) {
+      for (var r = 0; r < RANK.length; r++) {
+        if(!options.cavaliers && RANK[r] == "C")  {
+          continue;
+        }
+        var card = { rank: RANK[r], suit: SUITS[s] };
+        cards.push(card);
+      }
+    }
+
+    if(options.atouts) {
+      for (var a = 0; a < ATOUTS.length; a++) {
+        var card = { rank: ATOUTS[a], suit: "atouts" };
         cards.push(card);
       }
     }
@@ -434,12 +459,16 @@ function newDeck(options) {
   return cards;
 }
 
-function takeCards(numcards, deck, hand) {
-  for (var i = 0; i < numcards; i++) {
-    hand.push(deck[0]);
-    deck.splice(0, 1);
+function takeCards(numcards, from, to) {
+  // To avoid taking more cards than existing
+  if(numcards > from.length) {
+    numcards = from.length;
   }
-  data = { hand: hand, deck: deck };
+  for (var i = 0; i < numcards; i++) {
+    to.push(from[0]);
+    from.splice(0, 1);
+  }
+  data = { to: to, from: from };
   return data;
 }
 
@@ -457,7 +486,7 @@ function obfuscate(gameData) {
         for (c = 0; c < tempCards.length; c ++) {
           // If data not obfuscate yet, obfuscate
           var card = tempCards[c];
-          if(SUITS.includes(card.suit)) {
+          if(SUITS_ATOUTS.includes(card.suit)) {
             card.rank = card.rank.normalise_to_ascii().crypt_symmetric();
             card.suit = card.suit.normalise_to_ascii().crypt_symmetric();
           }
@@ -482,7 +511,7 @@ function unobfuscateCards(array) {
     for (c = 0; c < array.length; c ++) {
       // If data obfuscate unobfuscate
       var card = array[c];
-      if(!SUITS.includes(card.suit )) {
+      if(!SUITS_ATOUTS.includes(card.suit )) {
         card.rank = card.rank.normalise_to_ascii().crypt_symmetric();
         card.suit = card.suit.normalise_to_ascii().crypt_symmetric();
       }

@@ -23,21 +23,21 @@ Current supported Languages: English, French
 - See who's connected to the room
 - Choose your name roger!
 - Configure deck, game pre config, options...
-- Put a card aside for game as "oh hell"
+- Put a visible card aside for game as "oh hell"
 - Take the card put aside for game as "yaniv"
 - Distribute the whole deck or a specific number of cards among all players 
 - See how many cards each player got
-- Rearrange cards in your hand, sort them, shuffle them! you name it! 
+- Rearrange cards in your hand, sort them by suit, by values, shuffle them! you name it! 
 - See who's turn is and change it if needed (choose a specific player or random)
 - Draw a card from the deck
 - Play a card from your hand
 - Take a card from the playing area (for some game as Yaniv or if you did a mistake)
-- Hide card value in playing area (poker style ;) ) 
+- Hide cards values in playing area (poker style ;) ) 
 - See who played a card
 - Clear the playing area
 - Add the end display people hands
 - Option to claim trick and see who won tricks
-- Option to exchange card : Hide values, put all cards on the table and ask someone to pick one
+- Option for preparation phase to exchange card for example (Hide values, put all cards on the table and ask someone to pick one)
 - Option to block players actions when it's not there turn (to prevent chaos =) )
 - Option to end turn after playing a card
 - Option to block card retrieving from playing area (game with trick don't need it)
@@ -48,19 +48,23 @@ Current supported Languages: English, French
 
 # What's new 
 
-- Get back discard pile
+- Get and shuffle discard pile
 - Pile up / disperse card in pile
 - French translation for figures
+- TAROT - Add trumps cards (atouts) for tarot
+- TAROT - Add option to put hidden cards aside 
+- TAROT - Add card aside to the pile
+- Sort by value
 
 # What's next 
 
+- GAME PLAY - ne faire transiter vers les clients les mains que quand on veut les afficher
 - GAME PLAY - Locker la partie pour que plus personnes ne puisse rentrer 
 - UI - grossir / reduire taille cartes 
 - GAME PLAY - ESCALIER - Prise en compte des annonces
 - GAME PLAY - MARMOTEE - poser des cartes cacher sur la table
 - GAME PLAY - Quand quelqu'un se connecte lui permettre ou non de rejoindre la partie, sinon spectateur
 - GAME PLAY - Gestion des scores
-- GAME PLAY - TAROTS - Rajouter les cartes les atouts de tarot
 - GAME PLAY - Créer de nouvelles cartes entre 10 et valet quand on est plusieurs (11, 12, 13, 14, 15...)
 - UX - Chat écrit
 - UX - Chat oral / video
@@ -72,26 +76,26 @@ Current supported Languages: English, French
 
 # Game features status
 
-| Features / Games                      | Escalier [D] | Ratatouille [D] | Yaniv  [N] | Tarot   [T] |
-| ------------------------------------- | ------------ | --------------- | ---------- | ----------- |
-| Distribute all the deck               |              | OK              |            | OK          |
-| Distribute a specific number of cards | OK           |                 | OK         |             |
-| Put a card aside                      | OK (atout)   |                 |            |             |
-| Claim trick                           | OK           | OK              |            | OK          |
-| See How many cards each player got    |              |                 | OK         |             |
-| Draw a card from the deck             |              |                 | OK         |             |
-| Take a card from the playing area     |              |                 | OK         |             |
-| Change turn automatically             | OK           |                 |            |             |
-| Display trick won                     |              | OK              |            | OK          |
-| Log actions                           |              |                 | OK         |             |
-| Random first player                   | OK           | OK              | OK         |             |
-| Put old cards in discard pile         |              |                 | OK         |             |
-| Shuffle the discard pile              |              |                 | OK         |             |
-| ------------ TO DEVELOP ------------  |              |                 |            |             |
-| Trump cards (atouts)                  |              |                 |            | **NEED**    |
-| Bidding                               | OPTIONNAL    |                 |            |             |
-| Scores calculator                     | OPTIONNAL    | OPTIONNAL       | OPTIONNAL  | OPTIONNAL   |
-| Recall the round rules                |              | OPTIONNAL       |            |             |
+| Features / Games                      | Escalier [D] | Ratatouille [D] | Yaniv  [D] | Tarot   [D] | Poker [W] |
+| ------------------------------------- | ------------ | --------------- | ---------- | ----------- | --------- |
+| Distribute all the deck               |              | OK              |            | OK          |           |
+| Distribute a specific number of cards | OK           |                 | OK         |             | OK        |
+| Put a card aside                      | OK (atout)   |                 |            |             |           |
+| Claim trick                           | OK           | OK              |            | OK          |           |
+| See How many cards each player got    |              |                 | OK         |             |           |
+| Draw a card from the deck             |              |                 | OK         |             |           |
+| Take a card from the playing area     |              |                 | OK         |             |           |
+| Change turn automatically             | OK           |                 |            |             |           |
+| Display trick won                     |              | OK              |            | OK          |           |
+| Log actions                           |              |                 | OK         |             |           |
+| Random first player                   | OK           | OK              | OK         |             |           |
+| Put old cards in discard pile         |              |                 | OK         |             |           |
+| Shuffle the discard pile              |              |                 | OK         |             |           |
+| Trump cards (atouts)                  |              |                 |            | OK          |           |
+| ------------ TO DEVELOP ------------  |              |                 |            |             |           |
+| Bidding                               | OPTIONNAL    |                 |            |             | NEED      |
+| Scores calculator                     | OPTIONNAL    | OPTIONNAL       | OPTIONNAL  | OPTIONNAL   |           |
+| Recall the round rules                |              | OPTIONNAL       |            |             |           |
 
 
 D = DONE: you can play easily to this game  

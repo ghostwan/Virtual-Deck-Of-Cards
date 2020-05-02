@@ -40,7 +40,7 @@ function main(roomName, lang) {
       return;
     }
 
-    putCardOnPile(this)
+    putCardOnPileFromHand(this)
     // If we are playing and if there is to end the turn on draw, end the turn
     if(state == states.PLAY && options.end_turn_draw) {
       endTurn();
@@ -67,7 +67,7 @@ function main(roomName, lang) {
       return;
     }
 
-    takeCardFromPile(this);
+    takeCardFromPileToHand(this);
   });
 
 
@@ -294,6 +294,13 @@ function updateData(data) {
   socket.emit("updateData", data);
 }
 
+function emit(action, param) {
+  // Game disconnected
+  if(socket.id == undefined) {
+    return;
+  }
+  socket.emit(action, param);
+}
 
 function takeCardAside() {
   my_hand.push(cardAside);
@@ -310,12 +317,12 @@ function removeCardAside() {
   updateData({ action: actions.REMOVE_CARD_ASIDE, cardAside: cardAside, pile: pile })
 }
 
-function takeCardFromPile(item=undefined) {
+function takeCardFromPileToHand(item=undefined) {
   var action;
   if(item != undefined) {
     action = actions.TAKE_BACK_CARD;
     var cardIndex = $(".card_in_pile").index($(item));
-    var cardIndex = options.stack_visible ? pile.length - 1 - cardIndex : cardIndex;
+    var cardIndex = options.stack_visible && options.inverse_pile ? pile.length - 1 - cardIndex : cardIndex;
     var card = pile[cardIndex];
 
     my_hand.push(card);
@@ -336,7 +343,7 @@ function takeCardFromPile(item=undefined) {
   drawHand();
 }
 
-function putCardOnPile(item=undefined) {
+function putCardOnPileFromHand(item=undefined) {
   var action;
   if(item != undefined) {
     action = actions.PLAY_CARD;
@@ -400,7 +407,6 @@ function cleanCard(card) {
   delete card.pile_up
 }
 
-
 function pileUpPlayingArea() {
     pile.forEach(card => {
       card.pile_up = true
@@ -436,18 +442,23 @@ function init() {
   });
   createMenu(".card_in_pile", {
     [actions.TAKE_BACK_CARD]: {name: translate("take this card"), icon: "fa-hand-lizard"},
-    [actions.TAKE_BACK_ALL_CARDS]: {name: translate(actions.TAKE_BACK_ALL_CARDS), icon: "fa-hand-lizard", visible: function(key, opt){return options.exchange;}},
+    [actions.TAKE_BACK_ALL_CARDS]: {name: translate(actions.TAKE_BACK_ALL_CARDS), icon: "fa-hand-lizard", visible: function(key, opt){return options.preparation;}},
     [actions.CLEAR_AREA]: {name: translate("clear"), icon: "fa-trash-alt", visible: function(key, opt){return options.tricks;}},
     [actions.PILE_UP_AREA]: {name: translate("pile up"), icon: "fa-align-justify", visible: function(key, opt){return !options.inverse_pile;}},
-    [actions.DISPERSE_AREA]: {name: translate("disperse"), icon: "fa-columns", visible: function(key, opt){return !options.inverse_pile;}}
+    [actions.DISPERSE_AREA]: {name: translate("disperse"), icon: "fa-columns", visible: function(key, opt){return !options.inverse_pile && options.stack_visible;}}
   });
   createMenu(".card_in_hand", {
-    [actions.PLAY_ALL_CARDS]: {name: translate(actions.PLAY_ALL_CARDS), icon: "fa-hand-lizard", visible: function(key, opt){return options.exchange;}},
     [actions.SHUFFLE_HAND]: {name: translate("shuffle"), icon: "fa-hand-lizard"},
+    [actions.SORT_VALUE]: {name: translate("Sort by value"), icon: "fa-hand-lizard", visible: function(key, opt){return !options.atouts}},
+    [actions.PLAY_ALL_CARDS]: {name: translate(actions.PLAY_ALL_CARDS), icon: "fa-hand-lizard", visible: function(key, opt){return options.preparation;}},
   });
   createMenu(".card_aside", {
     [actions.TAKE_CARD_ASIDE]: {name: translate("take this card"), icon: "fa-hand-lizard"},
     [actions.REMOVE_CARD_ASIDE]: {name: translate("remove"), icon: "fa-hand-lizard"},
+  });
+  createMenu(".deck_stack", {
+    [actions.PUT_CARD_PILE]: {name: translate("put a card on the pile"), icon: "fa-hand-lizard"},
+    [actions.PUT_ALL_CARDS_PILE]: {name: translate("put all the cards on the pile"), icon: "fa-hand-lizard"},
   });
   
 
@@ -488,12 +499,15 @@ function onOptionMenu(name, op) {
     case actions.CLEAR_AREA : clearPlayingArea(); break;
     case actions.PILE_UP_AREA: pileUpPlayingArea(); break;
     case actions.DISPERSE_AREA: dispersePlayingArea(); break;
-    case actions.TAKE_BACK_CARD : takeCardFromPile(op.$trigger); break;
+    case actions.TAKE_BACK_CARD : takeCardFromPileToHand(op.$trigger); break;
     case actions.TAKE_CARD_ASIDE : takeCardAside(); break;
     case actions.REMOVE_CARD_ASIDE : removeCardAside(); break;
-    case actions.TAKE_BACK_ALL_CARDS : takeCardFromPile(); break;
-    case actions.PLAY_ALL_CARDS : putCardOnPile(); break;
+    case actions.TAKE_BACK_ALL_CARDS : takeCardFromPileToHand(); break;
+    case actions.PLAY_ALL_CARDS : putCardOnPileFromHand(); break;
     case actions.SHUFFLE_HAND : shuffleCard(); break;
+    case actions.SORT_VALUE : sortCardByValue(); break;
+    case actions.PUT_CARD_PILE : emit("addCardToPile", 1); break;
+    case actions.PUT_ALL_CARDS_PILE : emit("addCardToPile", remainingCards); break;
   }
 }
 
@@ -582,7 +596,7 @@ function resetRound() {
 
 function takeCard() {
   var data = { hand: my_hand };
-  socket.emit("takeCard", data);
+  socket.emit("takeCardInHand", data);
 }
 
 function putCardAside() {
@@ -670,15 +684,24 @@ function isChecked(name) {
 }
 
 function drawCard(card, clazz, type="div", needToClean=true) {
-  if(!needToClean) {
+  
+  if(needToClean) {
     cleanCard(card)
+  }
+  var suit = card.suit.toLowerCase();
+  var rank = card.rank.toLowerCase();
+
+  if(suit == "atouts") {
+    var $rank = rank == "t0" ? "" : rank.substring(1);
+    return `<${type} class="card tarot ${rank} ${clazz}">
+                <span class="rank">${$rank}</span>
+            </${type}>`
   }
   return `<${type} class="card rank-${card.rank.toLowerCase()} ${card.suit} ${clazz}">
             <span class="rank">${translate(card.rank)}</span>
             <span class="suit">&${card.suit};</span>
           </${type}>`
 }
-
 
 function createBooleanOption(name, title, descriptionChecked=undefined, description=undefined) {
   booleanOptionList[name] = 1;
@@ -695,11 +718,11 @@ function createBooleanOption(name, title, descriptionChecked=undefined, descript
   return content;
 }
 
-function createNumberOption(name, title) {
-  numberOptionList[name] = 1;
+function createNumberOption(name, title, defaultValue=0) {
+  numberOptionList[name] = defaultValue;
   return `<input  class= "mb-2" type = "number" 
-    id = "option_${name}" min="1" value="1"} />
-    <label class="form-check-label option_label" for="option_${name}" >${translate(title)}`
+    id = "option_${name}" min="${defaultValue}" value="${defaultValue}"} />
+    <label class="form-check-label option_label" for="option_${name}" >${translate(title)}</label>`
 }
 
 function createGameConfigs() {
@@ -728,7 +751,11 @@ function syncNumberOption(name) {
 
 function drawOptionList() {
   return `
-  ${createBooleanOption("cavaliers", translate("Include cavaliers"), translate("56 cards"), translate("52 cards"))}
+  ${createBooleanOption("cavaliers", translate("Include cavaliers"), "56 "+translate("cards"), "52 "+translate("cards"))}
+  <br />
+  ${createBooleanOption("atouts", translate("Include atouts cards"), getDeckSize()+" "+translate("cards"), getDeckSize()+" "+translate("cards"))}
+  <br />
+  ${createNumberOption("hidden_card_aside", "Hidden cards aside", defaultHiddenCards())}
   <br />
   ${createBooleanOption("tricks", translate("Claim tricks 🂠")+" <b> X </b>", translate("tricks won"), translate("cards in hand"))}
   <br />
@@ -744,17 +771,35 @@ function drawOptionList() {
   <br />
   ${createBooleanOption("stack_visible", translate("View all cards"), translate("View all cards played"), translate("View only the last one"))} 
   <br />
-  ${createBooleanOption("exchange", translate("Need to exchange card"), translate("Moment to exchange before playing"), translate("Play after distribution"))} 
+  ${createBooleanOption("preparation", translate("Preparation phase"), translate("Moment to exchange or put card aside before playing"), translate("Players play directly after distribution"))} 
   <br />
   ${createBooleanOption("inverse_pile", 
-                        translate("Inverse pile display"), 
+                        translate("Inverse discard pile display"), 
                         translate("The last card played is the first display (can't pile up cards)"), 
                         translate("The last card played in the last display (can pile up cards)"))} 
   <br />
-  ${createNumberOption("number_decks", "decks of cards")}
+  ${createNumberOption("number_decks", "decks of cards", 1)}
   `;
 }
 
+function defaultHiddenCards(){
+  if(options.atouts && options.cavaliers) {
+    return users.length < 5 ? 6 : 3;
+  } else {
+    return 0;
+  }
+}
+
+function getDeckSize() {
+  var cardsNumber = 52;
+  if(options.cavaliers) {
+    cardsNumber += 4;
+  }
+  if(options.atouts) {
+    cardsNumber += 22;
+  }
+  return cardsNumber
+}
 
 function drawDeckConfig() {
   return `
@@ -786,7 +831,7 @@ function drawDeckDistribute() {
     <div class="control-group form-inline">`
       if (!options.all_cards) {
         content+= `<label class="mb-2" for="distribute_card">${translate("Card to distribute to each player ")} ( ${message} )</label>
-        <input  class= "mb-2 w-100" type = "number" id = "distribute_card" min="1" max="${deckOriginalLength}" placeholder = "${translate("number of cards")}"
+        <input  class= "mb-2 w-100" type = "number" id = "distribute_card" min="1" max="${Math.floor(deckOriginalLength/users.length)}" placeholder = "${translate("number of cards")}"
                   value="${options["cards_distribute"]}"} />`
       }
     content += `</div>`
@@ -833,7 +878,7 @@ function drawStack() {
   return `<ul class="deck_stack deck">${cardsContent}</ul>`;
 }
 
-function drawDeckExchange() {
+function drawDeckPreparation() {
   var content = "";
 
   if (remainingCards == 0) {
@@ -923,9 +968,9 @@ function drawDeck() {
       drawPile();
       break;
     }
-    case states.EXCHANGE: {
+    case states.PREPARATION: {
       $("#game_controls").visible();
-      deckContent = drawDeckExchange();
+      deckContent = drawDeckPreparation();
       drawPile();
       break;
     }
@@ -1023,14 +1068,15 @@ function drawPile() {
 
   $("#playArea").empty();
   var content = `
-      <h2>${translate("Playing Area")}</h2>
+      <h2>${translate("Playing Area (discard pile)")}</h2>
       <div class = "col-10 form-group">
         ${createBooleanOption("end_turn_draw", translate("End turn after playing"))} <br>
         ${createBooleanOption("back_card", translate("Hide card value"))} <br>
       </div>`;
 
   if (options.tricks) {
-    if (pile.length == users.length) {
+    if ((state == states.PREPARATION && options.hidden_card_aside != 0) 
+        || (state == states.PLAY && pile.length == users.length) ) {
       content += createButton("Claim trick", "askClaimTrick()", "margin_bottom");
     }
   } else if(pile.length != 0) {
@@ -1040,7 +1086,7 @@ function drawPile() {
 
   for (var i = 0; i < pile.length; i++) {
     var j = i;
-    if(options["stack_visible"] && options["inverse_pile"]) {
+    if(options.stack_visible && options.inverse_pile) {
       j = pile.length - 1 - i;
     }
     card = pile[j];
@@ -1051,13 +1097,13 @@ function drawPile() {
     if (options.back_card) {
       $item = `<div class="card back card_in_pile">*</div>`;
     } else {
-      $item = $(drawCard(card, "card_in_pile", false));
+      $item = $(drawCard(card, "card_in_pile", "div", false));
     }
     var $layer = $('<div class="card_layer"/>');
-    var $owner = $('<div class="card_owner"/>').text(card["username"]);
+    var $owner = $('<div class="card_owner"/>').text(card.username != undefined ? card.username : ".");
     $layer.append($item);
     $layer.append($owner);
-    if (!options["stack_visible"] || card.pile_up) {
+    if (!options.stack_visible || card.pile_up) {
       $layer.draggable({ containment: "parent" });
       $layer.css({ position: "absolute" });
     }
@@ -1100,10 +1146,30 @@ function drawPileRevealCards(gameData) {
 
 function sortCard() {
   my_hand.sort(function (a, b) {
-    if (SUITS.indexOf(a.suit) < SUITS.indexOf(b.suit)) return -1;
-    if (SUITS.indexOf(a.suit) > SUITS.indexOf(b.suit)) return 1;
+    if(options.atouts) {
+      if (SUITS_ATOUTS.indexOf(a.suit) < SUITS_ATOUTS.indexOf(b.suit)) return -1;
+      if (SUITS_ATOUTS.indexOf(a.suit) > SUITS_ATOUTS.indexOf(b.suit)) return 1;
 
-    return RANK_CAVLIERS.indexOf(a.rank) - RANK_CAVLIERS.indexOf(b.rank);
+      if(a.suit == "atouts" && b.suit == "atouts") {
+        return ATOUTS.indexOf(a.rank) - ATOUTS.indexOf(b.rank);
+      }
+      else {
+        return RANK_ATOUTS.indexOf(a.rank) - RANK_ATOUTS.indexOf(b.rank);
+      }
+    } else {
+      if (SUITS.indexOf(a.suit) < SUITS.indexOf(b.suit)) return -1;
+      if (SUITS.indexOf(a.suit) > SUITS.indexOf(b.suit)) return 1;
+
+      return RANK.indexOf(a.rank) - RANK.indexOf(b.rank);
+    }
+
+  });
+  drawHand();
+}
+
+function sortCardByValue() {
+  my_hand.sort(function (a, b) {
+    return RANK.indexOf(a.rank) - RANK.indexOf(b.rank);
   });
   drawHand();
 }
@@ -1119,6 +1185,9 @@ function distributeCards() {
   var numCards = $("#distribute_card").val();
   if (options.all_cards) {
     numCards = -1;
+    if(options.hidden_card_aside) {
+      numCards = Math.floor((deckOriginalLength - options.hidden_card_aside) / users.length);
+    }
   }
   data = { numCards: numCards, hand: my_hand };
   socket.emit("distribute", data);

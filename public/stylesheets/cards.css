@@ -97,14 +97,22 @@
 
 /* top left main info (rank and suit) */
 
+.playingCards .card .tarot,
 .playingCards .card .rank,
 .playingCards .card .suit {
     display: block;
     line-height: 1;
     text-align: left;
 }
-.playingCards .card .rank {
+
+.playingCards .tarot .rank {
+    line-height: 1;
+    text-align: center;
+    margin-top: 1.6em;
+    color: black;
+    background-color: #ccc;
 }
+
 .playingCards .card .suit {
     line-height: .7;
 }
@@ -115,6 +123,7 @@
     font: inherit;
 }
 .playingCards.simpleCards .card input,
+.playingCards .card.tarot input
 .playingCards .card.rank-j input,
 .playingCards .card.rank-c input,
 .playingCards .card.rank-q input,
@@ -309,6 +318,17 @@
     content: '';
 }
 
+.playingCards.faceImages .card.tarot {
+    background-repeat: no-repeat;
+    background-position: .4em .1em;
+    /* bottom: 2.3em; */
+    -moz-background-size: 2.4em;
+    -o-background-size: 2.4em;
+    -webkit-background-size: 2.4em;
+    -khtml-background-size: 2.4em;
+    background-size: 2.4em;
+}
+
 .playingCards.faceImages .card.rank-c {
     background-repeat: no-repeat;
     background-position: .7em .1em;
@@ -335,6 +355,7 @@
 
 .playingCards.faceImages .card.rank-j.adjust
 .playingCards.faceImages .card.rank-c.adjust
+.playingCards.faceImages .card.tarot.adjust
 .playingCards.faceImages .card.rank-q.adjust
 .playingCards.faceImages .card.rank-k.adjust
 .playingCards.faceImages .card.rank-a.adjust {
@@ -360,6 +381,29 @@
 .playingCards.faceImages .card.rank-k.hearts { background-image: url(faces/KH.gif); }
 .playingCards.faceImages .card.rank-k.spades { background-image: url(faces/KS.gif); }
 .playingCards.faceImages .card.rank-k.clubs  { background-image: url(faces/KC.gif); }
+
+.playingCards.faceImages .card.tarot.t0  { background-image: url(faces/tarot0.jpg); }
+.playingCards.faceImages .card.tarot.t1  { background-image: url(faces/tarot1.jpg); }
+.playingCards.faceImages .card.tarot.t2  { background-image: url(faces/tarot2.jpg); }
+.playingCards.faceImages .card.tarot.t3  { background-image: url(faces/tarot3.jpg); }
+.playingCards.faceImages .card.tarot.t4  { background-image: url(faces/tarot4.jpg); }
+.playingCards.faceImages .card.tarot.t5  { background-image: url(faces/tarot5.jpg); }
+.playingCards.faceImages .card.tarot.t6  { background-image: url(faces/tarot6.jpg); }
+.playingCards.faceImages .card.tarot.t7  { background-image: url(faces/tarot7.jpg); }
+.playingCards.faceImages .card.tarot.t8  { background-image: url(faces/tarot8.jpg); }
+.playingCards.faceImages .card.tarot.t9  { background-image: url(faces/tarot9.jpg); }
+.playingCards.faceImages .card.tarot.t10  { background-image: url(faces/tarot10.jpg); }
+.playingCards.faceImages .card.tarot.t11  { background-image: url(faces/tarot11.jpg); }
+.playingCards.faceImages .card.tarot.t12  { background-image: url(faces/tarot12.jpg); }
+.playingCards.faceImages .card.tarot.t13  { background-image: url(faces/tarot13.jpg); }
+.playingCards.faceImages .card.tarot.t14  { background-image: url(faces/tarot14.jpg); }
+.playingCards.faceImages .card.tarot.t15  { background-image: url(faces/tarot15.jpg); }
+.playingCards.faceImages .card.tarot.t16  { background-image: url(faces/tarot16.jpg); }
+.playingCards.faceImages .card.tarot.t17  { background-image: url(faces/tarot17.jpg); }
+.playingCards.faceImages .card.tarot.t18  { background-image: url(faces/tarot18.jpg); }
+.playingCards.faceImages .card.tarot.t19  { background-image: url(faces/tarot19.jpg); }
+.playingCards.faceImages .card.tarot.t20  { background-image: url(faces/tarot20.jpg); }
+.playingCards.faceImages .card.tarot.t21  { background-image: url(faces/tarot21.jpg); }
 
 .playingCards.faceImages .card.joker         { background-image: url(faces/joker.gif); }
 .playingCards.simpleCards .card.rank-j,
