@@ -277,6 +277,14 @@ socket.on("onUpdateData", function (data) {
   playAction(action);
 });
 
+function refresh() {
+  drawDeck();
+  drawHand();
+  drawPile();
+  drawUsersInfos();
+  drawTricks();
+}
+
 function updateOptions() {
   // Game disconnected
   if(socket.id == undefined) {
@@ -434,8 +442,9 @@ function createMenu(selector, items) {
 function init() {
 
   createMenu(".player_number", {
-    [actions.RANDOM_FIRST_PLAYER]: {name: translate("choose randomly"), icon: "fa-hand-paper"},
-    [actions.REVEAL_PLAYERS_CARDS]: {name: translate(actions.REVEAL_PLAYERS_CARDS), icon: "fa-hand-paper"}
+    [actions.RANDOM_FIRST_PLAYER]: {name: translate("choose randomly"), icon: "fas fa-hand-paper"},
+    [actions.REVEAL_PLAYERS_CARDS]: {name: translate(actions.REVEAL_PLAYERS_CARDS), icon: "fas fa-eye"},
+    [actions.REFRESH_BOARD]: {name: translate(actions.REFRESH_BOARD), icon: "fas fa-sync"},
   });
   createMenu(".user_profil_menu", {
     [actions.CHANGE_TURN]: {name: translate("your turn"), icon: "fa-hand-paper"},
@@ -461,7 +470,7 @@ function init() {
     [actions.PUT_ALL_CARDS_PILE]: {name: translate("put all the cards on the pile"), icon: "fa-hand-lizard"},
   });
   
-
+  $("#show_tricks").text(translate("Show my tricks"));
   $("#reset_button").text(translate("Reset"))
   $("#sort_button").text(translate("Sort"))
   $("#instruction").append(translate("instruction"))
@@ -508,6 +517,7 @@ function onOptionMenu(name, op) {
     case actions.SORT_VALUE : sortCardByValue(); break;
     case actions.PUT_CARD_PILE : emit("addCardToPile", 1); break;
     case actions.PUT_ALL_CARDS_PILE : emit("addCardToPile", remainingCards); break;
+    case actions.REFRESH_BOARD: refresh(); break;
   }
 }
 
@@ -618,12 +628,22 @@ function changeCardColor() {
   }
 }
 
+function openNav() {
+  document.getElementById("mySidenav").style.width = "250px";
+}
+
+/* Set the width of the side navigation to 0 */
+function closeNav() {
+  document.getElementById("mySidenav").style.width = "0";
+}
+
+
 function drawTricks(userid=my_user.id) {
   $("#sideArea").empty()
   var tricks = getTricks(userid);
   var $content = ''
-  if(tricks != undefined) {
-    $("#sideArea").append(`<h4>${translate("Tricks")}</h4>`)
+  if(tricks != undefined && tricks.length > 0) {
+    $("#sideArea").append(`<h4>${translate("Your tricks")}</h4>`);
     for (var t = 0; t < tricks.length; t++) {
       var trick = tricks[t];
       $content += `<ul class='hand tricks'>`;
@@ -633,6 +653,8 @@ function drawTricks(userid=my_user.id) {
       }
       $content += `</ul>`;
     }
+  } else {
+    $("#sideArea").append(`<h4>${translate("You don't have tricks")}</h4>`);
   }
   $("#sideArea").append($content);
 }
@@ -953,6 +975,7 @@ function drawDeck() {
   $("#playArea").empty();
   var deckContent = "";
   var playContent = "";
+  canDisplayTricks(state)
   switch(state) {
     case states.CONFIGURE: {
       $("#game_controls").invisible();
@@ -983,6 +1006,15 @@ function drawDeck() {
   }
   $("#mainDeck").append(deckContent);
   changeCardColor()
+}
+
+function canDisplayTricks(state) {
+  if(state != states.CONFIGURE 
+    && options.tricks  ) {
+    $("#show_tricks").visible()
+  } else {
+    $("#show_tricks").invisible()
+  }
 }
 
 function drawHand(instruction = false) {

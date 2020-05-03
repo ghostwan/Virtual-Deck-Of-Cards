@@ -486,7 +486,7 @@ function obfuscate(gameData) {
         for (c = 0; c < tempCards.length; c ++) {
           // If data not obfuscate yet, obfuscate
           var card = tempCards[c];
-          if(SUITS_ATOUTS.includes(card.suit)) {
+          if(card != undefined && SUITS_ATOUTS.includes(card.suit)) {
             card.rank = card.rank.normalise_to_ascii().crypt_symmetric();
             card.suit = card.suit.normalise_to_ascii().crypt_symmetric();
           }

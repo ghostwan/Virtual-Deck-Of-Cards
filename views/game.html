@@ -20,6 +20,7 @@
     />
     <link rel="stylesheet" type="text/css" href="/stylesheets/cards.css" media="screen" />
     <link rel="stylesheet" href="/stylesheets/style.css" />
+    <link rel="stylesheet" href="/stylesheets/sidebar.css" />
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://kit.fontawesome.com/f4275c0134.js" crossorigin="anonymous"></script>
     <script
@@ -50,6 +51,10 @@
     <title>Virtual Deck - Play Anywhere with Anyone</title>
   </head>
   <body>
+    <div id="mySidenav" class="sidenav">
+      <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+      <div id="sideArea" class="playingCards faceImages"></div>
+    </div>
     <div id="screen" class="jumbotron jumbotron-fluid">
       <div id="game_controls">
         <button id="reset_button" class="btn btn-danger block" onclick="askResetGame()"></button></br>
@@ -94,7 +99,7 @@
               </div>
             </div>
           </div>
-          <div id="sideArea" class="playingCards faceImages"></div>
+          <button id="show_tricks" class="btn btn-dark block" onclick="openNav()"></button>
         </div>
       </div>
     </div>

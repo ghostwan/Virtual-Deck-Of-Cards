@@ -103,7 +103,7 @@
   "remove": "enlever",
   "choose first player randomly" : "choisit aléatoirement le premier joueur",
   "choose randomly" : "choisis aléatoirement",
-  "Tricks" : "Plis",
+  "Your tricks" : "Tes plis",
   "Players cards": "Cartes des joueurs",
   "Ready to play": "Prêt a jouer",
   "reveal players cards" : "révèle les cartes des joueurs",
@@ -119,5 +119,8 @@
   "put all the cards on the pile" : "mettre toute les cartes restantes sur la table",
   "Preparation phase" : "Phase de préparation",
   "Players play directly after distribution": "Les joueurs jouent directement après la distribution",
-  "Moment to exchange or put card aside before playing" : "Moment d'échange ou de mise de coté avant de jouer"
+  "Moment to exchange or put card aside before playing" : "Moment d'échange ou de mise de coté avant de jouer",
+  "Show my tricks" :  "Montrer mes plis",
+  "refresh board" : "rafraichir les vues",
+  "You don't have tricks": "Tu n'as pas de plis"
 }
