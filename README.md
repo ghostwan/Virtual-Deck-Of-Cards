@@ -61,7 +61,6 @@ Current supported Languages: English, French
 
 - TAROT - gérer excuse 
 - TAROT - montrer les plis des gens
-- Bug carte des cote quand deck vide
 - GAME PLAY - ne faire transiter vers les clients les mains que quand on veut les afficher
 - GAME PLAY - Locker la partie pour que plus personnes ne puisse rentrer 
 - UI - grossir / reduire taille cartes 

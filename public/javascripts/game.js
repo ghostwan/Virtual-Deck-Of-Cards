@@ -970,7 +970,7 @@ function drawDeckPlay() {
   }
   content += "</div>"
 
-  if (remainingCards == 0) {
+  if (remainingCards == 0 && cardAside == -1) {
     content += `<div class = 'col-6'><span class="card_deck">∅</span></div>`;
   } else {
     content += `<div class = 'col-6 playingCards faceImages'>`;
