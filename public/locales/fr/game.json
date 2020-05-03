@@ -8,7 +8,7 @@
   "Refreshing the page will make you disconnect from the game!": "Recharger la page te déconnectera de la partie!",
   "Reset": "Reconfigurer",
   "Sort": "Classer",
-  "Sort by value": "Classer par valeur",
+  "sort by value": "classer par valeur",
   "Are you sure, you want to clear the playing area?": "Es-tu sur de vouloir nettoyer la zone de jeu?",
   "Are you sure, you want to reset the game?": "Es-tu sur de vouloir recommencer?",
   "Are you sure you won the trick?": "Es-tu sur d'avoir gagnez le pli?",
@@ -122,5 +122,7 @@
   "Moment to exchange or put card aside before playing" : "Moment d'échange ou de mise de coté avant de jouer",
   "Show my tricks" :  "Montrer mes plis",
   "refresh board" : "rafraichir les vues",
-  "You don't have tricks": "Tu n'as pas de plis"
+  "You don't have tricks": "Tu n'as pas de plis",
+  "increase size": "augmenter la taille",
+  "decrease size": "reduire la taille"
 }

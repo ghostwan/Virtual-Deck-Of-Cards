@@ -98,7 +98,6 @@ h1, h2, h3, h4 {
   vertical-align: middle;
 }
 .card_in_pile {
-  font-size: 2em !important;
   background-color: white;
   display: inline-block;
   line-height: 105%;

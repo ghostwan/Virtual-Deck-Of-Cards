@@ -53,7 +53,9 @@ const actions = {
     PUT_CARD_PILE: "put card on pile",
     PUT_ALL_CARDS_PILE: "put alls cards on pile",
     REFRESH_BOARD: "refresh board",
-    SHOW_HIDE_TRICKS : "show hide tricks"
+    SHOW_HIDE_TRICKS : "show hide tricks",
+    INCREASE_SIZE: "increase size",
+    DECREASE_SIZE: "decrease size"
 }
 
 const configs = {

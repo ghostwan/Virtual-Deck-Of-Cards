@@ -19,8 +19,10 @@ var room;
 var translate;
 var animationID;
 
-function main(roomName, lang) {
+var cardSizes = {card_in_pile: 2, card_in_trick:1.2, card_in_hand:1.2};
 
+function main(roomName, lang) {
+  
   // Move card from your hand to the pile
   $("body").on("click", ".card_in_hand", function () {
     // Game disconnected
@@ -454,12 +456,16 @@ function init() {
     [actions.TAKE_BACK_ALL_CARDS]: {name: translate(actions.TAKE_BACK_ALL_CARDS), icon: "fa-hand-lizard", visible: function(key, opt){return options.preparation;}},
     [actions.CLEAR_AREA]: {name: translate("clear"), icon: "fa-trash-alt", visible: function(key, opt){return options.tricks;}},
     [actions.PILE_UP_AREA]: {name: translate("pile up"), icon: "fa-align-justify", visible: function(key, opt){return !options.inverse_pile;}},
-    [actions.DISPERSE_AREA]: {name: translate("disperse"), icon: "fa-columns", visible: function(key, opt){return !options.inverse_pile && options.stack_visible;}}
+    [actions.DISPERSE_AREA]: {name: translate("disperse"), icon: "fa-columns", visible: function(key, opt){return !options.inverse_pile && options.stack_visible;}},
+    [actions.INCREASE_SIZE]: {name: translate(actions.INCREASE_SIZE), icon: "fa-search-plus"},
+    [actions.DECREASE_SIZE]: {name: translate(actions.DECREASE_SIZE), icon: "fa-search-minus"}
   });
   createMenu(".card_in_hand", {
     [actions.SHUFFLE_HAND]: {name: translate("shuffle"), icon: "fa-hand-lizard"},
-    [actions.SORT_VALUE]: {name: translate("Sort by value"), icon: "fa-hand-lizard", visible: function(key, opt){return !options.atouts}},
+    [actions.SORT_VALUE]: {name: translate("sort by value"), icon: "fa-hand-lizard", visible: function(key, opt){return !options.atouts}},
     [actions.PLAY_ALL_CARDS]: {name: translate(actions.PLAY_ALL_CARDS), icon: "fa-hand-lizard", visible: function(key, opt){return options.preparation;}},
+    [actions.INCREASE_SIZE]: {name: translate(actions.INCREASE_SIZE), icon: "fa-search-plus"},
+    [actions.DECREASE_SIZE]: {name: translate(actions.DECREASE_SIZE), icon: "fa-search-minus"}
   });
   createMenu(".card_aside", {
     [actions.TAKE_CARD_ASIDE]: {name: translate("take this card"), icon: "fa-hand-lizard"},
@@ -469,6 +475,11 @@ function init() {
     [actions.PUT_CARD_PILE]: {name: translate("put a card on the pile"), icon: "fa-hand-lizard"},
     [actions.PUT_ALL_CARDS_PILE]: {name: translate("put all the cards on the pile"), icon: "fa-hand-lizard"},
   });
+  createMenu(".card_in_trick", {
+    [actions.INCREASE_SIZE]: {name: translate(actions.INCREASE_SIZE), icon: "fa-search-plus"},
+    [actions.DECREASE_SIZE]: {name: translate(actions.DECREASE_SIZE), icon: "fa-search-minus"}
+  });
+
   
   $("#show_tricks").text(translate("Show my tricks"));
   $("#reset_button").text(translate("Reset"))
@@ -518,7 +529,15 @@ function onOptionMenu(name, op) {
     case actions.PUT_CARD_PILE : emit("addCardToPile", 1); break;
     case actions.PUT_ALL_CARDS_PILE : emit("addCardToPile", remainingCards); break;
     case actions.REFRESH_BOARD: refresh(); break;
+    case actions.INCREASE_SIZE: changeCardSize(op, 0.2); break;
+    case actions.DECREASE_SIZE: changeCardSize(op, -0.2); break;
   }
+}
+
+function changeCardSize(op, value) {
+  var clazz = op.selector.substring(1);
+  cardSizes[clazz] += value;
+  refresh();
 }
 
 function setOptionToggle(name, label, on="With", off="Without") {
@@ -649,7 +668,7 @@ function drawTricks(userid=my_user.id) {
       $content += `<ul class='hand tricks'>`;
       for (var c = 0; c < trick.length; c++) {
         var card = trick[c];
-        $content += `<li>${drawCard(card, "test", "a")}</li>`;
+        $content += `<li>${drawCard(card, "card_in_trick", "a")}</li>`;
       }
       $content += `</ul>`;
     }
@@ -712,14 +731,15 @@ function drawCard(card, clazz, type="div", needToClean=true) {
   }
   var suit = card.suit.toLowerCase();
   var rank = card.rank.toLowerCase();
+  var fontSize = cardSizes[clazz] != undefined? cardSizes[clazz]: 1.2;
 
   if(suit == "atouts") {
     var $rank = rank == "t0" ? "" : rank.substring(1);
-    return `<${type} class="card tarot ${rank} ${clazz}">
+    return `<${type} class="card tarot ${rank} ${clazz}" style='font-size: ${fontSize}em'>
                 <span class="rank">${$rank}</span>
             </${type}>`
   }
-  return `<${type} class="card rank-${card.rank.toLowerCase()} ${card.suit} ${clazz}">
+  return `<${type} class="card rank-${card.rank.toLowerCase()} ${card.suit} ${clazz}" style='font-size: ${fontSize}em'>
             <span class="rank">${translate(card.rank)}</span>
             <span class="suit">&${card.suit};</span>
           </${type}>`
@@ -1167,7 +1187,7 @@ function drawPileRevealCards(gameData) {
       } else {
         $content += `<ul class='hand tricks'>`;
         value.cards.forEach(card => {
-          $content += `<li>${drawCard(card, "test", "a")}</li>`;
+          $content += `<li>${drawCard(card, "card_reveal", "a")}</li>`;
         });
         $content += `</ul>`;
       }

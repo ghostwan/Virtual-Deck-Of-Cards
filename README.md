@@ -55,9 +55,13 @@ Current supported Languages: English, French
 - TAROT - Add option to put hidden cards aside 
 - TAROT - Add card aside to the pile
 - Sort by value
+- Increase / decrease card size
 
 # What's next 
 
+- TAROT - gérer excuse 
+- TAROT - montrer les plis des gens
+- Bug carte des cote quand deck vide
 - GAME PLAY - ne faire transiter vers les clients les mains que quand on veut les afficher
 - GAME PLAY - Locker la partie pour que plus personnes ne puisse rentrer 
 - UI - grossir / reduire taille cartes 
@@ -73,6 +77,8 @@ Current supported Languages: English, French
 # Bugs
 
 - Si on distribue plus de cartes que de personnes ça foire les comptes
+- Cartes disparut => prendre cette cartes
+
 
 # Game features status
 
