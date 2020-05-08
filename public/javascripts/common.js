@@ -51,6 +51,7 @@ const actions = {
     REVEAL_PLAYERS_CARDS: "reveal players cards",
     GET_DISCARD_PILE:"get discard pile",
     PUT_CARD_PILE: "put card on pile",
+    GIVE_CARD_PILE: "give card to pile",
     PUT_ALL_CARDS_PILE: "put alls cards on pile",
     REFRESH_BOARD: "refresh board",
     SHOW_HIDE_TRICKS : "show hide tricks",

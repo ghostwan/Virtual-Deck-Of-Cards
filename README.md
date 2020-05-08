@@ -56,14 +56,13 @@ Current supported Languages: English, French
 - TAROT - Add card aside to the pile
 - Sort by value
 - Increase / decrease card size
+- TAROT - Give card from trick
 
 # What's next 
 
-- TAROT - gérer excuse 
 - TAROT - montrer les plis des gens
 - GAME PLAY - ne faire transiter vers les clients les mains que quand on veut les afficher
 - GAME PLAY - Locker la partie pour que plus personnes ne puisse rentrer 
-- UI - grossir / reduire taille cartes 
 - GAME PLAY - ESCALIER - Prise en compte des annonces
 - GAME PLAY - MARMOTEE - poser des cartes cacher sur la table
 - GAME PLAY - Quand quelqu'un se connecte lui permettre ou non de rejoindre la partie, sinon spectateur

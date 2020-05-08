@@ -385,6 +385,22 @@ function putCardOnPileFromHand(item=undefined) {
   drawHand();
 }
 
+function putCardOnPileFromTrick(item=undefined) {
+  var trickNumber = item[0].parentNode.getAttribute("trickNumber");
+  var cardNumber = item[0].parentNode.getAttribute("cardNumber");
+
+  var card = gameData[my_user.id].tricks[trickNumber][cardNumber];
+  console.log(card)
+
+  pile.push(card);
+  gameData[my_user.id].tricks[trickNumber].splice(cardNumber, 1);
+  if(gameData[my_user.id].tricks[trickNumber].length == 0)  {
+    gameData[my_user.id].tricks.splice(trickNumber, 1)
+  }
+
+  updateData({ action: actions.PLAY_CARD, pile: pile, gameData: gameData })
+}
+
 function start() {
 
   forEach(booleanOptionList, function (value, prop, obj) {
@@ -455,6 +471,7 @@ function init() {
     [actions.TAKE_BACK_CARD]: {name: translate("take this card"), icon: "fa-hand-lizard"},
     [actions.TAKE_BACK_ALL_CARDS]: {name: translate(actions.TAKE_BACK_ALL_CARDS), icon: "fa-hand-lizard", visible: function(key, opt){return options.preparation;}},
     [actions.CLEAR_AREA]: {name: translate("clear"), icon: "fa-trash-alt", visible: function(key, opt){return options.tricks;}},
+    [actions.CLAIM_TRICK]: {name: translate("claim trick"), icon: "fa-trash-lizard", visible: function(key, opt){return options.tricks;}},
     [actions.PILE_UP_AREA]: {name: translate("pile up"), icon: "fa-align-justify", visible: function(key, opt){return !options.inverse_pile;}},
     [actions.DISPERSE_AREA]: {name: translate("disperse"), icon: "fa-columns", visible: function(key, opt){return !options.inverse_pile && options.stack_visible;}},
     [actions.INCREASE_SIZE]: {name: translate(actions.INCREASE_SIZE), icon: "fa-search-plus"},
@@ -477,7 +494,8 @@ function init() {
   });
   createMenu(".card_in_trick", {
     [actions.INCREASE_SIZE]: {name: translate(actions.INCREASE_SIZE), icon: "fa-search-plus"},
-    [actions.DECREASE_SIZE]: {name: translate(actions.DECREASE_SIZE), icon: "fa-search-minus"}
+    [actions.DECREASE_SIZE]: {name: translate(actions.DECREASE_SIZE), icon: "fa-search-minus"},
+    [actions.GIVE_CARD_PILE]: {name: translate("put a card on the pile"), icon: "fa-hand-lizard"},
   });
 
   
@@ -517,6 +535,7 @@ function onOptionMenu(name, op) {
       }
     }; break;
     case actions.CLEAR_AREA : clearPlayingArea(); break;
+    case actions.CLAIM_TRICK : claimTrick(); break;
     case actions.PILE_UP_AREA: pileUpPlayingArea(); break;
     case actions.DISPERSE_AREA: dispersePlayingArea(); break;
     case actions.TAKE_BACK_CARD : takeCardFromPileToHand(op.$trigger); break;
@@ -527,6 +546,7 @@ function onOptionMenu(name, op) {
     case actions.SHUFFLE_HAND : shuffleCard(); break;
     case actions.SORT_VALUE : sortCardByValue(); break;
     case actions.PUT_CARD_PILE : emit("addCardToPile", 1); break;
+    case actions.GIVE_CARD_PILE : putCardOnPileFromTrick(op.$trigger); break;
     case actions.PUT_ALL_CARDS_PILE : emit("addCardToPile", remainingCards); break;
     case actions.REFRESH_BOARD: refresh(); break;
     case actions.INCREASE_SIZE: changeCardSize(op, 0.2); break;
@@ -569,7 +589,7 @@ function getTricks(userid=my_user.id) {
   }
 }
 
-function askClaimTrick() {
+function claimTrick() {
   if(gameData[my_user.id] == undefined) {
     gameData[my_user.id] = {}
   }
@@ -668,7 +688,7 @@ function drawTricks(userid=my_user.id) {
       $content += `<ul class='hand tricks'>`;
       for (var c = 0; c < trick.length; c++) {
         var card = trick[c];
-        $content += `<li>${drawCard(card, "card_in_trick", "a")}</li>`;
+        $content += `<li trickNumber="${t}" cardNumber="${c}">${drawCard(card, "card_in_trick", "a")}</li>`;
       }
       $content += `</ul>`;
     }
@@ -1129,7 +1149,7 @@ function drawPile() {
   if (options.tricks) {
     if ((state == states.PREPARATION && options.hidden_card_aside != 0) 
         || (state == states.PLAY && pile.length == users.length) ) {
-      content += createButton("Claim trick", "askClaimTrick()", "margin_bottom");
+      content += createButton("Claim trick", "claimTrick()", "margin_bottom");
     }
   } else if(pile.length != 0) {
       content += createButton("Get and shuffle discard pile", "getDiscardPile()", "margin_bottom");
