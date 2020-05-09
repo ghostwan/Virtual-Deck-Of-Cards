@@ -60,7 +60,7 @@ io.on("connection", socket => {
       emitToUser(user.id, "onUpdateData", {
         action: actions.CONNECTED,
         my_user: user,
-        users: prepareUsers(),
+        users: getPlayers(),
         deckOriginalLength: getData("deckOriginalLength"),
         remainingCards: deck == undefined ? -1 : deck.length,
         cardAside: getData("cardAside"),
@@ -71,7 +71,7 @@ io.on("connection", socket => {
         playerNumber : getData("playerNumber")
       });
   
-      emitUpdateToRoom(actions.CONNECT_USER, { users: prepareUsers(), gameData : getData("gameData")})
+      emitUpdateToRoom(actions.CONNECT_USER, { users: getPlayers(), gameData : getData("gameData")})
       console.log(`[${socket.room}] <===  User ${user.name} reconnected!`)
     } catch(exception) { // If data is not retrivable reconnect the user
       if(gameData != undefined) {
@@ -90,6 +90,7 @@ io.on("connection", socket => {
     if (getUsersConnected().length <= 1 || forceRecreation) {
       // If we are the first user to connect create the room
       var users = new Map();
+      user.owner = true;
       users.set(user.id, user);
       storeData("users", users);
       createNewGame();
@@ -104,7 +105,7 @@ io.on("connection", socket => {
     emitToUser(user.id, "onUpdateData", {
       action: actions.CONNECTED, 
       my_user: user,
-      users: prepareUsers(),
+      users: getPlayers(),
       instruction: true,
       deckOriginalLength: getData("deckOriginalLength"),
       remainingCards: deck == undefined ? -1 : deck.length,
@@ -117,11 +118,10 @@ io.on("connection", socket => {
       playerNumber: getData("playerNumber"),
     });
 
-    emitUpdateToRoom(actions.CONNECT_USER, { users: prepareUsers(), gameData: getData("gameData") });
+    emitUpdateToRoom(actions.CONNECT_USER, { users: getPlayers(), gameData: getData("gameData") });
   }
 
   socket.on("sendInfo", (user) => {
-    console.log(user);
     console.log(`[${socket.room}] <===  User ${user.name} connected!`);
     socket.user_name = user.name;
     sendInfo(user)
@@ -144,17 +144,39 @@ io.on("connection", socket => {
       var id = socket.user_name !== undefined? socket.user_name: socket.id;
       console.log(`!! Can't retrieve room ID !! ${id} client disconnect because ${reason}`)
     } else {
-      var users = getData("users")
-      users.delete(socket.id)
-      storeData("users", users)
-
-      var gameData = getData("gameData") 
-      if(gameData && socket.id && gameData[socket.id]) {
-        gameData[socket.id].user_disconnected = true
-      }
-
-      emitUpdateToRoom(actions.DISCONNECT_USER, { users: prepareUsers(), gameData: getData("gameData")});
+      deleteUser()
     }
+  });
+
+  function deleteUser(userID=socket.id) {
+    var users = getData("users")
+    users.delete(userID)
+    storeData("users", users)
+
+    var gameData = getData("gameData") 
+    if(gameData && userID && gameData[userID]) {
+      gameData[userID].user_disconnected = true
+    }
+
+    emitUpdateToRoom(actions.DISCONNECT_USER, { users: getPlayers(), gameData: getData("gameData")});
+  }
+
+  socket.on("expulseUser", userID => {
+    deleteUser(userID)
+    emitToUser(userID, "onUpdateData", {
+      action: actions.EXPULSE_USER,
+      instruction: false,
+      my_user: -1,
+      gameData : getData("gameData"),
+      state: state(),
+      hand: []
+    });
+
+    // if(user.owner) {
+    // } else {
+    //   console.log(`WARNING !! ${socket.user_name} is not owner!`)
+    // }
+
   });
 
   socket.on("revealCards", () => {
@@ -188,7 +210,7 @@ io.on("connection", socket => {
     }
   }
 
-  socket.on("updateHand", (hand) => {
+  socket.on("updateHand", hand => {
     updateHand(socket.id, hand);
   });
 
@@ -213,7 +235,7 @@ io.on("connection", socket => {
       remainingCards: deck.length, 
       gameData: getData("gameData")
     })
-    emitToUser(socket.id, "onUpdateHand", cardsInHand)
+    emitToUser(socket.id, "onUpdateHand", hand)
   });
 
   socket.on("addCardToPile", numCards => {
@@ -234,7 +256,7 @@ io.on("connection", socket => {
     if(socketNotAvailble()) {return}
     
     var playerNumber = getData("playerNumber")
-    playerNumber = (playerNumber+1) % getUsersConnected().length
+    playerNumber = (playerNumber+1) % getPlayers().length
     emitUpdateToRoom(actions.END_TURN, { playerNumber : storeData("playerNumber", playerNumber)})
   })
 
@@ -259,7 +281,8 @@ io.on("connection", socket => {
     var options = getData("options")
     var numCards = data.numCards;
     options.cards_distribute = numCards;
-    var users = getUsersConnected();
+    var users = getPlayers();
+    
     
     if (numCards == -1) {
       numCards = Math.trunc(deck.length / users.length);
@@ -270,10 +293,10 @@ io.on("connection", socket => {
       result = takeCards(numCards, deck, hand);
       deck = result.from;
       hand = result.to;
+      var user = users[u];
       
-      emitToUser(users[u], "onUpdateHand", hand);
-      
-      updateHand(users[u], hand, false)
+      emitToUser(user.id, "onUpdateHand", hand);
+      updateHand(user.id, hand, false)
     }
     storeData("deck", deck)
     emitUpdateToRoom(actions.DISTRIBUTE, {
@@ -345,7 +368,7 @@ io.on("connection", socket => {
 
     if(options.turn) {
       options.turn++;
-      if(options.turn > getUsersConnected().length+1) {
+      if(options.turn > getPlayers().length+1) {
         options.turn = 2
       }
       player = options.turn-2
@@ -382,10 +405,14 @@ io.on("connection", socket => {
     io.sockets.in(socket.room).emit("onUpdateData", data)
   });
 
-  function prepareUsers(){
-    var usersArray  = Array.from(getData("users").values());
-    usersArray.sort((a,b) => a.date - b.date);
-    return usersArray;
+  function getPlayers(){
+    const players = getData("users");
+    if(players != undefined ) {
+      var usersArray  = Array.from(players.values());
+      usersArray.sort((a,b) => a.date - b.date);
+      return usersArray;
+    }
+    return [];
   }
 
   function socketNotAvailble() {
@@ -484,4 +511,3 @@ function takeCards(numcards, from, to) {
   data = { to: to, from: from };
   return data;
 }
-

@@ -22,25 +22,16 @@ var animationID;
 var cardSizes = {card_in_pile: 2, card_in_trick:1.2, card_in_hand:1.2};
 
 function main(roomName, lang) {
-  
+
   // Move card from your hand to the pile
   $("body").on("click", ".card_in_hand", function () {
-    // Game disconnected
-    if(socket.id == undefined) {
-      return;
-    }
+    if(isGameDisconnected() || isSpectatorMode()) return; 
 
     // If reorder possible do nothing
-    if ($("#option_reorder").prop("checked")) {
-      return;
-    }
+    if ($("#option_reorder").prop("checked")) return;
 
     // If we are playing and in action blocked mode and it's not my turn do nothing
-    if (state == states.PLAY 
-      && options.block_action 
-      && !isMyTurn()) {
-      return;
-    }
+    if (state == states.PLAY && options.block_action && !isMyTurn()) return;
 
     putCardOnPileFromHand(this)
     // If we are playing and if there is to end the turn on draw, end the turn
@@ -52,22 +43,13 @@ function main(roomName, lang) {
 
   // Move card from the pile to your hand
   $("body").on("click", ".card_in_pile", function () {
-    // Game disconnected
-    if(socket.id == undefined) {
-      return;
-    }
-    
+    if(isGameDisconnected() || isSpectatorMode()) return; 
+
     // If we are playing abd take card from pile is disabled
-    if(state == states.PLAY && options.block_get_cards) {
-      return;
-    }
+    if(state == states.PLAY && options.block_get_cards) return;
 
     // If we are playing and in action blocked mode and it's not my turn do nothing
-    if (state == states.PLAY 
-      && options.block_action 
-      && !isMyTurn()) {
-      return;
-    }
+    if (state == states.PLAY && options.block_action && !isMyTurn()) return;
 
     takeCardFromPileToHand(this);
   });
@@ -82,13 +64,12 @@ function main(roomName, lang) {
   });
 
   $("body").on("click", ".dropdown-item", function (e) {
-    console.log("click")
-      e.preventDefault(); // cancel the link behaviour
-      var selText = $(this).text();
-      $("#gameStyleDrop").text(selText);
-      options = configs[selText]
-      options.config_name = selText
-      updateOptions();
+    e.preventDefault(); // cancel the link behaviour
+    var selText = $(this).text();
+    $("#gameStyleDrop").text(selText);
+    options = configs[selText]
+    options.config_name = selText
+    updateOptions();
   });
 
   room = roomName
@@ -111,13 +92,23 @@ function main(roomName, lang) {
     });
 }
 
+function createSpectatorModeMessage() {
+  return `<div class="alert alert-warning" role="alert">
+            ${translate("You are in spectator mode")}
+          </div>`;
+}
+
 function createMessage(message, type="primary") {
+  if(isSpectatorMode()) return createSpectatorModeMessage();
+  
   return `<div class="alert alert-${type}" role="alert">
             ${translate(message)}
           </div>`;
 }
 
 function createButton(title, jsAction, clazz="") {
+  if(isSpectatorMode()) return "";
+
   return `<button onclick = '${jsAction}' class = 'btn btn-outline-dark btn-lg btn-block ${clazz}'>
             ${translate(title)}
           </button>`;
@@ -181,7 +172,6 @@ socket.on("askInfo", function () {
 
 socket.on("onUpdateHand", function (data) {
   console.log("===== Update Hand =====");
-  console.log(data);
   my_hand = data;
   drawHand();
 });
@@ -268,6 +258,9 @@ socket.on("onUpdateData", function (data) {
   }
   if ( isExist(data.my_user) ) {
     my_user=data.my_user
+    if(my_user == -1) {
+      refresh();
+    }
   }
 
   if (reDrawDeck) drawDeck();
@@ -288,27 +281,21 @@ function refresh() {
 }
 
 function updateOptions() {
-  // Game disconnected
-  if(socket.id == undefined) {
-    return;
-  }
+  if(isGameDisconnected()) return; 
+
   var data = {action: actions.UPDATE_OPTION, options: options}
   socket.emit("updateData", data);
 }
 
 function updateData(data) {
-  // Game disconnected
-  if(socket.id == undefined) {
-    return;
-  }
+  if(isGameDisconnected()) return; 
+
   socket.emit("updateData", data);
 }
 
 function emit(action, param) {
-  // Game disconnected
-  if(socket.id == undefined) {
-    return;
-  }
+  if(isGameDisconnected()) return; 
+
   socket.emit(action, param);
 }
 
@@ -401,7 +388,6 @@ function putCardOnPileFromTrick(item=undefined) {
 }
 
 function start() {
-
   forEach(booleanOptionList, function (value, prop, obj) {
     syncBooleanOption(prop)
   });
@@ -457,7 +443,6 @@ function createMenu(selector, items) {
 }
 
 function init() {
-
   createMenu(".player_number", {
     [actions.RANDOM_FIRST_PLAYER]: {name: translate("choose randomly"), icon: "fas fa-hand-paper"},
     [actions.REVEAL_PLAYERS_CARDS]: {name: translate(actions.REVEAL_PLAYERS_CARDS), icon: "fas fa-eye"},
@@ -465,6 +450,7 @@ function init() {
   });
   createMenu(".user_profil_menu", {
     [actions.CHANGE_TURN]: {name: translate("your turn"), icon: "fa-hand-paper"},
+    [actions.EXPULSE_USER]: {name: translate("expulse"), icon: "fa-ban", visible: function(key, opt){return my_user.owner;}}
   });
   createMenu(".card_in_pile", {
     [actions.PILE_UP_AREA]: {name: translate("pile up"), icon: "fa-align-justify", visible: function(key, opt){return !options.inverse_pile;}},
@@ -496,7 +482,6 @@ function init() {
     [actions.DECREASE_SIZE]: {name: translate(actions.DECREASE_SIZE), icon: "fa-search-minus"},
     [actions.GIVE_CARD_PILE]: {name: translate("put a card on the pile"), icon: "fa-hand-lizard"},
   });
-
   
   $("#show_tricks").text(translate("Show my tricks"));
   $("#reset_button").text(translate("Reset"))
@@ -511,45 +496,67 @@ function init() {
   setOptionToggle("game_sound_option", "Game sounds");
 }
 
+function alertSpectatorMode() {
+  alert(translate("In spectator mode menu and button are disabled!"));
+}
+
 function onOptionMenu(name, op) {
+  if(isSpectatorMode()) { alertSpectatorMode(); return;}
+
   switch(name) {
-    case actions.CHANGE_TURN: {
-      const userid = op.$trigger.attr("userid");
-      const num = getUserPlace(userid)
-      if(options.turn) {
-        options.turn = num+2;
-      }
-      updateData({ action: name,  playerNumber:  num, options: options })
-    }; break;
-    case actions.RANDOM_FIRST_PLAYER: {
-      const num = Math.floor(Math.random() * users.length);
-      if(options.turn) {
-        options.turn = num+2;
-      }
-      updateData({ action: name,  playerNumber: num, options: options  })
-    }; break;
-    case actions.REVEAL_PLAYERS_CARDS: {
-      if (confirm(translate("Are you sure, you want to reveal to everyone players cards?"))) {
-        socket.emit("revealCards");
-      }
-    }; break;
-    case actions.CLEAR_AREA : clearPlayingArea(); break;
-    case actions.CLAIM_TRICK : claimTrick(); break;
+    case actions.CHANGE_TURN: changeTurn(op); break;
+    case actions.RANDOM_FIRST_PLAYER: randomFirstPlayer(); break;
+    case actions.REVEAL_PLAYERS_CARDS: revealCards(); break;
+    case actions.EXPULSE_USER: expulseUser(op); break;
+    case actions.CLEAR_AREA: clearPlayingArea(); break;
+    case actions.CLAIM_TRICK: claimTrick(); break;
     case actions.PILE_UP_AREA: pileUpPlayingArea(); break;
     case actions.DISPERSE_AREA: dispersePlayingArea(); break;
-    case actions.TAKE_BACK_CARD : takeCardFromPileToHand(op.$trigger); break;
-    case actions.TAKE_CARD_ASIDE : takeCardAside(); break;
-    case actions.REMOVE_CARD_ASIDE : removeCardAside(); break;
-    case actions.TAKE_BACK_ALL_CARDS : takeCardFromPileToHand(); break;
-    case actions.PLAY_ALL_CARDS : putCardOnPileFromHand(); break;
-    case actions.SHUFFLE_HAND : shuffleCard(); break;
-    case actions.SORT_VALUE : sortCardByValue(); break;
-    case actions.PUT_CARD_PILE : emit("addCardToPile", 1); break;
-    case actions.GIVE_CARD_PILE : putCardOnPileFromTrick(op.$trigger); break;
-    case actions.PUT_ALL_CARDS_PILE : emit("addCardToPile", remainingCards); break;
+    case actions.TAKE_BACK_CARD: takeCardFromPileToHand(op.$trigger); break;
+    case actions.TAKE_CARD_ASIDE: takeCardAside(); break;
+    case actions.REMOVE_CARD_ASIDE: removeCardAside(); break;
+    case actions.TAKE_BACK_ALL_CARDS: takeCardFromPileToHand(); break;
+    case actions.PLAY_ALL_CARDS: putCardOnPileFromHand(); break;
+    case actions.SHUFFLE_HAND: shuffleCard(); break;
+    case actions.SORT_VALUE: sortCardByValue(); break;
+    case actions.PUT_CARD_PILE: emit("addCardToPile", 1); break;
+    case actions.GIVE_CARD_PILE: putCardOnPileFromTrick(op.$trigger); break;
+    case actions.PUT_ALL_CARDS_PILE: emit("addCardToPile", remainingCards); break;
     case actions.REFRESH_BOARD: refresh(); break;
     case actions.INCREASE_SIZE: changeCardSize(op, 0.2); break;
     case actions.DECREASE_SIZE: changeCardSize(op, -0.2); break;
+  }
+}
+
+function expulseUser(op) {
+  const userid = op.$trigger.attr("userid");
+  const user = getUser(userid);
+
+  if (confirm(translate(`Are you sure, you want to expulse ${user.name} ?`))) {
+    socket.emit("expulseUser", userid);
+  }
+}
+
+function changeTurn(op) {
+  const userid = op.$trigger.attr("userid");
+  const num = getUserPlace(userid)
+  if(options.turn) {
+    options.turn = num+2;
+  }
+  updateData({ action: name,  playerNumber:  num, options: options })
+}
+
+function randomFirstPlayer() {
+  const num = Math.floor(Math.random() * users.length);
+  if(options.turn) {
+    options.turn = num+2;
+  }
+  updateData({ action: name,  playerNumber: num, options: options  })
+}
+
+function revealCards() {
+  if (confirm(translate("Are you sure, you want to reveal to everyone players cards?"))) {
+    socket.emit("revealCards");
   }
 }
 
@@ -569,6 +576,8 @@ function setOptionToggle(name, label, on="With", off="Without") {
 }
 
 function askResetGame() {
+  if(isSpectatorMode()) { alertSpectatorMode(); return;}
+
   if (confirm(translate("Are you sure, you want to reset the game?"))) {
     socket.emit("resetGame");
   }
@@ -771,6 +780,8 @@ function drawCard(card, clazz, type="div", needToClean=true) {
 }
 
 function createBooleanOption(name, title, descriptionChecked=undefined, description=undefined) {
+  if(isSpectatorMode()) return "";
+
   booleanOptionList[name] = 1;
   var content = `
     <input type="checkbox" class="form-check-input" 
@@ -891,7 +902,7 @@ function drawDeckDistribute() {
 
   content = `<div class = 'col-6'><h2>${translate("Deck")}: ${remainingCards} / ${deckOriginalLength} ${translate("cards")}</h2><br>`;
 
-  if (!options.block_action || isMyTurn()) {
+  if (!isSpectatorMode() && (!options.block_action || isMyTurn())) {
     content += `
     ${createButton("Shuffle cards", "shuffleDeck()")} </br>
     ${createButton("Distribute", "distributeCards()")} </br>
@@ -1064,6 +1075,13 @@ function canDisplayTricks(state) {
 
 function drawHand(instruction = false) {
   $("#your_hand").empty();
+
+  if(isSpectatorMode()) { 
+    var message = createSpectatorModeMessage();
+    $("#your_hand").append(message);
+    return;
+  }
+
   var content = "";
 
   if (instruction) {
@@ -1129,6 +1147,8 @@ function drawHand(instruction = false) {
 }
 
 function drawPileConfig() {
+  if(isSpectatorMode()) {return createSpectatorModeMessage();}
+
   return `
       <h2> ${translate("Game options")} </h2>
       ${createGameConfigs()}
@@ -1275,10 +1295,12 @@ function onOptionChange(name) {
   updateOptions();
 }
 
-function debug(object) {
-  console.log("=== DEBUG ===");
-  console.log(object);
-  console.log("=============");
+function isSpectatorMode() {
+  return my_user == -1;
+}
+
+function isGameDisconnected() {
+  return socket.id == undefined;
 }
 
 jQuery.fn.visible = function () {

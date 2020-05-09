@@ -58,6 +58,7 @@ Current supported Languages: English, French
 - Increase / decrease card size
 - TAROT - Give card from trick
 - Remove obfuscation that was provoking some bugs
+- Room owner can expluse player
 
 # What's next 
 

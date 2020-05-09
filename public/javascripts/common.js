@@ -58,6 +58,7 @@ const actions = {
     INCREASE_SIZE: "increase size",
     DECREASE_SIZE: "decrease size",
     HAND_CHANGE: "hand change",
+    EXPULSE_USER : "explulse user"
 }
 
 const configs = {

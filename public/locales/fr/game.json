@@ -124,5 +124,8 @@
   "refresh board" : "rafraichir les vues",
   "You don't have tricks": "Tu n'as pas de plis",
   "increase size": "augmenter la taille",
-  "decrease size": "reduire la taille"
+  "decrease size": "reduire la taille",
+  "In spectator mode menu and button are disabled!" : "En mode spectateur, les menus et boutons sont désactivés",
+  "You are in spectator mode": "Tu es en mode spectateur",
+  "expulse":"expulser"
 }

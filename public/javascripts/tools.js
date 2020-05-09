@@ -22,3 +22,9 @@ var forEach = function (collection, callback, scope) {
 function shuffle(array) {
     return array.sort(() => Math.random() - 0.5);
 }
+
+function debug(what, object) {
+	console.log(`|------ ${what} >>>>> `);
+	console.log(object);
+	console.log(`<<<<<< ${what} ------|`);
+}
