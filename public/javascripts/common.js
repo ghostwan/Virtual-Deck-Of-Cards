@@ -56,7 +56,8 @@ const actions = {
     REFRESH_BOARD: "refresh board",
     SHOW_HIDE_TRICKS : "show hide tricks",
     INCREASE_SIZE: "increase size",
-    DECREASE_SIZE: "decrease size"
+    DECREASE_SIZE: "decrease size",
+    HAND_CHANGE: "hand change",
 }
 
 const configs = {

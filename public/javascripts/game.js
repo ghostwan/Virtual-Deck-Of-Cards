@@ -204,8 +204,8 @@ function isMyTurn() {
   return false;
 }
 
-socket.on("onRevealCards", function (data) {
-  drawPileRevealCards(data);
+socket.on("onRevealCards", function (hands) {
+  drawPileRevealCards(hands);
 });
 
 socket.on("onUpdateData", function (data) {
@@ -315,8 +315,8 @@ function emit(action, param) {
 function takeCardAside() {
   my_hand.push(cardAside);
   cardAside = -1;
-  gameData[my_user.id].cards = my_hand
-  updateData({ action: actions.TAKE_CARD_ASIDE, cardAside: cardAside, gameData: gameData })
+  updateMyHand();
+  updateData({ action: actions.TAKE_CARD_ASIDE, cardAside: cardAside })
   drawHand();
 }
 
@@ -338,18 +338,18 @@ function takeCardFromPileToHand(item=undefined) {
     my_hand.push(card);
     pile.splice(cardIndex, 1);
   
-    gameData[my_user.id].cards = my_hand
+    updateMyHand();
   } else {
     action = actions.TAKE_BACK_ALL_CARDS;
     for (c = 0; c < pile.length; c++) {
       var card = pile[c];
       my_hand.push(card);
       
-      gameData[my_user.id].cards = my_hand
+      updateMyHand();
     }
     pile = [];
   }
-  updateData({ action: action, pile: pile, gameData: gameData })
+  updateData({ action: action, pile: pile })
   drawHand();
 }
 
@@ -366,7 +366,7 @@ function putCardOnPileFromHand(item=undefined) {
     card["username"] = my_user.name;
     pile.push(card);
 
-    gameData[my_user.id].cards = my_hand
+    updateMyHand();
   } else {
     action = actions.PLAY_ALL_CARDS;
     for (c = 0; c < my_hand.length; c++) {
@@ -378,10 +378,10 @@ function putCardOnPileFromHand(item=undefined) {
 
     }
     my_hand = [];
-    gameData[my_user.id].cards = my_hand
+    updateMyHand();
   }
 
-  updateData({ action: action, pile: pile, gameData: gameData })
+  updateData({ action: action, pile: pile })
   drawHand();
 }
 
@@ -390,7 +390,6 @@ function putCardOnPileFromTrick(item=undefined) {
   var cardNumber = item[0].parentNode.getAttribute("cardNumber");
 
   var card = gameData[my_user.id].tricks[trickNumber][cardNumber];
-  console.log(card)
 
   pile.push(card);
   gameData[my_user.id].tricks[trickNumber].splice(cardNumber, 1);
@@ -468,14 +467,14 @@ function init() {
     [actions.CHANGE_TURN]: {name: translate("your turn"), icon: "fa-hand-paper"},
   });
   createMenu(".card_in_pile", {
-    [actions.TAKE_BACK_CARD]: {name: translate("take this card"), icon: "fa-hand-lizard"},
-    [actions.TAKE_BACK_ALL_CARDS]: {name: translate(actions.TAKE_BACK_ALL_CARDS), icon: "fa-hand-lizard", visible: function(key, opt){return options.preparation;}},
-    [actions.CLEAR_AREA]: {name: translate("clear"), icon: "fa-trash-alt", visible: function(key, opt){return options.tricks;}},
-    [actions.CLAIM_TRICK]: {name: translate("claim trick"), icon: "fa-trash-lizard", visible: function(key, opt){return options.tricks;}},
     [actions.PILE_UP_AREA]: {name: translate("pile up"), icon: "fa-align-justify", visible: function(key, opt){return !options.inverse_pile;}},
     [actions.DISPERSE_AREA]: {name: translate("disperse"), icon: "fa-columns", visible: function(key, opt){return !options.inverse_pile && options.stack_visible;}},
+    [actions.TAKE_BACK_CARD]: {name: translate("take this card"), icon: "fa-hand-lizard"},
+    [actions.TAKE_BACK_ALL_CARDS]: {name: translate(actions.TAKE_BACK_ALL_CARDS), icon: "fa-hand-lizard", visible: function(key, opt){return options.preparation;}},
     [actions.INCREASE_SIZE]: {name: translate(actions.INCREASE_SIZE), icon: "fa-search-plus"},
-    [actions.DECREASE_SIZE]: {name: translate(actions.DECREASE_SIZE), icon: "fa-search-minus"}
+    [actions.DECREASE_SIZE]: {name: translate(actions.DECREASE_SIZE), icon: "fa-search-minus"},
+    [actions.CLAIM_TRICK]: {name: translate("claim trick"), icon: "fa-hand-lizard", visible: function(key, opt){return options.tricks;}},
+    [actions.CLEAR_AREA]: {name: translate("clear"), icon: "fa-trash-alt", visible: function(key, opt){return options.tricks;}}
   });
   createMenu(".card_in_hand", {
     [actions.SHUFFLE_HAND]: {name: translate("shuffle"), icon: "fa-hand-lizard"},
@@ -652,6 +651,12 @@ function putCardAside() {
   socket.emit("putCardAside");
 }
 
+function updateMyHand(){
+  console.log("My hand:");
+  console.log(my_hand);
+  socket.emit("updateHand", my_hand);
+}
+
 function endTurn() {
   if(isMyTurn()) {
     socket.emit("endTurn");
@@ -709,8 +714,8 @@ function drawUsersInfos() {
       if(options.tricks) {
         if(data != undefined && data.tricks != undefined)
           number = " 🂠 <b>" + data.tricks.length + "</b>";
-      } else if (data != undefined && data.cards != undefined) {
-        number = " 🂠 <b>" + data.cards.length + "</b>";
+      } else if (data != undefined && data.numberCards != undefined) {
+        number = " 🂠 <b>" + data.numberCards + "</b>";
       }
     }
     var userClass = "user_profil"
@@ -1192,21 +1197,21 @@ function getUser(id) {
   }
 }
 
-function drawPileRevealCards(gameData) {
+function drawPileRevealCards(hands) {
   $("#playArea").empty()
   $("#playArea").append(`<h2>${translate("Players cards")}</h2>`)
   var $content = ''
-  forEach(gameData, function (value, prop, obj) {
-    if(value.cards && !value.user_disconnected) {
+  forEach(hands, function (hand, prop, obj) {
+    if(hand) {
       var user = getUser(prop);
       if(user) {
         $content += `<p>${user.name}</p>`;
       }
-      if (value.cards.length == 0) {
+      if (hand.length == 0) {
         $content += `<span class="empty_pile">∅</span>`;
       } else {
         $content += `<ul class='hand tricks'>`;
-        value.cards.forEach(card => {
+        hand.forEach(card => {
           $content += `<li>${drawCard(card, "card_reveal", "a")}</li>`;
         });
         $content += `</ul>`;

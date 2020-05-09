@@ -66,12 +66,12 @@ io.on("connection", socket => {
         cardAside: getData("cardAside"),
         options: getData("options"), 
         pile: getData("pile"), 
-        gameData : getGameData(),
+        gameData : getData("gameData"),
         state: state(),
         playerNumber : getData("playerNumber")
       });
   
-      emitUpdateToRoom(actions.CONNECT_USER, { users: prepareUsers(), gameData : getGameData()})
+      emitUpdateToRoom(actions.CONNECT_USER, { users: prepareUsers(), gameData : getData("gameData")})
       console.log(`[${socket.room}] <===  User ${user.name} reconnected!`)
     } catch(exception) { // If data is not retrivable reconnect the user
       if(gameData != undefined) {
@@ -111,13 +111,13 @@ io.on("connection", socket => {
       cardAside: getData("cardAside"),
       options: getData("options"),
       pile: getData("pile"),
-      gameData: obfuscate(getData("gameData")),
+      gameData: getData("gameData"),
       state: state(),
       hand: [],
       playerNumber: getData("playerNumber"),
     });
 
-    emitUpdateToRoom(actions.CONNECT_USER, { users: prepareUsers(), gameData: getGameData() });
+    emitUpdateToRoom(actions.CONNECT_USER, { users: prepareUsers(), gameData: getData("gameData") });
   }
 
   socket.on("sendInfo", (user) => {
@@ -130,6 +130,7 @@ io.on("connection", socket => {
   function createNewGame() {
     storeData("state", states.CONFIGURE)
     storeData("pile", [])
+    storeData("hands", {})
     storeData("options", {})
     storeData("gameData", {})
     storeData("deckOriginalLength", -1)
@@ -152,12 +153,43 @@ io.on("connection", socket => {
         gameData[socket.id].user_disconnected = true
       }
 
-      emitUpdateToRoom(actions.DISCONNECT_USER, { users: prepareUsers(), gameData: getGameData()});
+      emitUpdateToRoom(actions.DISCONNECT_USER, { users: prepareUsers(), gameData: getData("gameData")});
     }
   });
 
   socket.on("revealCards", () => {
-    io.sockets.in(socket.room).emit("onRevealCards", getGameData(false));
+    var hands = getData("hands");
+    const gameData = getData("gameData");
+    forEach(hands, function (value, prop, obj) {
+      if(gameData[prop] != undefined && gameData[prop].user_disconnected) {
+        delete hands[prop]
+        storeData("hands", hands);
+      }
+    });
+
+    io.sockets.in(socket.room).emit("onRevealCards", hands);
+  });
+
+  function updateHand(userID, hand, emitToRoom=true) {
+    var hands = getData("hands") ;
+    hands[userID] = hand;
+    storeData("hands", hands)
+
+    var gameData = getData("gameData");
+    if(gameData[userID] == undefined) {
+      gameData[userID] = {}
+    }
+    gameData[userID].numberCards = hand.length;
+
+    if(emitToRoom) {
+      emitUpdateToRoom(actions.HAND_CHANGE, { gameData: storeData("gameData", gameData)});
+    } else {
+      storeData("gameData", gameData)
+    }
+  }
+
+  socket.on("updateHand", (hand) => {
+    updateHand(socket.id, hand);
   });
 
   socket.on("takeCardInHand", data => {
@@ -173,17 +205,14 @@ io.on("connection", socket => {
     }
     if(gameData[socket.id] == undefined) {
       gameData[socket.id] = {}
-      gameData[socket.id].cards = []
     }
-    gameData[socket.id].cards = hand;
-    storeData("gameData", gameData);
+    updateHand(socket.id, hand, false);
 
     storeData("deck", deck)
     emitUpdateToRoom(actions.DRAW_CARD, {
       remainingCards: deck.length, 
-      gameData: getGameData()
+      gameData: getData("gameData")
     })
-    var cardsInHand = unobfuscateCards(hand)
     emitToUser(socket.id, "onUpdateHand", cardsInHand)
   });
 
@@ -236,8 +265,6 @@ io.on("connection", socket => {
       numCards = Math.trunc(deck.length / users.length);
     }
     
-    var gameData = getData("gameData")
-
     for (var u = 0; u < users.length; u++) {
       hand = [];
       result = takeCards(numCards, deck, hand);
@@ -246,18 +273,14 @@ io.on("connection", socket => {
       
       emitToUser(users[u], "onUpdateHand", hand);
       
-      if(gameData[users[u]] == undefined) {
-        gameData[users[u]] = {}
-      }
-      gameData[users[u]].cards = hand
+      updateHand(users[u], hand, false)
     }
-    storeData("gameData", gameData)
     storeData("deck", deck)
     emitUpdateToRoom(actions.DISTRIBUTE, {
       remainingCards: deck.length, 
       options: options, 
       state: options.preparation? state(states.PREPARATION) : state(states.PLAY), 
-      gameData: getGameData()
+      gameData: getData("gameData")
     }, `distribute ${numCards} cards`)
   });
 
@@ -318,6 +341,7 @@ io.on("connection", socket => {
     storeData("deck", deck)
     var options = getData("options");
     var player = 0;
+    storeData("hands", {})
 
     if(options.turn) {
       options.turn++;
@@ -350,10 +374,7 @@ io.on("connection", socket => {
     if (data.options != undefined) storeData("options", data.options);
     if (data.deckOriginalLength != undefined) storeData("deckOriginalLength", data.deckOriginalLength);    
     if (data.pile != undefined) storeData("pile", data.pile);
-    if(data.gameData != undefined) {
-      data.gameData = obfuscate(data.gameData);
-      storeData("gameData", data.gameData);
-    }
+    if(data.gameData != undefined) storeData("gameData", data.gameData);
     if(data.playerNumber != undefined) storeData("playerNumber", data.playerNumber);
     
     log(data.action)
@@ -411,14 +432,6 @@ io.on("connection", socket => {
     return getData("deck")
   }
 
-  function getGameData(obfuscated=true) {
-    if(obfuscated) {
-      return obfuscate(getData("gameData"));
-    } else {
-      return unobfuscateData(getData("gameData"))
-    }
-  }
-
   function getUsersConnected() {
     return Object.keys(io.sockets.adapter.rooms[socket.room].sockets)
   }
@@ -471,68 +484,4 @@ function takeCards(numcards, from, to) {
   data = { to: to, from: from };
   return data;
 }
-
-function debug(object) {
-  console.log("<<<<<< DEBUG >>>>>>>>")
-  console.log(JSON.stringify(object, null, 2))
-  console.log(">>>>>> DEBUG <<<<<<<<")
-}
-
-function obfuscate(gameData) {
-  if(gameData) {
-    forEach(gameData, function (value, prop, obj) {
-      if(value.cards) {
-        var tempCards = value.cards
-        for (c = 0; c < tempCards.length; c ++) {
-          // If data not obfuscate yet, obfuscate
-          var card = tempCards[c];
-          if(card != undefined && SUITS_ATOUTS.includes(card.suit)) {
-            card.rank = card.rank.normalise_to_ascii().crypt_symmetric();
-            card.suit = card.suit.normalise_to_ascii().crypt_symmetric();
-          }
-        }
-      }
-    });
-  }
-  return gameData;
-}
-
-function unobfuscateData(gameData) {
-  if(gameData) {
-    forEach(gameData, function (value, prop, obj) {
-      unobfuscateCards(value.cards);
-    });
-  }
-  return gameData;
-}
-
-function unobfuscateCards(array) {
-  if(array) {
-    for (c = 0; c < array.length; c ++) {
-      // If data obfuscate unobfuscate
-      var card = array[c];
-      if(!SUITS_ATOUTS.includes(card.suit )) {
-        card.rank = card.rank.normalise_to_ascii().crypt_symmetric();
-        card.suit = card.suit.normalise_to_ascii().crypt_symmetric();
-      }
-    }
-  }
-  return array;
-}
-
-String.prototype.normalise_to_ascii   = function(){return unescape(encodeURIComponent(this)); }
-String.prototype.normalise_to_unicode = function(){return decodeURIComponent(escape(this)); }
-
-String.prototype.crypt_symmetric = function(key){
-  var me = this + "";                                             //unlink reference
-
-  key = Number(String(Number(key))) === key ? Number(key) : 13;   //optionaly provide key for symmetric-like-""encryption"".
-
-  me = me.split('')                                               //to array of characters.
-         .map(function(c){return c.charCodeAt(0);})               //to array of numbers (each is character's ASCII value)
-         .map(function(i){return i ^ key;        })               //XOR ""ENCRYPTION""
-         ;
-  me = String.fromCharCode.apply(undefined, me);                  //one-liner trick: array-of-numbers to array-of-characters (ASCII value), join to single string. may result in buffer-overflow on long string!
-  return me;
-};
 

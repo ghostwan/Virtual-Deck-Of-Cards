@@ -57,11 +57,11 @@ Current supported Languages: English, French
 - Sort by value
 - Increase / decrease card size
 - TAROT - Give card from trick
+- Remove obfuscation that was provoking some bugs
 
 # What's next 
 
 - TAROT - montrer les plis des gens
-- GAME PLAY - ne faire transiter vers les clients les mains que quand on veut les afficher
 - GAME PLAY - Locker la partie pour que plus personnes ne puisse rentrer 
 - GAME PLAY - ESCALIER - Prise en compte des annonces
 - GAME PLAY - MARMOTEE - poser des cartes cacher sur la table
