@@ -76,7 +76,10 @@ Current supported Languages: English, French
 # Bugs
 
 - Si on distribue plus de cartes que de personnes ça foire les comptes
-- Cartes disparut => prendre cette cartes
+- Cartes nettoyer reapparaisse 
+- Antoine click pourri
+- Pierre mélange carte qui desencd 
+- récupérer carte puis avant de la récupérer réclamer le plie.
 
 
 # Game features status
