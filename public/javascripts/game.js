@@ -31,11 +31,11 @@ function main(roomName, lang) {
     if ($("#option_reorder").prop("checked")) return;
 
     // If we are playing and in action blocked mode and it's not my turn do nothing
-    if (state == states.PLAY && options.block_action && !isMyTurn()) return;
+    if (state == states.PLAYING && options.block_action && !isMyTurn()) return;
 
     putCardOnPileFromHand(this)
     // If we are playing and if there is to end the turn on draw, end the turn
-    if(state == states.PLAY && options.end_turn_draw) {
+    if(state == states.PLAYING && options.end_turn_draw) {
       endTurn();
     }
     
@@ -46,10 +46,10 @@ function main(roomName, lang) {
     if(isGameDisconnected() || isSpectatorMode()) return; 
 
     // If we are playing abd take card from pile is disabled
-    if(state == states.PLAY && options.block_get_cards) return;
+    if(state == states.PLAYING && options.block_get_cards) return;
 
     // If we are playing and in action blocked mode and it's not my turn do nothing
-    if (state == states.PLAY && options.block_action && !isMyTurn()) return;
+    if (state == states.PLAYING && options.block_action && !isMyTurn()) return;
 
     takeCardFromPileToHand(this);
   });
@@ -727,7 +727,7 @@ function drawUsersInfos() {
   users.forEach((user) => {
     var number = "";
     var data = gameData[user.id];
-    if(state == states.CONFIGURE) {
+    if(state == states.CONFIGURATION) {
       number = `🂠 <b> X </b>`
     } else if(data != undefined) {
       if(options.tricks) {
@@ -748,7 +748,7 @@ function drawUsersInfos() {
         userClass += " color_effect"
       }
     }
-    if(state != states.CONFIGURE) {
+    if(state != states.CONFIGURATION) {
       userClass += " user_profil_menu"
     }
     var content = `
@@ -951,7 +951,7 @@ function askResetRound() {
 }
 
 function readyToPlay() {
-  broadcastUpdate({action: actions.READY_TO_PLAY, state: states.PLAY})
+  broadcastUpdate({action: actions.READY_TO_PLAY, state: states.PLAYING})
 }
 
 function getDiscardPile(){
@@ -1043,7 +1043,7 @@ function drawDeck() {
   var playContent = "";
   canDisplayTricks(state)
   switch(state) {
-    case states.CONFIGURE: {
+    case states.CONFIGURATION: {
       $("#game_controls").invisible();
       $("#sideArea").empty();
       deckContent = drawDeckConfig();
@@ -1051,7 +1051,7 @@ function drawDeck() {
       $("#playArea").append(playContent);
       break;
     }
-    case states.DISTRIBUTE: {
+    case states.DISTRIBUTION: {
       $("#game_controls").visible();
       deckContent = drawDeckDistribute();
       drawPile();
@@ -1063,7 +1063,7 @@ function drawDeck() {
       drawPile();
       break;
     }
-    case states.PLAY: {
+    case states.PLAYING: {
       $("#game_controls").visible();
       deckContent = drawDeckPlay();
       drawPile();
@@ -1075,7 +1075,7 @@ function drawDeck() {
 }
 
 function canDisplayTricks(state) {
-  if(state != states.CONFIGURE 
+  if(state != states.CONFIGURATION 
     && options.tricks  ) {
     $("#show_tricks").visible()
   } else {
@@ -1169,7 +1169,7 @@ function drawPileConfig() {
 }
 
 function drawPile() {
-  if(state == states.CONFIGURE) {
+  if(state == states.CONFIGURATION) {
     return
   }
 
@@ -1182,7 +1182,7 @@ function drawPile() {
       </div>`;
 
   if (options.tricks) {
-    if (state == states.PLAY && pile.length == users.length ) {
+    if (state == states.PLAYING && pile.length == users.length ) {
       content += createButton("Claim trick", "claimTrick()", "margin_bottom");
     }
   } else if(pile.length != 0) {
@@ -1326,8 +1326,8 @@ $(document).on("keypress", function (event) {
     var keycode = event.keyCode ? event.keyCode : event.which;
     if (keycode == "13") {
       switch(state) {
-        case states.DISTRIBUTE : distributeCards(); break;
-        case states.PLAY: {
+        case states.DISTRIBUTION : distributeCards(); break;
+        case states.PLAYING: {
           if(!options.end_turn_draw) {
             endTurn();
           }

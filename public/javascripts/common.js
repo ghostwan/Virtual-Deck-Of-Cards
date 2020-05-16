@@ -12,10 +12,10 @@ const EMOJIS = ['😄','😃','😀','😊','☺','😉','😍','😘','😚','�
     '😿','😹','😾','👹','👺','🙈','🙉','🙊','💀','👽','💩'];
 
 const states = {
-    CONFIGURE : "config",
+    CONFIGURATION : "configuration",
     PREPARATION: "preparation",
-    DISTRIBUTE: "distribute",
-    PLAY: "play"
+    DISTRIBUTION: "distribution",
+    PLAYING: "playing"
 }
 
 const actions = {
