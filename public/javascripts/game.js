@@ -1182,8 +1182,7 @@ function drawPile() {
       </div>`;
 
   if (options.tricks) {
-    if ((state == states.PREPARATION && options.hidden_card_aside != 0) 
-        || (state == states.PLAY && pile.length == users.length) ) {
+    if (state == states.PLAY && pile.length == users.length ) {
       content += createButton("Claim trick", "claimTrick()", "margin_bottom");
     }
   } else if(pile.length != 0) {
