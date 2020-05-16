@@ -30,14 +30,15 @@ app.get("/connectroom/", (req, res) => {
 });
 
 io.on("connection", socket => {
-  socket.on("connectRoom", room => {
+
+  socket.on(actions.CONNECT_ROOM, room => {
     console.log(`[${room}] ==> User is ${socket.id} connecting...`);
     socket.join(room);
     socket.room = room
-    emitToUser(socket.id, "askInfo")
+    emitToUser(socket.id, actions.ASK_USER_INFO)
   });
 
-  socket.on("reconnectToRoom", (room, user) => {
+  socket.on(actions.RECONNECT_ROOM, (room, user) => {
     console.log(`[${room}] ==> User is ${socket.id} reconnecting...`);
     socket.join(room);
     socket.room = room
@@ -57,8 +58,7 @@ io.on("connection", socket => {
       storeData("users", users)
   
       var deck = getDeck()
-      emitToUser(user.id, "onUpdateData", {
-        action: actions.CONNECTED,
+      emitToUser(user.id, actions.UPDATE_DATA, {
         my_user: user,
         users: getPlayers(),
         deckOriginalLength: getData("deckOriginalLength"),
@@ -71,7 +71,7 @@ io.on("connection", socket => {
         playerNumber : getData("playerNumber")
       });
   
-      emitUpdateToRoom(actions.CONNECT_USER, { users: getPlayers(), gameData : getGameData()})
+      emitUpdateToRoom(actions.USER_CONNECTED, { users: getPlayers(), gameData : getGameData()})
       console.log(`[${socket.room}] <===  User ${user.name} reconnected!`)
     } catch(exception) { // If data is not retrivable reconnect the user
       if(gameData != undefined) {
@@ -80,7 +80,7 @@ io.on("connection", socket => {
         sendInfo(user)
         console.log(`[${socket.room}] <===  User ${user.name} reconnected by emergency procedure!`)
       } else {
-        emitToUser(socket.id, "onReconnectionFailed")
+        emitToUser(socket.id, actions.USER_RECONNECTION_FAILED)
       }
     }
     
@@ -102,8 +102,7 @@ io.on("connection", socket => {
     }
 
     var deck = getDeck();
-    emitToUser(user.id, "onUpdateData", {
-      action: actions.CONNECTED, 
+    emitToUser(user.id, actions.UPDATE_DATA, {
       my_user: user,
       users: getPlayers(),
       instruction: true,
@@ -118,10 +117,10 @@ io.on("connection", socket => {
       playerNumber: getData("playerNumber"),
     });
 
-    emitUpdateToRoom(actions.CONNECT_USER, { users: getPlayers(), gameData: getGameData() });
+    emitUpdateToRoom(actions.USER_CONNECTED, { users: getPlayers(), gameData: getGameData() });
   }
 
-  socket.on("sendInfo", (user) => {
+  socket.on(actions.SEND_USER_INFO, (user) => {
     console.log(`[${socket.room}] <===  User ${user.name} connected!`);
     socket.user_name = user.name;
     sendInfo(user)
@@ -139,16 +138,16 @@ io.on("connection", socket => {
     storeData("playerNumber", -1)
   }
 
-  socket.on('disconnect',function(reason) {
+  socket.on(actions.DISCONNECT,function(reason) {
     if(socketNotAvailble() ) {
       var id = socket.user_name !== undefined? socket.user_name: socket.id;
       console.log(`!! Can't retrieve room ID !! ${id} client disconnect because ${reason}`)
     } else {
-      deleteUser()
+      expulseUser()
     }
   });
 
-  function deleteUser(userID=socket.id) {
+  function expulseUser(userID=socket.id) {
     var users = getUsers();
     users.delete(userID);
     storeData("users", users);
@@ -158,13 +157,12 @@ io.on("connection", socket => {
       gameData[userID].user_disconnected = true;
     }
 
-    emitUpdateToRoom(actions.DISCONNECT_USER, { users: getPlayers(), gameData: getGameData()});
+    emitUpdateToRoom(actions.EXPULSE_USER, { users: getPlayers(), gameData: getGameData()});
   }
 
-  socket.on("expulseUser", userID => {
-    deleteUser(userID)
-    emitToUser(userID, "onUpdateData", {
-      action: actions.EXPULSE_USER,
+  socket.on(actions.EXPULSE_USER, userID => {
+    expulseUser(userID)
+    emitToUser(userID, actions.UPDATE_DATA, {
       instruction: false,
       my_user: -1,
       gameData : getGameData(),
@@ -174,7 +172,7 @@ io.on("connection", socket => {
 
   });
 
-  socket.on("revealCards", () => {
+  socket.on(actions.REVEAL_PLAYERS_CARDS, () => {
     var hands = getData("hands");
     const gameData = getGameData();
     forEach(hands, function (value, prop, obj) {
@@ -184,7 +182,7 @@ io.on("connection", socket => {
       }
     });
 
-    io.sockets.in(socket.room).emit("onRevealCards", hands);
+    io.sockets.in(socket.room).emit(actions.REVEAL_PLAYERS_CARDS, hands);
   });
 
   function updateHand(userID, hand, emitToRoom=true) {
@@ -205,11 +203,11 @@ io.on("connection", socket => {
     }
   }
 
-  socket.on("updateHand", hand => {
+  socket.on(actions.HAND_CHANGE, hand => {
     updateHand(socket.id, hand);
   });
 
-  socket.on("takeCardInHand", data => {
+  socket.on(actions.DRAW_CARD, data => {
     if(socketNotAvailble()) {return}
     
     var result = takeCards(1, getDeck(), data.hand);
@@ -230,10 +228,10 @@ io.on("connection", socket => {
       remainingCards: deck.length, 
       gameData: getGameData()
     })
-    emitToUser(socket.id, "onUpdateHand", hand)
+    emitToUser(socket.id, actions.UPDATE_HAND, hand)
   });
 
-  socket.on("addCardToPile", numCards => {
+  socket.on(actions.PUT_CARD_PILE, numCards => {
     if(socketNotAvailble()) {return}
 
     var result = takeCards(numCards, getDeck(), getPile());
@@ -247,7 +245,7 @@ io.on("connection", socket => {
 
   });
 
-  socket.on("endTurn", () => {
+  socket.on(actions.END_TURN, () => {
     if(socketNotAvailble()) {return}
     
     var playerNumber = getData("playerNumber")
@@ -255,7 +253,7 @@ io.on("connection", socket => {
     emitUpdateToRoom(actions.END_TURN, { playerNumber : storeData("playerNumber", playerNumber)})
   })
 
-  socket.on("putCardAside", () => {
+  socket.on(actions.PUT_CARD_ASIDE, () => {
     if(socketNotAvailble()) {return}
     
     var result = takeCards(1, getDeck(), []);
@@ -263,13 +261,13 @@ io.on("connection", socket => {
     var hand = result.to;
 
     storeData("deck", deck)
-    emitUpdateToRoom(actions.CARD_ASIDE, {
+    emitUpdateToRoom(actions.PUT_CARD_ASIDE, {
       remainingCards: deck.length, 
       cardAside: storeData("cardAside", hand[0])
     });
   });
 
-  socket.on("distribute", data => {
+  socket.on(actions.DISTRIBUTE, data => {
     if(socketNotAvailble()) {return}
     
     var deck = getDeck();
@@ -290,7 +288,7 @@ io.on("connection", socket => {
       hand = result.to;
       var user = users[u];
       
-      emitToUser(user.id, "onUpdateHand", hand);
+      emitToUser(user.id, actions.UPDATE_HAND, hand);
       updateHand(user.id, hand, false)
     }
     storeData("deck", deck)
@@ -302,7 +300,12 @@ io.on("connection", socket => {
     }, `distribute ${numCards} cards`)
   });
 
-  socket.on("getDiscardPile", () => {
+  //TODO
+  socket.on(actions.CLEAR_AREA, (pile) => {
+    debug(actions.CLEAR_AREA, pile);
+  });
+
+  socket.on(actions.GET_DISCARD_PILE, () => {
     var pile = getPile();
     var deck = getDeck();
     var numCards  = pile.length;
@@ -323,7 +326,7 @@ io.on("connection", socket => {
     }, `get back ${numCards} cards from discard pile`)
   });
 
-  socket.on("shuffleDeck", () => {
+  socket.on(actions.SHUFFLE_DECK, () => {
     if(socketNotAvailble()) {return}
     
     var deck = getDeck()
@@ -332,7 +335,7 @@ io.on("connection", socket => {
     emitUpdateToRoom(actions.SHUFFLE_DECK, {remainingCards: deck.length})
   });
 
-  socket.on("resetGame", () => {
+  socket.on(actions.RESET_GAME, () => {
     if(socketNotAvailble()) {return}
     
     createNewGame()
@@ -351,7 +354,7 @@ io.on("connection", socket => {
     });
   })
 
-  socket.on("resetRound", () => {
+  socket.on(actions.RESET_ROUND, () => {
     if(socketNotAvailble()) {return}
 
     var deck = newDeck(getOptions());
@@ -386,7 +389,7 @@ io.on("connection", socket => {
   });
 
   // Broadcast function, sync datas a cross all client from a room
-  socket.on("updateData", data => {
+  socket.on(actions.BROADCAST_UPDATE, data => {
     if(socketNotAvailble()) {return}
     
     if (data.options != undefined) storeData("options", data.options);
@@ -397,7 +400,7 @@ io.on("connection", socket => {
     
     log(data.action)
     data = {who: socket.id, ...data}
-    io.sockets.in(socket.room).emit("onUpdateData", data)
+    io.sockets.in(socket.room).emit(actions.UPDATE_DATA, data)
   });
 
   function getPlayers(){
@@ -425,7 +428,7 @@ io.on("connection", socket => {
     const data = `${socket.user_name} ${what}`;
     console.log(`[${socket.room}] ${data}`)
     if(sendLogs) {
-      io.sockets.in(socket.room).emit("onNewAction", socket.user_name, what)
+      io.sockets.in(socket.room).emit(actions.LOG_ACTION, socket.user_name, what)
     }
   }
   function emitUpdateToRoom(action, data, logs=undefined) {
@@ -435,7 +438,7 @@ io.on("connection", socket => {
       log(action)
     }
     data = {who: socket.id , action: action, ...data}
-    io.sockets.in(socket.room).emit("onUpdateData", data)
+    io.sockets.in(socket.room).emit(actions.UPDATE_DATA, data)
   }
   function emitToUser(user, event, data) {
     io.to(user).emit(event, data);

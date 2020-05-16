@@ -87,7 +87,7 @@ function main(roomName, lang) {
   i18next.use(i18nextXHRBackend ).use(i18nextBrowserLanguageDetector)
     .init(config, (err, t) => {
       translate = t
-      socket.emit("connectRoom", roomName);  
+      emitToServer(actions.CONNECT_ROOM, roomName)
       init()
     });
 }
@@ -116,10 +116,11 @@ function createButton(title, jsAction, clazz="") {
 
 function reconnect() {
   socket.connect();
-  socket.emit("reconnectToRoom", room, my_user);  
+  //TODO improve emit by https://stackoverflow.com/questions/3914557/passing-arguments-forward-to-another-javascript-function/3914600
+  socket.emit(actions.RECONNECT_ROOM, room, my_user);  
 }
 
-socket.on("onReconnectionFailed", function() {
+socket.on(actions.USER_RECONNECTION_FAILED, function() {
   $("#mainDeck").empty();
   $content = `
     <div class="row w-100">
@@ -133,7 +134,7 @@ socket.on("onReconnectionFailed", function() {
   $("#mainDeck").append($content);
 })
 
-socket.on('disconnect', function(){
+socket.on(actions.DISCONNECT, function(){
   $("#mainDeck").empty();
   $content = `
     <div class="row w-100">
@@ -152,7 +153,7 @@ window.onbeforeunload = function (event) {
   event.returnValue = translate('Refreshing the page will make you disconnect from the game!');
 };
 
-socket.on("askInfo", function () {
+socket.on(actions.ASK_USER_INFO, function () {
   /*First initialisation*/
   if (my_user == -1) {
     var randomRoger = "roger" + Math.floor(Math.random() * 100);
@@ -167,17 +168,17 @@ socket.on("askInfo", function () {
       emoji: EMOJIS[Math.floor(Math.random() * EMOJIS.length)],
     };
   }
-  socket.emit("sendInfo", my_user);
+  emitToServer(actions.SEND_USER_INFO, my_user);
 });
 
-socket.on("onUpdateHand", function (data) {
+socket.on(actions.UPDATE_HAND, function (data) {
   console.log("===== Update Hand =====");
   my_hand = data;
   drawHand();
 });
 
 
-socket.on("onNewAction", function (who, what) {
+socket.on(actions.LOG_ACTION, function (who, what) {
   if(what != actions.END_TURN) {
     $("#logMessage").text(`${who} ${translate(what)}`);
   }
@@ -194,20 +195,18 @@ function isMyTurn() {
   return false;
 }
 
-socket.on("onRevealCards", function (hands) {
+socket.on(actions.REVEAL_PLAYERS_CARDS, function (hands) {
   drawPileRevealCards(hands);
 });
 
-socket.on("onUpdateData", function (data) {
-  console.log(">>>>> New data broadcast >>>>>");
+socket.on(actions.UPDATE_DATA, function (data) {
+  console.log(">>>>> New data broadcasted >>>>>");
   console.log(data);
   var reDrawHand = false;
   var reDrawPile = false;
   var reDrawDeck = false;
   var reDrawUsersInfo = false;
   var reDrawTricks = false;
-  var action = data.action
-
 
   if ( isExist(data.options) ) {
     options = data.options;
@@ -268,8 +267,11 @@ socket.on("onUpdateData", function (data) {
   if (reDrawPile) drawPile();
   if (reDrawUsersInfo) drawUsersInfos();
   if (reDrawTricks) drawTricks();
-  // if (reDrawPlayersHand) drawPlayerHands();
-  playAction(action);
+  
+  if(isExist(data.action)) {
+    playAction(data.action);
+  }
+
 });
 
 function refresh() {
@@ -280,30 +282,37 @@ function refresh() {
   drawTricks();
 }
 
+function emitToServer(action, param=undefined) {
+
+  // emit.apply(this, arguments);
+  if(isGameDisconnected()) return; 
+
+  debug("emit", action)
+  if(param != undefined) {
+    socket.emit(action, param);
+  } else {
+    socket.emit(action);
+  }
+
+}
+
+function broadcastUpdate(data) {
+  if(isGameDisconnected()) return; 
+
+  emitToServer(actions.BROADCAST_UPDATE, data);
+}
+
 function updateOptions() {
   if(isGameDisconnected()) return; 
 
-  var data = {action: actions.UPDATE_OPTION, options: options}
-  socket.emit("updateData", data);
-}
-
-function updateData(data) {
-  if(isGameDisconnected()) return; 
-
-  socket.emit("updateData", data);
-}
-
-function emit(action, param) {
-  if(isGameDisconnected()) return; 
-
-  socket.emit(action, param);
+  broadcastUpdate({ action: actions.UPDATE_OPTION, options: options})
 }
 
 function takeCardAside() {
   my_hand.push(cardAside);
   cardAside = -1;
   updateMyHand();
-  updateData({ action: actions.TAKE_CARD_ASIDE, cardAside: cardAside })
+  broadcastUpdate({ action: actions.TAKE_CARD_ASIDE, cardAside: cardAside })
   drawHand();
 }
 
@@ -311,7 +320,7 @@ function removeCardAside() {
   cardAside.hidden = true
   pile.push(cardAside)
   cardAside = -1;
-  updateData({ action: actions.REMOVE_CARD_ASIDE, cardAside: cardAside, pile: pile })
+  broadcastUpdate({ action: actions.REMOVE_CARD_ASIDE, cardAside: cardAside, pile: pile })
 }
 
 function takeCardFromPileToHand(item=undefined) {
@@ -336,7 +345,7 @@ function takeCardFromPileToHand(item=undefined) {
     }
     pile = [];
   }
-  updateData({ action: action, pile: pile })
+  broadcastUpdate({ action: action, pile: pile })
   drawHand();
 }
 
@@ -368,7 +377,7 @@ function putCardOnPileFromHand(item=undefined) {
     updateMyHand();
   }
 
-  updateData({ action: action, pile: pile })
+  broadcastUpdate({ action: action, pile: pile })
   drawHand();
 }
 
@@ -384,7 +393,7 @@ function putCardOnPileFromTrick(item=undefined) {
     gameData[my_user.id].tricks.splice(trickNumber, 1)
   }
 
-  updateData({ action: actions.PLAY_CARD, pile: pile, gameData: gameData })
+  broadcastUpdate({ action: actions.PLAY_CARD, pile: pile, gameData: gameData })
 }
 
 function start() {
@@ -406,10 +415,13 @@ function start() {
 
 function clearPlayingArea() {
   if (confirm(translate("Are you sure, you want to clear the playing area?"))) {
+    //TODO Remove hidden it's buggy and replace it by server actions
+    // And a server cleared pile of cards
+    // Usefull to repack discard cards
     pile.forEach(card => {
       card.hidden = true
     });
-    updateData({ action: actions.CLEAR_AREA, pile: pile })
+    broadcastUpdate({ action: actions.CLEAR_AREA, pile: pile })
   }
 }
 
@@ -422,14 +434,14 @@ function pileUpPlayingArea() {
     pile.forEach(card => {
       card.pile_up = true
     });
-    updateData({ action: actions.PILE_UP_AREA, pile: pile })
+    broadcastUpdate({ action: actions.PILE_UP_AREA, pile: pile })
 }
 
 function dispersePlayingArea() {
   pile.forEach(card => {
     card.pile_up = false
   });
-  updateData({ action: actions.DISPERSE_AREA, pile: pile })
+  broadcastUpdate({ action: actions.DISPERSE_AREA, pile: pile })
 }
 
 function createMenu(selector, items) {
@@ -517,11 +529,11 @@ function onOptionMenu(name, op) {
     case actions.REMOVE_CARD_ASIDE: removeCardAside(); break;
     case actions.TAKE_BACK_ALL_CARDS: takeCardFromPileToHand(); break;
     case actions.PLAY_ALL_CARDS: putCardOnPileFromHand(); break;
-    case actions.SHUFFLE_HAND: shuffleCard(); break;
+    case actions.SHUFFLE_HAND: shuffleHand(); break;
     case actions.SORT_VALUE: sortCardByValue(); break;
-    case actions.PUT_CARD_PILE: emit("addCardToPile", 1); break;
+    case actions.PUT_CARD_PILE: emitToServer(actions.PUT_CARD_PILE, 1); break;
+    case actions.PUT_ALL_CARDS_PILE: emitToServer(actions.PUT_CARD_PILE, remainingCards); break;
     case actions.GIVE_CARD_PILE: putCardOnPileFromTrick(op.$trigger); break;
-    case actions.PUT_ALL_CARDS_PILE: emit("addCardToPile", remainingCards); break;
     case actions.REFRESH_BOARD: refresh(); break;
     case actions.INCREASE_SIZE: changeCardSize(op, 0.2); break;
     case actions.DECREASE_SIZE: changeCardSize(op, -0.2); break;
@@ -533,7 +545,7 @@ function expulseUser(op) {
   const user = getUser(userid);
 
   if (confirm(translate(`Are you sure, you want to expulse ${user.name} ?`))) {
-    socket.emit("expulseUser", userid);
+    emitToServer(actions.EXPULSE_USER, userid);
   }
 }
 
@@ -543,7 +555,7 @@ function changeTurn(op) {
   if(options.turn) {
     options.turn = num+2;
   }
-  updateData({ action: name,  playerNumber:  num, options: options })
+  broadcastUpdate({ action: name,  playerNumber:  num, options: options })
 }
 
 function randomFirstPlayer() {
@@ -551,12 +563,12 @@ function randomFirstPlayer() {
   if(options.turn) {
     options.turn = num+2;
   }
-  updateData({ action: name,  playerNumber: num, options: options  })
+  broadcastUpdate({ action: name,  playerNumber: num, options: options  })
 }
 
 function revealCards() {
   if (confirm(translate("Are you sure, you want to reveal to everyone players cards?"))) {
-    socket.emit("revealCards");
+    emitToServer(actions.REVEAL_PLAYERS_CARDS);
   }
 }
 
@@ -579,7 +591,7 @@ function askResetGame() {
   if(isSpectatorMode()) { alertSpectatorMode(); return;}
 
   if (confirm(translate("Are you sure, you want to reset the game?"))) {
-    socket.emit("resetGame");
+    emitToServer(actions.RESET_GAME);
   }
 }
 
@@ -605,7 +617,7 @@ function claimTrick() {
     gameData[my_user.id].tricks = []
   }
   gameData[my_user.id].tricks.push(pile);
-  updateData({ action: actions.CLAIM_TRICK, gameData: gameData, pile: [], playerNumber: getUserPlace() })
+  broadcastUpdate({ action: actions.CLAIM_TRICK, gameData: gameData, pile: [], playerNumber: getUserPlace() })
 }
 
 function playAction(action) {
@@ -614,7 +626,7 @@ function playAction(action) {
   if ($("#card_sound_option").prop("checked")) {
     switch(action) {
       case actions.SHUFFLE_DECK: playSound("shuffle"); break;
-      case actions.CARD_ASIDE: playSound("turn_card"); break;
+      case actions.PUT_CARD_ASIDE: playSound("turn_card"); break;
       case actions.DISTRIBUTE: playSound("distribute"); break;
       case actions.DRAW_CARD:  playSound("draw_card"); break;
       case actions.PLAY_CARD:  playSound("play_card2"); break;
@@ -644,31 +656,29 @@ function playSound(name) {
 }
 
 function shuffleDeck() {
-  socket.emit("shuffleDeck");
+  emitToServer(actions.SHUFFLE_DECK);
 }
 
 function resetRound() {
-  socket.emit("resetRound");
+  emitToServer(actions.RESET_ROUND);
 }
 
 function takeCard() {
   var data = { hand: my_hand };
-  socket.emit("takeCardInHand", data);
+  emitToServer(actions.DRAW_CARD, data);
 }
 
 function putCardAside() {
-  socket.emit("putCardAside");
+  emitToServer(actions.PUT_CARD_ASIDE);
 }
 
 function updateMyHand(){
-  console.log("My hand:");
-  console.log(my_hand);
-  socket.emit("updateHand", my_hand);
+  emitToServer(actions.HAND_CHANGE, my_hand);
 }
 
 function endTurn() {
   if(isMyTurn()) {
-    socket.emit("endTurn");
+    emitToServer(actions.END_TURN);
   }
 }
 
@@ -941,11 +951,11 @@ function askResetRound() {
 }
 
 function readyToPlay() {
-  updateData({action: actions.READY_TO_PLAY, state: states.PLAY})
+  broadcastUpdate({action: actions.READY_TO_PLAY, state: states.PLAY})
 }
 
 function getDiscardPile(){
-  socket.emit("getDiscardPile");
+  emitToServer(actions.GET_DISCARD_PILE);
 }
 
 function drawStack() {
@@ -1271,7 +1281,7 @@ function sortCardByValue() {
   drawHand();
 }
 
-function shuffleCard() {
+function shuffleHand() {
   my_hand = shuffle(my_hand);
   drawHand()
 }
@@ -1286,8 +1296,10 @@ function distributeCards() {
       numCards = Math.floor((deckOriginalLength - options.hidden_card_aside) / users.length);
     }
   }
-  data = { numCards: numCards, hand: my_hand };
-  socket.emit("distribute", data);
+  emitToServer(actions.DISTRIBUTE, { 
+    numCards: numCards, 
+    hand: my_hand 
+  });
 }
 
 function onOptionChange(name) {

@@ -6,9 +6,10 @@ A virtual deck of cards! Play anything anywhere, with anyone!
 You are a fan of cards game as :
 - [Yaniv](https://www.wikiwand.com/en/Yaniv_(card_game))
 - [Ascenseur](https://www.wikiwand.com/en/Oh_Hell)
-- Escalier
+- Escalier as Ascenceur but starting with two cards and no going down phase
 - [Barbu](https://www.wikiwand.com/en/Barbu_(card_game))
-- Ratatouille
+- Ratatouille as Barbu but (no tricks (5), no heart (10), no queen (30), no man (15), general)
+- [Tarot](https://en.wikipedia.org/wiki/French_Tarot)
 ...
 
 Covid-19 is here, you are lockdown at home and want to play remotely with your friends ?
@@ -21,18 +22,23 @@ Current supported Languages: English, French
 - Create a room to play any cards game with your friends!
 - Share the room's url to invite people into the game!
 - See who's connected to the room
+- Room owner can expluse a player
 - Choose your name roger!
-- Configure deck, game pre config, options...
+- Configure deck, game pre config, options, with or without cavalier, trump cards...
 - Put a visible card aside for game as "oh hell"
 - Take the card put aside for game as "yaniv"
 - Distribute the whole deck or a specific number of cards among all players 
 - See how many cards each player got
 - Rearrange cards in your hand, sort them by suit, by values, shuffle them! you name it! 
+- Increase / decrease card size
 - See who's turn is and change it if needed (choose a specific player or random)
 - Draw a card from the deck
 - Play a card from your hand
-- Take a card from the playing area (for some game as Yaniv or if you did a mistake)
+- Take a card from the playing / discard area (for some game as Yaniv or if you did a mistake)
+- Put a card from the deck to the discard area (for the chien in tarot)
 - Hide cards values in playing area (poker style ;) ) 
+- Get and shuffle the discard pile
+- Pile up / disperse card in playing area
 - See who played a card
 - Clear the playing area
 - Add the end display people hands
@@ -48,17 +54,9 @@ Current supported Languages: English, French
 
 # What's new 
 
-- Get and shuffle discard pile
-- Pile up / disperse card in pile
-- French translation for figures
-- TAROT - Add trumps cards (atouts) for tarot
 - TAROT - Add option to put hidden cards aside 
 - TAROT - Add card aside to the pile
-- Sort by value
-- Increase / decrease card size
 - TAROT - Give card from trick
-- Remove obfuscation that was provoking some bugs
-- Room owner can expluse player
 
 # What's next 
 
@@ -76,11 +74,10 @@ Current supported Languages: English, French
 # Bugs
 
 - Si on distribue plus de cartes que de personnes ça foire les comptes
-- Cartes nettoyer reapparaisse 
-- Antoine click pourri
+- Cartes nettoyer reapparaisse  => virer le hidden et mettre dans une pile de carte nettoyer
 - Pierre mélange carte qui desencd 
-- récupérer carte puis avant de la récupérer réclamer le plie.
-
+- Antoine click pourri: race, récupérer carte puis avant de la récupérer réclamer le plie.
+- La carte retournée n'a pas la même taille dans a pile
 
 # Game features status
 

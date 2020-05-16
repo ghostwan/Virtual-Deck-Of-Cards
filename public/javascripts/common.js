@@ -19,46 +19,66 @@ const states = {
 }
 
 const actions = {
-    CONNECTING: "I am connecting...",
-    CONNECT_USER: "user connected",
-    CONNECTED: "I am connected",
-    CONNECTION_FAIL: "my connection failed",
-    DISCONNECT_USER: "user disconnected",
-    GOT_CARD: "I got a card",
-    SHUFFLE_DECK: "shuffle the deck",
-    SHUFFLE_HAND: "shuffle hand",
-    SORT_VALUE: "sort card by value",
-    DRAW_CARD: "draw a card",
-    END_TURN: "end turn",
-    CARD_ASIDE: "put a card aside",
-    DISTRIBUTE: "distribute",
+
+    /* Connection actions */
+    CONNECT_ROOM: "connect room",
+    RECONNECT_ROOM: "reconnect room",
+    DISCONNECT: "disconnect", // socket io event
+    ASK_USER_INFO: "ask info",
+    SEND_USER_INFO: "send info",
+    USER_CONNECTED: "user connected",
+    USER_RECONNECTION_FAILED: "user reconnection failed",
+    EXPULSE_USER : "expulse user",
+
+    /* Data sync actions */
+    BROADCAST_UPDATE: "broadcast update",
+    UPDATE_DATA: "update data",
+    UPDATE_OPTION: "update option",
+    UPDATE_HAND: "update hand",
+    HAND_CHANGE: "hand change",
+    LOG_ACTION: "log action",
+
+    /* Game actions */
     RESET_GAME: "reset the game",
     RESET_ROUND: "reset the round",
     READY_TO_PLAY: "ready to play",
+    END_TURN: "end turn",    
+
+    /* Deck Actions */
+    DISTRIBUTE: "distribute",
+    SHUFFLE_DECK: "shuffle the deck",
+    PUT_CARD_ASIDE: "put a card aside",
+    TAKE_CARD_ASIDE: "take card aside",
+    REMOVE_CARD_ASIDE: "remove card aside",
+    
+    /* Hand actions */
     PLAY_CARD: "play a card",
+    DRAW_CARD: "draw a card",
     PLAY_ALL_CARDS: "play all cards",
-    UPDATE_OPTION: "update option",
-    CHANGE_TURN: "change turn",
     TAKE_BACK_CARD: "take back a card",
     TAKE_BACK_ALL_CARDS: "take back all cards",
-    TAKE_CARD_ASIDE: "take card aside",
-    RANDOM_FIRST_PLAYER: "choose first player randomly",
-    REMOVE_CARD_ASIDE: "remove card aside",
+    SORT_VALUE: "sort card by value",
+    SHUFFLE_HAND: "shuffle hand",
+
+    /* Discard Pile */
+    PUT_CARD_PILE: "put card on pile",
+    PUT_ALL_CARDS_PILE: "put alls cards on pile",
+    CLAIM_TRICK: "claim trick",
+    GET_DISCARD_PILE:"get discard pile",
     CLEAR_AREA: "clear the playing area",
     PILE_UP_AREA: "pile up the playing area",
     DISPERSE_AREA: "disperse the playing area",
-    CLAIM_TRICK: "claim trick",
-    REVEAL_PLAYERS_CARDS: "reveal players cards",
-    GET_DISCARD_PILE:"get discard pile",
-    PUT_CARD_PILE: "put card on pile",
     GIVE_CARD_PILE: "give card to pile",
-    PUT_ALL_CARDS_PILE: "put alls cards on pile",
+
+    /* Players action */
+    CHANGE_TURN: "change turn",
+    RANDOM_FIRST_PLAYER: "choose first player randomly",
+    REVEAL_PLAYERS_CARDS: "reveal players cards",
     REFRESH_BOARD: "refresh board",
-    SHOW_HIDE_TRICKS : "show hide tricks",
+    
+    /* Other actions */
     INCREASE_SIZE: "increase size",
     DECREASE_SIZE: "decrease size",
-    HAND_CHANGE: "hand change",
-    EXPULSE_USER : "explulse user"
 }
 
 const configs = {
