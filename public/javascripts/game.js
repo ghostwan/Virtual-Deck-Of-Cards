@@ -18,6 +18,7 @@ var numberOptionList = {}
 var room;
 var translate;
 var animationID;
+var cardsCleared = 0;
 
 var cardSizes = {card_in_pile: 2, card_in_trick:1.2, card_in_hand:1.2};
 
@@ -261,6 +262,10 @@ socket.on(actions.UPDATE_DATA, function (data) {
       refresh();
     }
   }
+  if ( isExist(data.cardsCleared) ) {
+    cardsCleared = data.cardsCleared;
+    reDrawPile = true;
+  }
 
   if (reDrawDeck) drawDeck();
   if (reDrawHand) drawHand(data.instruction == true);
@@ -415,18 +420,11 @@ function start() {
 
 function clearPlayingArea() {
   if (confirm(translate("Are you sure, you want to clear the playing area?"))) {
-    //TODO Remove hidden it's buggy and replace it by server actions
-    // And a server cleared pile of cards
-    // Usefull to repack discard cards
-    pile.forEach(card => {
-      card.hidden = true
-    });
-    broadcastUpdate({ action: actions.CLEAR_AREA, pile: pile })
+    emitToServer(actions.CLEAR_AREA)
   }
 }
 
 function cleanCard(card) {
-  delete card.hidden
   delete card.pile_up
 }
 
@@ -472,7 +470,7 @@ function init() {
     [actions.INCREASE_SIZE]: {name: translate(actions.INCREASE_SIZE), icon: "fa-search-plus"},
     [actions.DECREASE_SIZE]: {name: translate(actions.DECREASE_SIZE), icon: "fa-search-minus"},
     [actions.CLAIM_TRICK]: {name: translate("claim trick"), icon: "fa-hand-lizard", visible: function(key, opt){return options.tricks;}},
-    [actions.CLEAR_AREA]: {name: translate("clear"), icon: "fa-trash-alt", visible: function(key, opt){return options.tricks;}}
+    [actions.CLEAR_AREA]: {name: translate("clear"), icon: "fa-trash-alt"}
   });
   createMenu(".card_in_hand", {
     [actions.SHUFFLE_HAND]: {name: translate("shuffle"), icon: "fa-hand-lizard"},
@@ -1188,8 +1186,8 @@ function drawPile() {
     if (state == states.PLAYING && pile.length == users.length ) {
       content += createButton("Claim trick", "claimTrick()", "margin_bottom");
     }
-  } else if(pile.length != 0) {
-      content += createButton("Get and shuffle discard pile", "getDiscardPile()", "margin_bottom");
+  } else if(pile.length != 0 || cardsCleared != 0) {
+      content += createButton("Get back and shuffle discard pile", "getDiscardPile()", "margin_bottom");
   }
   $("#playArea").append(content);
 
@@ -1199,9 +1197,6 @@ function drawPile() {
       j = pile.length - 1 - i;
     }
     card = pile[j];
-    if(card.hidden) {
-      continue;
-    }
     var $item = ""
     if (options.back_card) {
       $item = $(drawCard(card, "card_in_pile", "div", false, true));

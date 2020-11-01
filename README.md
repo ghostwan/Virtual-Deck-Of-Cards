@@ -59,6 +59,7 @@ Current supported Languages: English, French
 
 - Fix card hidden card value size
 - Fix issue when distributing more cards than players
+- Fix issue on clear playing area
 
 # What's next 
 
@@ -75,7 +76,6 @@ Current supported Languages: English, French
 
 # Bugs
 
-- Cartes nettoyer reapparaisse  => virer le hidden et mettre dans une pile de carte nettoyer
 - Pierre mélange carte qui desencd 
 - Antoine click pourri: race, récupérer carte puis avant de la récupérer réclamer le plie.
 

@@ -57,12 +57,15 @@ io.on("connection", socket => {
       users.set(user.id, user)
       storeData("users", users)
   
-      var deck = getDeck()
+      var deck = getDeck();
+      var cardsCleared = getCardsCleared();
+
       emitToUser(user.id, actions.UPDATE_DATA, {
         my_user: user,
         users: getPlayers(),
         deckOriginalLength: getData("deckOriginalLength"),
         remainingCards: deck == undefined ? -1 : deck.length,
+        cardsCleared: cardsCleared == undefined ? 0 : cardsCleared.length,
         cardAside: getData("cardAside"),
         options: getOptions(), 
         pile: getPile(), 
@@ -102,12 +105,15 @@ io.on("connection", socket => {
     }
 
     var deck = getDeck();
+    var cardsCleared = getOptions("cardsCleared");
+
     emitToUser(user.id, actions.UPDATE_DATA, {
       my_user: user,
       users: getPlayers(),
       instruction: true,
       deckOriginalLength: getData("deckOriginalLength"),
       remainingCards: deck == undefined ? -1 : deck.length,
+      cardsCleared: cardsCleared == undefined ? 0 : cardsCleared.length,  
       cardAside: getData("cardAside"),
       options: getOptions(),
       pile: getPile(),
@@ -136,6 +142,7 @@ io.on("connection", socket => {
     storeData("cardAside", -1)
     storeData("deck", [])
     storeData("playerNumber", -1)
+    storeData("cardsCleared", [])
   }
 
   socket.on(actions.DISCONNECT,function(reason) {
@@ -300,29 +307,37 @@ io.on("connection", socket => {
     }, `distribute ${numCards} cards`)
   });
 
-  //TODO
-  socket.on(actions.CLEAR_AREA, (pile) => {
-    debug(actions.CLEAR_AREA, pile);
+  socket.on(actions.CLEAR_AREA, () => {
+    var pile = getPile();
+    var cardsCleared = getData("cardsCleared");
+    cardsCleared = cardsCleared.concat(pile);
+
+    storeData("cardsCleared", cardsCleared)
+
+    emitUpdateToRoom(actions.CLEAR_AREA, {
+      pile: storeData("pile", []),
+      cardsCleared: cardsCleared.length
+    })
   });
 
   socket.on(actions.GET_DISCARD_PILE, () => {
     var pile = getPile();
+    var cardsCleared = getCardsCleared();
+    var numCards = pile.length + cardsCleared.length
+
     var deck = getDeck();
-    var numCards  = pile.length;
-
-    for (c = 0; c < numCards; c++) {
-      var card = pile[c];
-      deck.push(card);
-    }
-    pile = [];
-
+    deck = deck.concat(pile)
     storeData("pile", []);
+    deck = deck.concat(cardsCleared)
+    storeData("cardsCleared", []);
+
     deck = shuffle(deck)
     storeData("deck", deck);
 
     emitUpdateToRoom(actions.GET_DISCARD_PILE, {
       remainingCards: deck.length, 
       pile: [],
+      cardsCleared: 0
     }, `get back ${numCards} cards from discard pile`)
   });
 
@@ -344,6 +359,7 @@ io.on("connection", socket => {
       instruction: false,
       deckOriginalLength: getData("deckOriginalLength"),
       remainingCards: -1,
+      cardsCleared: 0,
       cardAside: getData("cardAside"),
       options: getOptions(), 
       pile: getPile(), 
@@ -380,6 +396,7 @@ io.on("connection", socket => {
       state: state(states.DISTRIBUTION),
       cardAside: storeData("cardAside", -1),
       pile: storeData("pile", []),
+      cardsCleared: storeData("cardsCleared", []).length,
       options: storeData("options", options),
       hand: [],
       gameData: storeData("gameData", {}) ,
@@ -459,6 +476,10 @@ io.on("connection", socket => {
 
   function getPile() {
     return getData("pile");
+  }
+
+  function getCardsCleared(){
+    return getData("cardsCleared");
   }
 
   function getGameData() {
