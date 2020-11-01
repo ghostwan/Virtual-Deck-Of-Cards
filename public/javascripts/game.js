@@ -1298,6 +1298,9 @@ function distributeCards() {
       numCards = Math.floor((deckOriginalLength - options.hidden_card_aside) / users.length);
     }
   }
+  if(numCards > Math.floor(deckOriginalLength/users.length)) {
+    numCards = Math.floor(deckOriginalLength/users.length)
+  }
   emitToServer(actions.DISTRIBUTE, { 
     numCards: numCards, 
     hand: my_hand 

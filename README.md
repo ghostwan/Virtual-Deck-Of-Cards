@@ -57,7 +57,8 @@ Current supported Languages: English, French
 
 # What's new 
 
-Fix card hidden card value size
+- Fix card hidden card value size
+- Fix issue when distributing more cards than players
 
 # What's next 
 
@@ -74,7 +75,6 @@ Fix card hidden card value size
 
 # Bugs
 
-- Si on distribue plus de cartes que de personnes ça foire les comptes
 - Cartes nettoyer reapparaisse  => virer le hidden et mettre dans une pile de carte nettoyer
 - Pierre mélange carte qui desencd 
 - Antoine click pourri: race, récupérer carte puis avant de la récupérer réclamer le plie.
