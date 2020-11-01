@@ -51,12 +51,13 @@ Current supported Languages: English, French
 - Option to play sound for a more realistic party
 - Option for the number of deck to play with
 - Translation (browser detection or query parameter 'lang') default is english.
+- TAROT - Option to put hidden cards aside 
+- TAROT - Add card aside to the pile
+- TAROT - Give card from trick
 
 # What's new 
 
-- TAROT - Add option to put hidden cards aside 
-- TAROT - Add card aside to the pile
-- TAROT - Give card from trick
+Fix card hidden card value size
 
 # What's next 
 
@@ -77,7 +78,6 @@ Current supported Languages: English, French
 - Cartes nettoyer reapparaisse  => virer le hidden et mettre dans une pile de carte nettoyer
 - Pierre mélange carte qui desencd 
 - Antoine click pourri: race, récupérer carte puis avant de la récupérer réclamer le plie.
-- La carte retournée n'a pas la même taille dans a pile
 
 # Game features status
 

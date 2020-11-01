@@ -768,7 +768,7 @@ function isChecked(name) {
   return options[name] == undefined ? false : options[name];
 }
 
-function drawCard(card, clazz, type="div", needToClean=true) {
+function drawCard(card, clazz, type="div", needToClean=true, back=false) {
   
   if(needToClean) {
     cleanCard(card)
@@ -777,6 +777,9 @@ function drawCard(card, clazz, type="div", needToClean=true) {
   var rank = card.rank.toLowerCase();
   var fontSize = cardSizes[clazz] != undefined? cardSizes[clazz]: 1.2;
 
+  if(back) {
+    return `<div class="card back card_in_pile" style='font-size: ${fontSize}em'>*</div>`;
+  }
   if(suit == "atouts") {
     var $rank = rank == "t0" ? "" : rank.substring(1);
     return `<${type} class="card tarot ${rank} ${clazz}" style='font-size: ${fontSize}em'>
@@ -1201,7 +1204,7 @@ function drawPile() {
     }
     var $item = ""
     if (options.back_card) {
-      $item = `<div class="card back card_in_pile">*</div>`;
+      $item = $(drawCard(card, "card_in_pile", "div", false, true));
     } else {
       $item = $(drawCard(card, "card_in_pile", "div", false));
     }
