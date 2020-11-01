@@ -203,6 +203,10 @@ socket.on(actions.REVEAL_PLAYERS_CARDS, function (hands) {
 socket.on(actions.UPDATE_DATA, function (data) {
   console.log(">>>>> New data broadcasted >>>>>");
   console.log(data);
+  
+  // When something happened clear menu to avoid action conurrence and data discrepancy
+  $(".context-menu-list").hide();
+
   var reDrawHand = false;
   var reDrawPile = false;
   var reDrawDeck = false;
@@ -767,7 +771,10 @@ function isChecked(name) {
 }
 
 function drawCard(card, clazz, type="div", needToClean=true, back=false) {
-  
+  if(card == undefined) {
+    return "";
+  }
+
   if(needToClean) {
     cleanCard(card)
   }

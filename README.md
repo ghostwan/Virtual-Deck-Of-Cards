@@ -60,6 +60,7 @@ Current supported Languages: English, French
 - Fix card hidden card value size
 - Fix issue when distributing more cards than players
 - Fix issue on clear playing area
+- Fix concurrency issue on claiming tricks
 
 # What's next 
 
@@ -76,8 +77,7 @@ Current supported Languages: English, French
 
 # Bugs
 
-- Pierre mélange carte qui desencd 
-- Antoine click pourri: race, récupérer carte puis avant de la récupérer réclamer le plie.
+- Pierre mélange carte qui desencd (??)
 
 # Game features status
 
