@@ -18,6 +18,12 @@ const states = {
     PLAYING: "playing"
 }
 
+const user_status = {
+    OWNER: "owner",
+    GUEST: "guest",
+    PLAYER: "player"
+}
+
 const actions = {
 
     /* Connection actions */
@@ -29,6 +35,7 @@ const actions = {
     USER_CONNECTED: "user connected",
     USER_RECONNECTION_FAILED: "user reconnection failed",
     EXPULSE_USER : "expulse user",
+    ACCEPT_USER: "accept user",
 
     /* Data sync actions */
     BROADCAST_UPDATE: "broadcast update",

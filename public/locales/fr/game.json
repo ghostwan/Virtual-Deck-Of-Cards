@@ -4,7 +4,7 @@
   "C": "C",
   "J": "V",
   "Playing Area (discard pile)": "Zone de jeu (défausse)",
-  "instruction": "Pour ajouter plus d'utilisateurs à cette salle de jeu, partages l'URL de cette page avec tes amis! (si tu en as) <br> Après que la partie ai commencé et après avoir récupérez tes cartes: <br> - Cliques sur une carte de ta main (cette endroit) pour la jouer. <br> - Cliques sur une carte de la défausse, pour la récupérez dans ta main (pour le yaniv ou en cas d'erreur). <br> - En mode 'Déplacer' (Cliques sur le switch 'Jouer') tu peux drag and droper les cartes pour les réarranger. <br> - En mode pile de défausse, tu peux déplacer les cartes pour voir celles d'en dessous.",
+  "instruction": "Pour ajouter plus d'utilisateurs à cette salle de jeu, partages l'URL de cette page avec tes amis! (si tu en as) <br> Après que la partie ai commencé, une fois que tu auras été ajouté et après avoir récupérez tes cartes: <br> - Cliques sur une carte de ta main (cette endroit) pour la jouer. <br> - Cliques sur une carte de la défausse, pour la récupérez dans ta main (pour le yaniv ou en cas d'erreur). <br> - En mode 'Déplacer' (Cliques sur le switch 'Jouer') tu peux drag and droper les cartes pour les réarranger. <br> - Tu peux faire un click droit sur une carte pour voir plus d'actions (main, deck, defausse, plis...) <br> - Si tu te fais expulser, en mode spectateur, tu peux tojours demander de rentrer dans la partie en rafraichissant la page",
   "Refreshing the page will make you disconnect from the game!": "Recharger la page te déconnectera de la partie!",
   "Reset": "Reconfigurer",
   "Sort": "Classer",
@@ -56,6 +56,9 @@
   "Action can be done by anyone at any moment": "Tous les  joueurs peuvent joueur a n'importe quel moment",
   "Wait for the dealer to give you cards": "Attends qu'on te distribue des cartes!",
   "Wait for your turn!": "Attends ton tour!",
+  "Your are on the guest list": "Tu es sur la liste des invités",
+  "Wait to be add to the game": "Attends d'être ajouté à la partie",
+  "Refresh to go on guest list": "Rafraichit pour être ajouté à la liste des invités",
   "You are disconnected!": "Tu es déconnecté!",
   "Reconnect" : "Reconnectes toi! =)",
   "Block cards taken" : "Bloquer la prise de carte",
@@ -127,5 +130,6 @@
   "decrease size": "reduire la taille",
   "In spectator mode menu and button are disabled!" : "En mode spectateur, les menus et boutons sont désactivés",
   "You are in spectator mode": "Tu es en mode spectateur",
-  "expulse":"expulser"
+  "expel":"expulser",
+  "accept":"accepter"
 }

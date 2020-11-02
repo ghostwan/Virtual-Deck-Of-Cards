@@ -61,11 +61,11 @@ Current supported Languages: English, French
 - Fix issue when distributing more cards than players
 - Fix issue on clear playing area
 - Fix concurrency issue on claiming tricks
+- Add a guest mode: When someone connects it's not added automatically to the game, game owne should add him
 
 # What's next 
 
 - TAROT - montrer les plis des gens
-- GAME PLAY - Locker la partie pour que plus personnes ne puisse rentrer 
 - GAME PLAY - ESCALIER - Prise en compte des annonces
 - GAME PLAY - MARMOTEE - poser des cartes cacher sur la table
 - GAME PLAY - Quand quelqu'un se connecte lui permettre ou non de rejoindre la partie, sinon spectateur

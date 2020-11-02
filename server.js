@@ -62,7 +62,8 @@ io.on("connection", socket => {
 
       emitToUser(user.id, actions.UPDATE_DATA, {
         my_user: user,
-        users: getPlayers(),
+        users: getUserList(),
+        players: getPlayerList(),
         deckOriginalLength: getData("deckOriginalLength"),
         remainingCards: deck == undefined ? -1 : deck.length,
         cardsCleared: cardsCleared == undefined ? 0 : cardsCleared.length,
@@ -74,7 +75,7 @@ io.on("connection", socket => {
         playerNumber : getData("playerNumber")
       });
   
-      emitUpdateToRoom(actions.USER_CONNECTED, { users: getPlayers(), gameData : getGameData()})
+      emitUpdateToRoom(actions.USER_CONNECTED, { users: getUserList(), players: getPlayerList(), gameData : getGameData()})
       console.log(`[${socket.room}] <===  User ${user.name} reconnected!`)
     } catch(exception) { // If data is not retrivable reconnect the user
       if(gameData != undefined) {
@@ -92,14 +93,33 @@ io.on("connection", socket => {
   function sendInfo(user, forceRecreation=false) {
     if (getUsersConnected().length <= 1 || forceRecreation) {
       // If we are the first user to connect create the room
+      logRoom("No other user connected")
       var users = new Map();
-      user.owner = true;
+      user.status = user_status.OWNER;
       users.set(user.id, user);
       storeData("users", users);
       createNewGame();
     } else {
+      logRoom("User already connected")
       // Else ask to join an existing room
       var users = getUsers();
+      var isOwnerExist = false;
+
+      var userList = getUserList();
+      for (var p = 0; p < userList.length; p++) {
+        var existingUser = userList[p];
+        if(existingUser.status == user_status.OWNER) {
+          isOwnerExist = true;
+          break;
+        }
+      }
+
+      if(isOwnerExist) {
+        user.status = user_status.GUEST;
+      } else {
+        user.status = user_status.OWNER;
+      }
+
       users.set(user.id, user);
       storeData("users", users);
     }
@@ -109,7 +129,8 @@ io.on("connection", socket => {
 
     emitToUser(user.id, actions.UPDATE_DATA, {
       my_user: user,
-      users: getPlayers(),
+      users: getUserList(),
+      players: getPlayerList(),
       instruction: true,
       deckOriginalLength: getData("deckOriginalLength"),
       remainingCards: deck == undefined ? -1 : deck.length,
@@ -123,7 +144,7 @@ io.on("connection", socket => {
       playerNumber: getData("playerNumber"),
     });
 
-    emitUpdateToRoom(actions.USER_CONNECTED, { users: getPlayers(), gameData: getGameData() });
+    emitUpdateToRoom(actions.USER_CONNECTED, { users: getUserList(), players: getPlayerList(), gameData: getGameData() });
   }
 
   socket.on(actions.SEND_USER_INFO, (user) => {
@@ -164,8 +185,20 @@ io.on("connection", socket => {
       gameData[userID].user_disconnected = true;
     }
 
-    emitUpdateToRoom(actions.EXPULSE_USER, { users: getPlayers(), gameData: getGameData()});
+    emitUpdateToRoom(actions.EXPULSE_USER, { users: getUserList(), players: getPlayerList(), gameData: getGameData()});
   }
+
+  socket.on(actions.ACCEPT_USER, userID => {
+    var users = getUsers();
+    var user = users.get(userID)
+    user.status = user_status.PLAYER;
+    users.set(user.id, user);
+    storeData("users", users);
+
+    emitToUser(user.id, actions.UPDATE_DATA, {my_user: user});
+
+    emitUpdateToRoom(actions.USER_CONNECTED, { users: getUserList(), players: getPlayerList()})
+  });
 
   socket.on(actions.EXPULSE_USER, userID => {
     expulseUser(userID)
@@ -256,7 +289,7 @@ io.on("connection", socket => {
     if(socketNotAvailble()) {return}
     
     var playerNumber = getData("playerNumber")
-    playerNumber = (playerNumber+1) % getPlayers().length
+    playerNumber = (playerNumber+1) % getPlayerList().length
     emitUpdateToRoom(actions.END_TURN, { playerNumber : storeData("playerNumber", playerNumber)})
   })
 
@@ -281,22 +314,22 @@ io.on("connection", socket => {
     var options = getOptions();
     var numCards = data.numCards;
     options.cards_distribute = numCards;
-    var users = getPlayers();
+    var players = getPlayerList();
     
     
     if (numCards == -1) {
-      numCards = Math.trunc(deck.length / users.length);
+      numCards = Math.trunc(deck.length / players.length);
     }
     
-    for (var u = 0; u < users.length; u++) {
+    for (var p = 0; p < players.length; p++) {
       hand = [];
       result = takeCards(numCards, deck, hand);
       deck = result.from;
       hand = result.to;
-      var user = users[u];
+      var player = players[p];
       
-      emitToUser(user.id, actions.UPDATE_HAND, hand);
-      updateHand(user.id, hand, false)
+      emitToUser(player.id, actions.UPDATE_HAND, hand);
+      updateHand(player.id, hand, false)
     }
     storeData("deck", deck)
     emitUpdateToRoom(actions.DISTRIBUTE, {
@@ -382,7 +415,7 @@ io.on("connection", socket => {
 
     if(options.turn) {
       options.turn++;
-      if(options.turn > getPlayers().length+1) {
+      if(options.turn > getPlayerList().length+1) {
         options.turn = 2
       }
       player = options.turn-2
@@ -420,14 +453,27 @@ io.on("connection", socket => {
     io.sockets.in(socket.room).emit(actions.UPDATE_DATA, data)
   });
 
-  function getPlayers(){
-    const players = getUsers();
-    if(players != undefined ) {
-      var usersArray  = Array.from(players.values());
-      usersArray.sort((a,b) => a.date - b.date);
-      return usersArray;
+  function getUserList(){
+    const users = getUsers();
+    if(users != undefined ) {
+      var userList  = Array.from(users.values());
+      userList.sort((a,b) => a.date - b.date);
+      return userList;
     }
     return [];
+  }
+
+  function getPlayerList(){
+    const users = getUserList();
+    var playerList  = [];
+    for (var u = 0; u < users.length; u++) {
+      var user = users[u];
+      if(user.status != user_status.GUEST) {
+        playerList.push(user);
+      }
+    }
+    playerList.sort((a,b) => a.date - b.date);
+    return playerList;
   }
 
   function socketNotAvailble() {
@@ -441,6 +487,10 @@ io.on("connection", socket => {
       }
   }
 
+  function logRoom(message) {
+    console.log(`[${socket.room}] ${message}`)
+  }
+  
   function log(what, sendLogs=true) {
     const data = `${socket.user_name} ${what}`;
     console.log(`[${socket.room}] ${data}`)

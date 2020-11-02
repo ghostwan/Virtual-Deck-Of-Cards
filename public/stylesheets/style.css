@@ -146,11 +146,15 @@ h1, h2, h3, h4 {
   font-size: 2em;
 }
 
-.color_effect {
-  -webkit-animation:color_effect 1.2s infinite;
+.myturn_effect {
+  -webkit-animation:myturn_effect 1.2s infinite;
 }
 
-@-webkit-keyframes color_effect {
+.guest_effect {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+@-webkit-keyframes myturn_effect {
   0%       { background-color: rgba(114, 125, 184, 0.418); }
   25%, 75% { background-color: rgba(114, 125, 184, 0.548); }
   50%      { background-color: rgba(114, 139, 184, 0.733); }
@@ -190,7 +194,7 @@ h1, h2, h3, h4 {
 .margin_top {
   margin-top: 12px
 }
-.player {
+.player_turn {
   background-color: rgba(114, 125, 184, 0.418);
 }
 #optionsGroup {
