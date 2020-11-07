@@ -111,13 +111,13 @@
   "Ready to play": "Prêt a jouer",
   "reveal players cards" : "révèle les cartes des joueurs",
   "Get back and shuffle discard pile" : "Récupérer et mélanger la défausse",
+  "Pile up cards" : "Rassembler les cartes",
   "pile up" : "rassembler",
   "disperse": "disperser",
   "Inverse discard pile display": "Inverser l'affichage de la défausse",
   "The last card played is the first display (can't pile up cards)" : "La dernière carte jouée est la première affiché (ne peut pas rassebler la défausse)",
   "The last card played in the last display (can pile up cards)": "La dernière carte jouée est la dernière affiché (peut rassembler la défausse)",
   "Hidden cards aside" : "Cartes de côté",
-  "Include atouts cards": "Inclure les atouts",
   "put a card on the pile" : "mettre une carte sur la table",
   "put all the cards on the pile" : "mettre toute les cartes restantes sur la table",
   "Preparation phase" : "Phase de préparation",
@@ -131,5 +131,6 @@
   "In spectator mode menu and button are disabled!" : "En mode spectateur, les menus et boutons sont désactivés",
   "You are in spectator mode": "Tu es en mode spectateur",
   "expel":"expulser",
-  "accept":"accepter"
+  "accept":"accepter",
+  "action-shuffle":"Mélanger le deck"
 }

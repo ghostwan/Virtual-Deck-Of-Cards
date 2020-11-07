@@ -2,7 +2,8 @@ var express = require('express');
 var path = require('path');
 var http = require("http");
 var fs = require("fs")
-var vm = require('vm')
+var vm = require('vm');
+const { EEXIST } = require('constants');
 vm.runInThisContext(fs.readFileSync(__dirname + "/public/javascripts/common.js"))
 vm.runInThisContext(fs.readFileSync(__dirname + "/public/javascripts/tools.js"))
 
@@ -22,7 +23,6 @@ server.listen(PORT, () => {
 app.get("/", (req, res) => {
   console.log('Requesting index.html');
   res.sendFile(__dirname + "/views/index.html");
-  // res.render('index');
 });
 
 app.get("/connectroom/", (req, res) => {
@@ -115,7 +115,9 @@ io.on("connection", socket => {
       }
 
       if(isOwnerExist) {
-        user.status = user_status.GUEST;
+        // user.status = user_status.GUEST;
+        //FIXME DEV MODE
+        user.status = user_status.PLAYER;
       } else {
         user.status = user_status.OWNER;
       }
@@ -157,7 +159,7 @@ io.on("connection", socket => {
     storeData("state", states.CONFIGURATION)
     storeData("pile", [])
     storeData("hands", {})
-    storeData("options", {})
+    storeData("options", configs.exploding)
     storeData("gameData", {})
     storeData("deckOriginalLength", -1)
     storeData("cardAside", -1)
@@ -192,6 +194,18 @@ io.on("connection", socket => {
     var users = getUsers();
     var user = users.get(userID)
     user.status = user_status.PLAYER;
+    users.set(user.id, user);
+    storeData("users", users);
+
+    emitToUser(user.id, actions.UPDATE_DATA, {my_user: user});
+
+    emitUpdateToRoom(actions.USER_CONNECTED, { users: getUserList(), players: getPlayerList()})
+  });
+
+  socket.on(actions.REMOVE_USER, userID => {
+    var users = getUsers();
+    var user = users.get(userID)
+    user.status = user_status.GUEST;
     users.set(user.id, user);
     storeData("users", users);
 
@@ -271,6 +285,19 @@ io.on("connection", socket => {
     emitToUser(socket.id, actions.UPDATE_HAND, hand)
   });
 
+  socket.on(actions.PUT_BACK_CARD_DECK, data => {
+      if(socketNotAvailble() && data.position != null) {return}
+
+      var deck = getDeck();
+      deck.insert(data.position-1, data.card);
+
+      storeData("deck", deck)
+      emitUpdateToRoom(actions.PUT_BACK_CARD_DECK, {
+        remainingCards: deck.length,
+        pile: storeData("pile", data.pile) 
+      })
+  });
+
   socket.on(actions.PUT_CARD_PILE, numCards => {
     if(socketNotAvailble()) {return}
 
@@ -321,21 +348,50 @@ io.on("connection", socket => {
       numCards = Math.trunc(deck.length / players.length);
     }
     
+    //Removing exploding before distribution
+    result = takeSpecificCards("exploding", deck, []);
+    var exploding_cards = result.to;
+    deck = result.from;
+
+    if(options.at_least_one_kit) {
+      //Removing kits before distribution
+      result = takeSpecificCards("kit", deck, []);
+      var kit_cards = result.to;
+      deck = result.from;
+    }
+
     for (var p = 0; p < players.length; p++) {
       hand = [];
       result = takeCards(numCards, deck, hand);
       deck = result.from;
       hand = result.to;
       var player = players[p];
+
+      if(options.at_least_one_kit) {
+        result = takeCards(1, kit_cards, hand);
+        kit_cards = result.from;
+        hand = result.to;
+      }
       
       emitToUser(player.id, actions.UPDATE_HAND, hand);
       updateHand(player.id, hand, false)
     }
+
+    //Add back exploding kittens
+    deck = deck.concat(exploding_cards)
+    if(options.at_least_one_kit) {
+      //Add back kits
+      deck = deck.concat(kit_cards)
+    }
+    // And shuffle
+    deck = shuffle(deck)
+    deck = shuffle(deck)
+    deck = shuffle(deck)
     storeData("deck", deck)
     emitUpdateToRoom(actions.DISTRIBUTE, {
       remainingCards: deck.length, 
       options: options, 
-      state: options.preparation? state(states.PREPARATION) : state(states.PLAYING), 
+      state: state(states.PLAYING), 
       gameData: getGameData()
     }, `distribute ${numCards} cards`)
   });
@@ -564,8 +620,8 @@ function newDeck(options) {
   var cards = [];
   var numberOfdecks = options.number_decks
   for (var d = 0; d < numberOfdecks; d++) {
-    for (var a = 0; a < ATOUTS.length; a++) {
-      var card = { rank: ATOUTS[a], suit: "atouts" };
+    for (var a = 0; a < CARDS_IN_DECK.length; a++) {
+      var card = { value: CARDS_IN_DECK[a], type: CARDS_IN_DECK[a].replace(/[0-9]/g, '') };
       cards.push(card);
     }
   }
@@ -580,6 +636,19 @@ function takeCards(numcards, from, to) {
   for (var i = 0; i < numcards; i++) {
     to.push(from[0]);
     from.splice(0, 1);
+  }
+  data = { to: to, from: from };
+  return data;
+}
+
+function takeSpecificCards(pattern, from, to) {
+  for (var i = 0; i < from.length; i++) {
+    var card = from[i];
+    if(card.value.includes(pattern)) {
+      to.push(from[i]);
+      from.splice(i, 1);
+      i--;
+    }
   }
   data = { to: to, from: from };
   return data;

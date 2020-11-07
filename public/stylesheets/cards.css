@@ -58,20 +58,10 @@
 /* inner bits
 ********************************************************************/
 
-/* top left main info (rank and suit) */
-
 .playingCards .card .tarot {
     display: block;
     line-height: 1;
     text-align: left;
-}
-
-.playingCards .tarot .rank {
-    line-height: 1;
-    text-align: center;
-    margin-top: 1.6em;
-    color: black;
-    background-color: #ccc;
 }
 
 /* checkbox */
@@ -86,18 +76,6 @@
 .playingCards.inText .card input {
     margin-top: 0;
 }
-
-/* inner multiple suits */
-.playingCards .card .suit:after {
-    display: block;
-    margin-top: -.8em;
-    text-align: center;
-    white-space: pre;
-    line-height: .9;
-    font-size: 1.3em;
-    word-spacing: -.05em;
-}
-
 
 /*____________ symbols in the middle (faces as images) ____________*/
 .playingCards.faceImages .card.tarot {

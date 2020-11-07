@@ -16,16 +16,41 @@ Current supported Languages: English, French
 
 ![Original version rules]()
 
-# What you can currently do
-=> See master for more information
-
 # What's new 
 
+# What you can currently do
 - Play card from hand
-- - Exploding kittens original deck
+- Proper distribution from EK (without kittens and by giving a kit to each player)
+- Exploding kittens original deck
+- Specific EK distribution with kits and exploding kittens aside
 
+- Availble actions:
+  - attack
+  - shuffle
+  - explode
+  - defuse
+  - favor (not action but possible)
 
 # What's next 
+- Missing actions
+  - Steal a card from player hand (combo 2 card)
+  - See the future
+- Add number of exploding depends on number of player
+- Improve favor action
+- Translations
+- Add rules reminder
+- Add extentions
+  - imploding kittens
+  - streaking kittens
+  - barking kittens
+  
+
+
+  
+
+
+
+
 
 # Bugs
 
@@ -33,10 +58,8 @@ Current supported Languages: English, French
 # Game features status
 
 Original deck:
-- suffle: W
-- Distribute cards but exploding
-- Add number of exploding depends on player
-- Put a card on a specific postion in the deck : T
+
+- 
 - Draw a card from people hands : T
 - See the future
 - give card
@@ -57,13 +80,7 @@ D = DONE: you can play easily to this game
 N = NOT OPTIMAL: you can play but it's not optimal features are missing  
 W = WIP:  you can't currently play important features are missing  
 T = TODO: Most of the minimum needed features to play are missing  
- 
-![Room creation](misc/room_creation.png)
-![Distribute amount of cards](misc/distribute_amout_of_cards.png)
-![Reorder](misc/reorder.png)
-![Claim trick](misc/claim_trick.png)
-![Colors options](misc/cards_color.png)
-![Server](misc/server.png)
+
 
 
  ---

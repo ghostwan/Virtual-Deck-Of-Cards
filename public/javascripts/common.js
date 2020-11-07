@@ -1,4 +1,4 @@
-const ATOUTS = [
+const CARDS_IN_DECK = [
     "kit1", "kit2", "kit3", "kit4", "kit5", "kit6",
     "exploding1", "exploding2", "exploding3", "exploding4", 
     "nope1", "nope2", "nope3", "nope4", "nope5",
@@ -14,6 +14,12 @@ const ATOUTS = [
     "tacocat1", "tacocat2", "tacocat3", "tacocat4"
 ] 
 
+const CARDS_ACTION = {
+    "shuffle" : "shuffleDeck",
+    "kit" : "putCardInDeck",
+    "exploding" : "userLost"
+}
+
 const EMOJIS = ['😄','😃','😀','😊','☺','😉','😍','😘','😚','😗','😙','😜','😝','😛','😳','😁','😔',
     '😌','😒','😞','😣','😢','😂','😭','😪','😥','😰','😅','😓','😩','😫','😨','😱','😠','😡','😤','😖',
     '😆','😋','😷','😎','😴','😵','😲','😟','😦','😧','😈','👿','😮','😬','😐','😕','😯','😶','😇','😏','😑',
@@ -22,7 +28,6 @@ const EMOJIS = ['😄','😃','😀','😊','☺','😉','😍','😘','😚','�
 
 const states = {
     CONFIGURATION : "configuration",
-    PREPARATION: "preparation",
     DISTRIBUTION: "distribution",
     PLAYING: "playing"
 }
@@ -45,6 +50,7 @@ const actions = {
     USER_RECONNECTION_FAILED: "user reconnection failed",
     EXPULSE_USER : "expulse user",
     ACCEPT_USER: "accept user",
+    REMOVE_USER: "remove user",
 
     /* Data sync actions */
     BROADCAST_UPDATE: "broadcast update",
@@ -79,12 +85,14 @@ const actions = {
     /* Discard Pile */
     PUT_CARD_PILE: "put card on pile",
     PUT_ALL_CARDS_PILE: "put alls cards on pile",
+    PUT_DISCARD_CARDS_PILE: "put discard cards on pile",
     CLAIM_TRICK: "claim trick",
     GET_DISCARD_PILE:"get discard pile",
     CLEAR_AREA: "clear the playing area",
     PILE_UP_AREA: "pile up the playing area",
     DISPERSE_AREA: "disperse the playing area",
     GIVE_CARD_PILE: "give card to pile",
+    PUT_BACK_CARD_DECK: "put back a card on the deck",
 
     /* Players action */
     CHANGE_TURN: "change turn",
@@ -99,14 +107,15 @@ const actions = {
 
 const configs = {
     exploding : { 
+        cards_distribute: 7,
         tricks: false,
-        cards_distribute: 8,
         cavaliers: false,
+        at_least_one_kit:true,
         turn: false,
         all_cards: false,
         block_get_cards: false,
         block_action: false,
         end_turn_play: false,
-        stack_visible: false,
+        stack_visible: true,
     },
 }

@@ -1,5 +1,4 @@
 var state;
-var DEFAULT_NUM_CARD = 8;
 var cardAside = -1;
 var users = [];
 var players = [];
@@ -21,6 +20,7 @@ var room;
 var translate;
 var animationID;
 var cardsCleared = 0;
+var isActionAvailable=false;
 
 var cardSizes = {card_in_pile: 2, card_in_trick:1.2, card_in_hand:1.2};
 
@@ -41,7 +41,6 @@ function main(roomName, lang) {
     if(state == states.PLAYING && options.end_turn_play) {
       endTurn();
     }
-    
   });
 
   // Move card from the pile to your hand
@@ -113,6 +112,38 @@ function createMessage(message, type="primary") {
             ${translate(message)}
           </div>`;
 }
+
+function createActionMessage(message, card) {
+
+  console.log(card)
+  console.log(isMyTurn())
+  console.log(my_user.name)
+
+  if(isMyTurn() && card.username == my_user.name) {
+    return `<div class="alert alert-info" role="alert">
+              ${translate(message)}
+            </div>`;
+  } else {
+    return `<div class="alert alert-primary" role="alert">
+              ${translate("Player can")} "${translate(message)}"
+            </div>`;
+  }
+}
+
+function createActionButton(title, jsAction, card) {
+  console.log(card.username)
+  console.log(isMyTurn())
+  console.log(my_user.name)
+  if(isMyTurn() && card.username == my_user.name) {
+    return `<button onclick = '${jsAction}' class = 'btn btn-outline-dark btn-lg btn-block margin_bottom'>
+              ${translate(title)}
+            </button>`;
+  } else {
+    return `<div class="alert alert-primary" role="alert">
+              ${translate("Player can")} "${translate(title)}"
+            </div>`;
+  }
+};
 
 function createButton(title, jsAction, clazz="") {
   if(isSpectatorOrGuest()) return "";
@@ -285,6 +316,10 @@ socket.on(actions.UPDATE_DATA, function (data) {
     cardsCleared = data.cardsCleared;
     reDrawPile = true;
   }
+  if ( isExist(data.actionAvailable) ) {
+    isActionAvailable = data.actionAvailable;
+    reDrawPile = true;
+  }
 
   if (reDrawDeck) drawDeck();
   if (reDrawHand) drawHand(data.instruction == true);
@@ -373,6 +408,30 @@ function takeCardFromPileToHand(item=undefined) {
   drawHand();
 }
 
+function putCardOnDeck(item=undefined) {
+  if(item != undefined) {
+    isActionAvailable = false;
+    var position = prompt(translate("Where do you want to put it top ")+` 1 -> ${remainingCards+1} bottom ?`, 1);
+    if(position != null && !isNaN(position)) {
+      if(position > remainingCards+1){
+        position = remainingCards+1;
+      }
+      
+      var cardIndex = $(".card_in_pile").index($(item));
+      var cardIndex = options.stack_visible && options.inverse_pile ? pile.length - 1 - cardIndex : cardIndex;
+      var card = pile[cardIndex];
+      
+      pile.splice(cardIndex, 1);
+      
+      emitToServer(actions.PUT_BACK_CARD_DECK, { 
+        pile: pile, 
+        card: card,
+        position: position
+      });
+    }
+  }
+}
+
 function putCardOnPileFromHand(item=undefined) {
   var action;
   if(item != undefined) {
@@ -401,7 +460,7 @@ function putCardOnPileFromHand(item=undefined) {
     updateMyHand();
   }
 
-  broadcastUpdate({ action: action, pile: pile })
+  broadcastUpdate({ action: action, pile: pile, actionAvailable: true })
   drawHand();
 }
 
@@ -420,6 +479,11 @@ function putCardOnPileFromTrick(item=undefined) {
   broadcastUpdate({ action: actions.PLAY_CARD, pile: pile, gameData: gameData })
 }
 
+function userLost(){
+  putCardOnPileFromHand()
+  emitToServer(actions.REMOVE_USER, my_user.id);
+}
+
 function start() {
   forEach(booleanOptionList, function (value, prop, obj) {
     syncBooleanOption(prop)
@@ -429,10 +493,6 @@ function start() {
     syncNumberOption(prop)
   });
 
-  if(options.cards_distribute == undefined) {
-    options.cards_distribute = DEFAULT_NUM_CARD;
-  }
-  
   updateOptions()
   resetRound();
 }
@@ -482,30 +542,26 @@ function init() {
     [actions.ACCEPT_USER]: {name: translate("accept"), icon: "fa-user-check", visible: function(key, opt){return isOwner();}},
     [actions.EXPULSE_USER]: {name: translate("expel"), icon: "fa-ban", visible: function(key, opt){return isOwner()}}
   });
+  createMenu(".card_in_pile.exploding", {
+    [actions.PUT_BACK_CARD_DECK]: {name: translate("put back on deck"), icon: "fa-hand-lizard", visible: function(key, opt){return isMyTurn() && isActionAvailable;}}
+  });
   createMenu(".card_in_pile", {
     [actions.PILE_UP_AREA]: {name: translate("pile up"), icon: "fa-align-justify", visible: function(key, opt){return !options.inverse_pile && isPlayer();}},
     [actions.DISPERSE_AREA]: {name: translate("disperse"), icon: "fa-columns", visible: function(key, opt){return !options.inverse_pile && options.stack_visible && isPlayer();}},
     [actions.TAKE_BACK_CARD]: {name: translate("take this card"), icon: "fa-hand-lizard", visible: function(key, opt){return isPlayer();}},
-    [actions.TAKE_BACK_ALL_CARDS]: {name: translate(actions.TAKE_BACK_ALL_CARDS), icon: "fa-hand-lizard", visible: function(key, opt){return options.preparation && isPlayer();}},
+    [actions.TAKE_BACK_ALL_CARDS]: {name: translate(actions.TAKE_BACK_ALL_CARDS), icon: "fa-hand-lizard", visible: function(key, opt){isPlayer();}},
     [actions.INCREASE_SIZE]: {name: translate(actions.INCREASE_SIZE), icon: "fa-search-plus"},
     [actions.DECREASE_SIZE]: {name: translate(actions.DECREASE_SIZE), icon: "fa-search-minus"},
     [actions.CLAIM_TRICK]: {name: translate("claim trick"), icon: "fa-hand-lizard", visible: function(key, opt){return options.tricks && isPlayer();}},
-    [actions.CLEAR_AREA]: {name: translate("clear"), icon: "fa-trash-alt", visible: function(key, opt){return isPlayer();}}
   });
   createMenu(".card_in_hand", {
     [actions.SHUFFLE_HAND]: {name: translate("shuffle"), icon: "fa-hand-lizard"},
-    [actions.SORT_VALUE]: {name: translate("sort by value"), icon: "fa-hand-lizard", visible: function(key, opt){return !options.atouts}},
     [actions.PLAY_ALL_CARDS]: {name: translate(actions.PLAY_ALL_CARDS), icon: "fa-hand-lizard"},
     [actions.INCREASE_SIZE]: {name: translate(actions.INCREASE_SIZE), icon: "fa-search-plus"},
     [actions.DECREASE_SIZE]: {name: translate(actions.DECREASE_SIZE), icon: "fa-search-minus"}
   });
-  createMenu(".card_aside", {
-    [actions.TAKE_CARD_ASIDE]: {name: translate("take this card"), icon: "fa-hand-lizard", visible: function(key, opt){return isPlayer();}},
-    [actions.REMOVE_CARD_ASIDE]: {name: translate("remove"), icon: "fa-hand-lizard", visible: function(key, opt){return isPlayer();}},
-  });
   createMenu(".deck_stack", {
-    [actions.PUT_CARD_PILE]: {name: translate("put a card on the pile"), icon: "fa-hand-lizard", visible: function(key, opt){return isPlayer();}},
-    [actions.PUT_ALL_CARDS_PILE]: {name: translate("put all the cards on the pile"), icon: "fa-hand-lizard", visible: function(key, opt){return isPlayer();}},
+    [actions.PUT_DISCARD_CARDS_PILE]: {name: translate("put discard cards on the pile"), icon: "fa-hand-lizard", visible: function(key, opt){return isPlayer();}},
   });
   createMenu(".card_in_trick", {
     [actions.INCREASE_SIZE]: {name: translate(actions.INCREASE_SIZE), icon: "fa-search-plus"},
@@ -547,14 +603,20 @@ function onOptionMenu(name, op) {
     case actions.TAKE_BACK_ALL_CARDS: takeCardFromPileToHand(); break;
     case actions.PLAY_ALL_CARDS: putCardOnPileFromHand(); break;
     case actions.SHUFFLE_HAND: shuffleHand(); break;
-    case actions.SORT_VALUE: sortCardByValue(); break;
     case actions.PUT_CARD_PILE: emitToServer(actions.PUT_CARD_PILE, 1); break;
     case actions.PUT_ALL_CARDS_PILE: emitToServer(actions.PUT_CARD_PILE, remainingCards); break;
+    case actions.PUT_DISCARD_CARDS_PILE: getDiscardPile(); break;
     case actions.GIVE_CARD_PILE: putCardOnPileFromTrick(op.$trigger); break;
     case actions.REFRESH_BOARD: refresh(); break;
     case actions.INCREASE_SIZE: changeCardSize(op, 0.2); break;
     case actions.DECREASE_SIZE: changeCardSize(op, -0.2); break;
+    case actions.PUT_BACK_CARD_DECK: actionPutBackCard(op.$trigger); break;
   }
+}
+
+function actionPutBackCard (item=undefined){
+  broadcastUpdate({actionAvailable: false })
+  putCardOnDeck(item)
 }
 
 function expulseUser(op) {
@@ -802,13 +864,12 @@ function drawCard(card, clazz, type="div", needToClean=true, back=false) {
   if(needToClean) {
     cleanCard(card)
   }
-  var rank = card.rank.toLowerCase();
   var fontSize = cardSizes[clazz] != undefined? cardSizes[clazz]: 1.2;
 
   if(back) {
     return `<div class="card back card_in_pile" style='font-size: ${fontSize}em'>*</div>`;
   }
-  return `<${type} class="card tarot ${rank} ${clazz}" style='font-size: ${fontSize}em'></${type}>`
+  return `<${type} class="card tarot ${card.value} ${card.type} ${clazz}" style='font-size: ${fontSize}em'></${type}>`
 }
 
 function createBooleanOption(name, title, descriptionChecked=undefined, description=undefined) {
@@ -862,8 +923,7 @@ function syncNumberOption(name) {
 function drawOptionList() {
   return `
   ${createBooleanOption("block_action", translate("Block actions"), translate("Only the player whose turn can do things"), translate("Action can be done by anyone at any moment"))}
-  <br />
-  ${createBooleanOption("stack_visible", translate("View all cards"), translate("View all cards played"), translate("View only the last one"))} 
+  ${createBooleanOption("at_least_one_kit", translate("At lease one kit"), translate("Everyone starts with one kit"), translate("You could start without a kit (more difficult)"))}
   <br />
   ${createBooleanOption("inverse_pile", 
                         translate("Inverse discard pile display"), 
@@ -872,25 +932,6 @@ function drawOptionList() {
   <br />
   ${createNumberOption("number_decks", "decks of cards", 1)}
   `;
-}
-
-function defaultHiddenCards(){
-  if(options.atouts && options.cavaliers) {
-    return players.length < 5 ? 6 : 3;
-  } else {
-    return 0;
-  }
-}
-
-function getDeckSize() {
-  var cardsNumber = 52;
-  if(options.cavaliers) {
-    cardsNumber += 4;
-  }
-  if(options.atouts) {
-    cardsNumber += 22;
-  }
-  return cardsNumber
 }
 
 function drawDeckConfig() {
@@ -941,7 +982,6 @@ function drawDeckDistribute() {
     content += `
       <div class = 'col-6 playingCards'>
         ${drawStack()}
-        ${createButton("Put a card aside", "putCardAside()", "margin_top")}
       </div>
     `;
   }
@@ -970,36 +1010,6 @@ function drawStack() {
   return `<ul class="deck_stack deck">${cardsContent}</ul>`;
 }
 
-function drawDeckPreparation() {
-  var content = "";
-
-  if (remainingCards == 0) {
-    content = `<div class = 'col-6'><h2>${translate("Deck is empty")}</h2><br>`
-  } else {
-    content = `<div class = 'col-6'><h2>${translate("Deck")}: ${remainingCards} / ${deckOriginalLength} cards</h2><br>`
-  }
-  content += `${createButton("Get back cards", "askResetRound()")} </br>`;
-  content += `${createButton("Ready to play", "readyToPlay()")} </br>`;
-  content += "</div>"
-
-  if (remainingCards == 0) {
-    content += `<div class = 'col-6'><span class="card_deck">∅</span></div>`;
-  } else {
-    content += `<div class = 'col-6 playingCards faceImages'>`;
-
-    if(cardAside != -1) {
-      content += drawCard(cardAside, "card_aside", "span");
-    }
-    else {
-      content += drawStack();
-    }
-
-    content += createButton("Draw a card", "takeCard()", "margin_top")
-    content += "</div>";
-  }     
-  return content;
-}
-
 function drawDeckPlay() {
   var content = "";
 
@@ -1008,7 +1018,7 @@ function drawDeckPlay() {
   } else {
     content = `<div class = 'col-6'><h2>${translate("Deck")}: ${remainingCards} / ${deckOriginalLength} cards</h2><br>`
   }
-  if (!options.block_action || isMyTurn()) {
+  if (isOwner()) {
     content += `${createButton("Get back cards", "askResetRound()")} </br>`;
   }
   if(!isMyTurn()) {
@@ -1037,7 +1047,7 @@ function drawDeckPlay() {
       content += drawStack();
     }
 
-    if (!options.block_action || isMyTurn()) {
+    if (isMyTurn()) {
       content += createButton("Draw a card", "takeCard()", "margin_top")
     }
     content += "</div>";
@@ -1066,12 +1076,6 @@ function drawDeck() {
       drawPile();
       break;
     }
-    case states.PREPARATION: {
-      $("#game_controls").visible();
-      deckContent = drawDeckPreparation();
-      drawPile();
-      break;
-    }
     case states.PLAYING: {
       $("#game_controls").visible();
       deckContent = drawDeckPlay();
@@ -1080,7 +1084,6 @@ function drawDeck() {
     }
   }
   $("#mainDeck").append(deckContent);
-  changeCardColor()
 }
 
 function canDisplayTricks(state) {
@@ -1185,16 +1188,24 @@ function drawPile() {
   var content = `
       <h2>${translate("Playing Area (discard pile)")}</h2>
       <div class = "col-10 form-group">
-        ${createBooleanOption("end_turn_play", translate("End turn after playing"))} <br>
         ${createBooleanOption("back_card", translate("Hide card value"))} <br>
       </div>`;
 
-  if (options.tricks) {
-    if (state == states.PLAYING && pile.length == players.length) {
-      content += createButton("Claim trick", "claimTrick()", "margin_bottom");
+  if(pile.length != 0 && !options.back_card) {
+    let card = pile[pile.length-1]
+
+    if(isMyTurn()) {
+      content += createButton("Pile up cards", "pileUpPlayingArea()", "margin_bottom");
     }
-  } else if(pile.length != 0 || cardsCleared != 0) {
-      content += createButton("Get back and shuffle discard pile", "getDiscardPile()", "margin_bottom");
+    if(isActionAvailable) {
+        switch(card.type) {
+          case "kit": content += createActionMessage("Right click on exploding kitten to put it back", card); break;
+          default:
+            if(card.type in CARDS_ACTION) {
+              content += createActionButton(`action-${card.type}`, `cardAction("${card.type}")`, card);
+            }
+        }
+    }
   }
   $("#playArea").append(content);
 
@@ -1220,6 +1231,11 @@ function drawPile() {
     }
     $("#playArea").append($layer);
   }
+}
+
+function cardAction(name) {
+  broadcastUpdate({ actionAvailable: false })
+  window[CARDS_ACTION[name]]();
 }
 
 function getUser(id) {
@@ -1257,14 +1273,7 @@ function drawPileRevealCards(hands) {
 
 function sortCard() {
   my_hand.sort(function (a, b) {
-      return ATOUTS.indexOf(a.rank) - ATOUTS.indexOf(b.rank);
-  });
-  drawHand();
-}
-
-function sortCardByValue() {
-  my_hand.sort(function (a, b) {
-    // return RANK.indexOf(a.rank) - RANK.indexOf(b.rank);
+      return  CARDS_IN_DECK.indexOf(a.value) - CARDS_IN_DECK.indexOf(b.value);
   });
   drawHand();
 }

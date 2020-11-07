@@ -20,7 +20,15 @@ var forEach = function (collection, callback, scope) {
 };
 
 function shuffle(array) {
-    return array.sort(() => Math.random() - 0.5);
+	// return array.sort(() => Math.random() - 0.5);
+	var j, x, i;
+    for (i = array.length - 1; i > 0; i--) {
+        j = Math.floor(Math.random() * (i + 1));
+        x = array[i];
+        array[i] = array[j];
+        array[j] = x;
+    }
+    return array;
 }
 
 function debug(what, object) {
@@ -28,3 +36,7 @@ function debug(what, object) {
 	console.log(object);
 	console.log(`<<<<<< ${what} ------|`);
 }
+
+Array.prototype.insert = function ( index, item ) {
+    this.splice( index, 0, item );
+};
