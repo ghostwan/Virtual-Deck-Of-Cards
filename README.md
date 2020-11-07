@@ -1,106 +1,56 @@
-# Virtual Deck Of Cards
-![alt text](public/images/icon.png)
+# Virtual Deck Of Cards (exploding edition)
+![alt text](public/images/logo.png)
 
 A virtual deck of cards! Play anything anywhere, with anyone!
 
-You are a fan of cards game as :
-- [Yaniv](https://www.wikiwand.com/en/Yaniv_(card_game))
-- [Ascenseur](https://www.wikiwand.com/en/Oh_Hell)
-- Escalier as Ascenceur but starting with two cards and no going down phase
-- [Barbu](https://www.wikiwand.com/en/Barbu_(card_game))
-- Ratatouille as Barbu but (no tricks (5), no heart (10), no queen (30), no man (15), general)
-- [Tarot](https://en.wikipedia.org/wiki/French_Tarot)
-...
+**Work in progress, not playable yet**
+
+This branch is for the Exploding Kittens card game
+If you want to play with a normal deck of cards go to master branch
 
 Covid-19 is here, you are lockdown at home and want to play remotely with your friends ?
 
-Fear no more, as the virtual deck of cards is here! Simply create or sign into a deck, and play any game with anyone.
+Fear no more, as the virtual deck of exploding kittens cards is here! Simply create room and play with your friend.
 
 Current supported Languages: English, French
 
+![Original version rules]()
+
 # What you can currently do
-- Create a room to play any cards game with your friends!
-- Share the room's url to invite people into the game!
-- See who's connected to the room
-- Room owner can expluse a player
-- Choose your name roger!
-- Configure deck, game pre config, options, with or without cavalier, trump cards...
-- Put a visible card aside for game as "oh hell"
-- Take the card put aside for game as "yaniv"
-- Distribute the whole deck or a specific number of cards among all players 
-- See how many cards each player got
-- Rearrange cards in your hand, sort them by suit, by values, shuffle them! you name it! 
-- Increase / decrease card size
-- See who's turn is and change it if needed (choose a specific player or random)
-- Draw a card from the deck
-- Play a card from your hand
-- Take a card from the playing / discard area (for some game as Yaniv or if you did a mistake)
-- Put a card from the deck to the discard area (for the chien in tarot)
-- Hide cards values in playing area (poker style ;) ) 
-- Get and shuffle the discard pile
-- Pile up / disperse card in playing area
-- See who played a card
-- Clear the playing area
-- Add the end display people hands
-- Option to claim trick and see who won tricks
-- Option for preparation phase to exchange card for example (Hide values, put all cards on the table and ask someone to pick one)
-- Option to block players actions when it's not there turn (to prevent chaos =) )
-- Option to end turn after playing a card
-- Option to block card retrieving from playing area (game with trick don't need it)
-- Option to display 4 colors for your cards
-- Option to play sound for a more realistic party
-- Option for the number of deck to play with
-- Translation (browser detection or query parameter 'lang') default is english.
-- TAROT - Option to put hidden cards aside 
-- TAROT - Add card aside to the pile
-- TAROT - Give card from trick
+=> See master for more information
 
 # What's new 
 
-- Fix card hidden card value size
-- Fix issue when distributing more cards than players
-- Fix issue on clear playing area
-- Fix concurrency issue on claiming tricks
-- Add a guest mode: When someone connects it's not added automatically to the game, game owne should add him
+- Play card from hand
+- - Exploding kittens original deck
+
 
 # What's next 
 
-- TAROT - montrer les plis des gens
-- GAME PLAY - ESCALIER - Prise en compte des annonces
-- GAME PLAY - MARMOTEE - poser des cartes cacher sur la table
-- GAME PLAY - Quand quelqu'un se connecte lui permettre ou non de rejoindre la partie, sinon spectateur
-- GAME PLAY - Gestion des scores
-- GAME PLAY - Créer de nouvelles cartes entre 10 et valet quand on est plusieurs (11, 12, 13, 14, 15...)
-- UX - Chat écrit
-- UX - Chat oral / video
-- UI - Revoir l'ecran d'appel
-
 # Bugs
 
-- Pierre mélange carte qui desencd (??)
 
 # Game features status
 
-| Features / Games                      | Escalier [D] | Ratatouille [D] | Yaniv  [D] | Tarot   [D] | Poker [W] |
-| ------------------------------------- | ------------ | --------------- | ---------- | ----------- | --------- |
-| Distribute all the deck               |              | OK              |            | OK          |           |
-| Distribute a specific number of cards | OK           |                 | OK         |             | OK        |
-| Put a card aside                      | OK (atout)   |                 |            |             |           |
-| Claim trick                           | OK           | OK              |            | OK          |           |
-| See How many cards each player got    |              |                 | OK         |             |           |
-| Draw a card from the deck             |              |                 | OK         |             |           |
-| Take a card from the playing area     |              |                 | OK         |             |           |
-| Change turn automatically             | OK           |                 |            |             |           |
-| Display trick won                     |              | OK              |            | OK          |           |
-| Log actions                           |              |                 | OK         |             |           |
-| Random first player                   | OK           | OK              | OK         |             |           |
-| Put old cards in discard pile         |              |                 | OK         |             |           |
-| Shuffle the discard pile              |              |                 | OK         |             |           |
-| Trump cards (atouts)                  |              |                 |            | OK          |           |
-| ------------ TO DEVELOP ------------  |              |                 |            |             |           |
-| Bidding                               | OPTIONNAL    |                 |            |             | NEED      |
-| Scores calculator                     | OPTIONNAL    | OPTIONNAL       | OPTIONNAL  | OPTIONNAL   |           |
-| Recall the round rules                |              | OPTIONNAL       |            |             |           |
+Original deck:
+- suffle: W
+- Distribute cards but exploding
+- Add number of exploding depends on player
+- Put a card on a specific postion in the deck : T
+- Draw a card from people hands : T
+- See the future
+- give card
+
+
+- Add extention : T
+- Add rules : T
+- Alter the future
+- Imploding
+- mark
+- swap to the bottom
+- garbage collection
+- catomic bomb
+- draw from bottom
 
 
 D = DONE: you can play easily to this game  

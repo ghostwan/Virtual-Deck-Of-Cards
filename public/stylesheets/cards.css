@@ -55,51 +55,12 @@
     /* yes, it's intentional that Mozilla, Webkit, Opera and IE all will get different backgrounds ... why not? :) */
 }
 
-/* suit colours
-********************************************************************/
-
-.playingCards .card.diams {
-    color: #f00 !important;
-}
-.playingCards.fourColours .card.diams {
-    color: #00f !important;
-}
-[lang=de] .playingCards.fourColours .card.diams {
-    color: #f60 !important;
-}
-.playingCards .card.hearts {
-    color: #f00 !important;
-}
-.playingCards .card.spades {
-    color: #000 !important;
-}
-[lang=de] .playingCards.fourColours .card.spades {
-    color: #090 !important;
-}
-.playingCards .card.clubs {
-    color: #000 !important;
-}
-.playingCards.fourColours .card.clubs {
-    color: #090 !important;
-}
-[lang=de] .playingCards.fourColours .card.clubs {
-    color: #000 !important;
-}
-.playingCards .card.joker {
-    color: #000 !important;
-}
-.playingCards .card.joker.big {
-    color: #f00 !important;
-}
-
 /* inner bits
 ********************************************************************/
 
 /* top left main info (rank and suit) */
 
-.playingCards .card .tarot,
-.playingCards .card .rank,
-.playingCards .card .suit {
+.playingCards .card .tarot {
     display: block;
     line-height: 1;
     text-align: left;
@@ -113,47 +74,17 @@
     background-color: #ccc;
 }
 
-.playingCards .card .suit {
-    line-height: .7;
-}
-
 /* checkbox */
 .playingCards .card input {
     margin-top: -.05em;
     font: inherit;
 }
 .playingCards.simpleCards .card input,
-.playingCards .card.tarot input
-.playingCards .card.rank-j input,
-.playingCards .card.rank-c input,
-.playingCards .card.rank-q input,
-.playingCards .card.rank-k input,
-.playingCards .card.rank-a input {
+.playingCards .card.tarot input {
     margin-top: 2.4em;
 }
 .playingCards.inText .card input {
     margin-top: 0;
-}
-
-/* different rank letters for different languages */
-.playingCards .card .rank:after,
-.playingCards .card.joker .rank:before {
-    position: absolute;
-    top: .25em;
-    left: .25em;
-    background: #fff;
-}
-/* joker (top left symbol) */
-.playingCards .card.joker .rank {
-    position: absolute;
-}
-.playingCards .card.joker .rank:before {
-    content: "\2605";
-    top: 0;
-    left: 0;
-}
-.playingCards .card.joker .suit {
-    text-indent: -9999px;
 }
 
 /* inner multiple suits */
@@ -167,346 +98,88 @@
     word-spacing: -.05em;
 }
 
-/* make the hearts and clubs symbols fit, because they are a bit bigger than the others */
-.playingCards .card.hearts .suit:after {
-    word-spacing: -.15em;
-}
-.playingCards .card.hearts.rank-10 .suit:after {
-    word-spacing: -.05em;
-    letter-spacing: -.1em;
-}
-.playingCards .card.clubs.rank-10 .suit:after {
-    word-spacing: -.15em;
-}
-
-/* 8, 9, 10 are the most crowded */
-.playingCards .card.rank-8 .suit:after,
-.playingCards .card.rank-9 .suit:after {
-    letter-spacing: -.075em;
-}
-.playingCards .card.rank-10 .suit:after {
-    letter-spacing: -.1em;
-}
-.playingCards .card.clubs .suit:after {
-    letter-spacing: -.125em;
-}
-
-/*____________ symbols in the middle (suits, full) ____________*/
-
-/* diams */
-.playingCards .card.rank-2.diams .suit:after {
-    content: "\2666 \A\A\2666";
-}
-.playingCards .card.rank-3.diams .suit:after {
-    content: "\2666 \A\2666 \A\2666";
-}
-.playingCards .card.rank-4.diams .suit:after {
-    content: "\2666\00A0\00A0\00A0\2666 \A\A\2666\00A0\00A0\00A0\2666";
-}
-.playingCards .card.rank-5.diams .suit:after {
-    content: "\2666\00A0\00A0\00A0\2666 \A\2666 \A\2666\00A0\00A0\00A0\2666";
-}
-.playingCards .card.rank-6.diams .suit:after {
-    content: "\2666\00A0\00A0\00A0\2666 \A\2666\00A0\00A0\00A0\2666 \A\2666\00A0\00A0\00A0\2666";
-}
-.playingCards .card.rank-7.diams .suit:after {
-    content: "\2666\00A0\00A0\2666 \A\2666\00A0\2666\00A0\2666 \A\2666\00A0\00A0\2666";
-}
-.playingCards .card.rank-8.diams .suit:after {
-    content: "\2666\00A0\2666\00A0\2666 \A\2666\00A0\00A0\2666 \A\2666\00A0\2666\00A0\2666";
-}
-.playingCards .card.rank-9.diams .suit:after {
-    content: "\2666\00A0\2666\00A0\2666 \A\2666\00A0\2666\00A0\2666 \A\2666\00A0\2666\00A0\2666";
-}
-.playingCards .card.rank-10.diams .suit:after {
-    content: "\2666\00A0\2666\00A0\2666 \A\2666\00A0\2666\00A0\2666\00A0\2666 \A\2666\00A0\2666\00A0\2666";
-}
-
-/* hearts */
-.playingCards .card.rank-2.hearts .suit:after {
-    content: "\2665 \A\A\2665";
-}
-.playingCards .card.rank-3.hearts .suit:after {
-    content: "\2665 \A\2665 \A\2665";
-}
-.playingCards .card.rank-4.hearts .suit:after {
-    content: "\2665\00A0\00A0\00A0\2665 \A\A\2665\00A0\00A0\00A0\2665";
-}
-.playingCards .card.rank-5.hearts .suit:after {
-    content: "\2665\00A0\00A0\00A0\2665 \A\2665 \A\2665\00A0\00A0\00A0\2665";
-}
-.playingCards .card.rank-6.hearts .suit:after {
-    content: "\2665\00A0\00A0\00A0\2665 \A\2665\00A0\00A0\00A0\2665 \A\2665\00A0\00A0\00A0\2665";
-}
-.playingCards .card.rank-7.hearts .suit:after {
-    content: "\2665\00A0\00A0\2665 \A\2665\00A0\2665\00A0\2665 \A\2665\00A0\00A0\2665";
-}
-.playingCards .card.rank-8.hearts .suit:after {
-    content: "\2665\00A0\2665\00A0\2665 \A\2665\00A0\00A0\2665 \A\2665\00A0\2665\00A0\2665";
-}
-.playingCards .card.rank-9.hearts .suit:after {
-    content: "\2665\00A0\2665\00A0\2665 \A\2665\00A0\2665\00A0\2665 \A\2665\00A0\2665\00A0\2665";
-}
-.playingCards .card.rank-10.hearts .suit:after {
-    content: "\2665\00A0\2665\00A0\2665 \A\2665\00A0\2665\00A0\2665\00A0\2665 \A\2665\00A0\2665\00A0\2665";
-}
-
-/* spades */
-.playingCards .card.rank-2.spades .suit:after {
-    content: "\2660 \A\A\2660";
-}
-.playingCards .card.rank-3.spades .suit:after {
-    content: "\2660 \A\2660 \A\2660";
-}
-.playingCards .card.rank-4.spades .suit:after {
-    content: "\2660\00A0\00A0\00A0\2660 \A\A\2660\00A0\00A0\00A0\2660";
-}
-.playingCards .card.rank-5.spades .suit:after {
-    content: "\2660\00A0\00A0\00A0\2660 \A\2660 \A\2660\00A0\00A0\00A0\2660";
-}
-.playingCards .card.rank-6.spades .suit:after {
-    content: "\2660\00A0\00A0\00A0\2660 \A\2660\00A0\00A0\00A0\2660 \A\2660\00A0\00A0\00A0\2660";
-}
-.playingCards .card.rank-7.spades .suit:after {
-    content: "\2660\00A0\00A0\2660 \A\2660\00A0\2660\00A0\2660 \A\2660\00A0\00A0\2660";
-}
-.playingCards .card.rank-8.spades .suit:after {
-    content: "\2660\00A0\2660\00A0\2660 \A\2660\00A0\00A0\2660 \A\2660\00A0\2660\00A0\2660";
-}
-.playingCards .card.rank-9.spades .suit:after {
-    content: "\2660\00A0\2660\00A0\2660 \A\2660\00A0\2660\00A0\2660 \A\2660\00A0\2660\00A0\2660";
-}
-.playingCards .card.rank-10.spades .suit:after {
-    content: "\2660\00A0\2660\00A0\2660 \A\2660\00A0\2660\00A0\2660\00A0\2660 \A\2660\00A0\2660\00A0\2660";
-}
-
-/* clubs */
-.playingCards .card.rank-2.clubs .suit:after {
-    content: "\2663 \A\A\2663";
-}
-.playingCards .card.rank-3.clubs .suit:after {
-    content: "\2663 \A\2663 \A\2663";
-}
-.playingCards .card.rank-4.clubs .suit:after {
-    content: "\2663\00A0\00A0\00A0\2663 \A\A\2663\00A0\00A0\00A0\2663";
-}
-.playingCards .card.rank-5.clubs .suit:after {
-    content: "\2663\00A0\00A0\00A0\2663 \A\2663 \A\2663\00A0\00A0\00A0\2663";
-}
-.playingCards .card.rank-6.clubs .suit:after {
-    content: "\2663\00A0\00A0\00A0\2663 \A\2663\00A0\00A0\00A0\2663 \A\2663\00A0\00A0\00A0\2663";
-}
-.playingCards .card.rank-7.clubs .suit:after {
-    content: "\2663\00A0\00A0\2663 \A\2663\00A0\2663\00A0\2663 \A\2663\00A0\00A0\2663";
-}
-.playingCards .card.rank-8.clubs .suit:after {
-    content: "\2663\00A0\2663\00A0\2663 \A\2663\00A0\00A0\2663 \A\2663\00A0\2663\00A0\2663";
-}
-.playingCards .card.rank-9.clubs .suit:after {
-    content: "\2663\00A0\2663\00A0\2663 \A\2663\00A0\2663\00A0\2663 \A\2663\00A0\2663\00A0\2663";
-}
-.playingCards .card.rank-10.clubs .suit:after {
-    content: "\2663\00A0\2663\00A0\2663 \A\2663\00A0\2663\00A0\2663\00A0\2663 \A\2663\00A0\2663\00A0\2663";
-}
 
 /*____________ symbols in the middle (faces as images) ____________*/
-
-.playingCards.faceImages .card.rank-j .suit:after,
-.playingCards.faceImages .card.rank-c .suit:after,
-.playingCards.faceImages .card.rank-q .suit:after,
-.playingCards.faceImages .card.rank-k .suit:after {
-    content: '';
-}
-
 .playingCards.faceImages .card.tarot {
     background-repeat: no-repeat;
-    background-position: .4em .1em;
+    background-position: 0em .1em;
     /* bottom: 2.3em; */
     -moz-background-size: 2.4em;
     -o-background-size: 2.4em;
     -webkit-background-size: 2.4em;
     -khtml-background-size: 2.4em;
-    background-size: 2.4em;
+    background-size: contain;
 }
 
-.playingCards.faceImages .card.rank-c {
-    background-repeat: no-repeat;
-    background-position: .7em .1em;
-    /* bottom: 2.3em; */
-    -moz-background-size: 2.1em;
-    -o-background-size: 2.1em;
-    -webkit-background-size: 2.1em;
-    -khtml-background-size: 2.1em;
-    background-size: 2.1em;
-}
-.playingCards.faceImages .card.joker,
-.playingCards.faceImages .card.rank-j,
-.playingCards.faceImages .card.rank-q,
-.playingCards.faceImages .card.rank-k {
-    background-repeat: no-repeat;
-    background-position: .4em .2em;
-    /* bottom: 2.3em; */
-    -moz-background-size: 2.6em;
-    -o-background-size: 2.6em;
-    -webkit-background-size: 2.6em;
-    -khtml-background-size: 2.6em;
-    background-size: 2.6em;
-}
 
-.playingCards.faceImages .card.rank-j.adjust
-.playingCards.faceImages .card.rank-c.adjust
-.playingCards.faceImages .card.tarot.adjust
-.playingCards.faceImages .card.rank-q.adjust
-.playingCards.faceImages .card.rank-k.adjust
-.playingCards.faceImages .card.rank-a.adjust {
-    bottom: 2.3em;
-}
+.playingCards.faceImages .card.tarot.attack1  { background-image: url(original/attack1.jpeg); }
+.playingCards.faceImages .card.tarot.attack2  { background-image: url(original/attack2.jpeg); }
+.playingCards.faceImages .card.tarot.attack3  { background-image: url(original/attack3.jpeg); }
+.playingCards.faceImages .card.tarot.attack4  { background-image: url(original/attack4.jpeg); }
 
-.playingCards.faceImages .card.rank-j.diams  { background-image: url(faces/JD.gif); }
-.playingCards.faceImages .card.rank-j.hearts { background-image: url(faces/JH.gif); }
-.playingCards.faceImages .card.rank-j.spades { background-image: url(faces/JS.gif); }
-.playingCards.faceImages .card.rank-j.clubs  { background-image: url(faces/JC.gif); }
+.playingCards.faceImages .card.tarot.beard-cat1  { background-image: url(original/beard-cat.jpeg); }
+.playingCards.faceImages .card.tarot.beard-cat2  { background-image: url(original/beard-cat.jpeg); }
+.playingCards.faceImages .card.tarot.beard-cat3  { background-image: url(original/beard-cat.jpeg); }
+.playingCards.faceImages .card.tarot.beard-cat4  { background-image: url(original/beard-cat.jpeg); }
 
-.playingCards.faceImages .card.rank-c.diams  { background-image: url(faces/CD.jpg); }
-.playingCards.faceImages .card.rank-c.hearts { background-image: url(faces/CH.jpg); }
-.playingCards.faceImages .card.rank-c.spades { background-image: url(faces/CS.jpg); }
-.playingCards.faceImages .card.rank-c.clubs  { background-image: url(faces/CC.jpg); }
+.playingCards.faceImages .card.tarot.cattermelon1  { background-image: url(original/cattermelon.jpeg); }
+.playingCards.faceImages .card.tarot.cattermelon2  { background-image: url(original/cattermelon.jpeg); }
+.playingCards.faceImages .card.tarot.cattermelon3  { background-image: url(original/cattermelon.jpeg); }
+.playingCards.faceImages .card.tarot.cattermelon4  { background-image: url(original/cattermelon.jpeg); }
 
-.playingCards.faceImages .card.rank-q.diams  { background-image: url(faces/QD.gif); }
-.playingCards.faceImages .card.rank-q.hearts { background-image: url(faces/QH.gif); }
-.playingCards.faceImages .card.rank-q.spades { background-image: url(faces/QS.gif); }
-.playingCards.faceImages .card.rank-q.clubs  { background-image: url(faces/QC.gif); }
+.playingCards.faceImages .card.tarot.exploding1  { background-image: url(original/exploding1.jpeg); }
+.playingCards.faceImages .card.tarot.exploding2  { background-image: url(original/exploding2.jpeg); }
+.playingCards.faceImages .card.tarot.exploding3  { background-image: url(original/exploding3.jpeg); }
+.playingCards.faceImages .card.tarot.exploding4  { background-image: url(original/exploding4.jpeg); }
 
-.playingCards.faceImages .card.rank-k.diams  { background-image: url(faces/KD.gif); }
-.playingCards.faceImages .card.rank-k.hearts { background-image: url(faces/KH.gif); }
-.playingCards.faceImages .card.rank-k.spades { background-image: url(faces/KS.gif); }
-.playingCards.faceImages .card.rank-k.clubs  { background-image: url(faces/KC.gif); }
+.playingCards.faceImages .card.tarot.favor1  { background-image: url(original/favor1.jpeg); }
+.playingCards.faceImages .card.tarot.favor2  { background-image: url(original/favor2.jpeg); }
+.playingCards.faceImages .card.tarot.favor3  { background-image: url(original/favor3.jpeg); }
+.playingCards.faceImages .card.tarot.favor4  { background-image: url(original/favor4.jpeg); }
 
-.playingCards.faceImages .card.tarot.t0  { background-image: url(faces/tarot0.jpg); }
-.playingCards.faceImages .card.tarot.t1  { background-image: url(faces/tarot1.jpg); }
-.playingCards.faceImages .card.tarot.t2  { background-image: url(faces/tarot2.jpg); }
-.playingCards.faceImages .card.tarot.t3  { background-image: url(faces/tarot3.jpg); }
-.playingCards.faceImages .card.tarot.t4  { background-image: url(faces/tarot4.jpg); }
-.playingCards.faceImages .card.tarot.t5  { background-image: url(faces/tarot5.jpg); }
-.playingCards.faceImages .card.tarot.t6  { background-image: url(faces/tarot6.jpg); }
-.playingCards.faceImages .card.tarot.t7  { background-image: url(faces/tarot7.jpg); }
-.playingCards.faceImages .card.tarot.t8  { background-image: url(faces/tarot8.jpg); }
-.playingCards.faceImages .card.tarot.t9  { background-image: url(faces/tarot9.jpg); }
-.playingCards.faceImages .card.tarot.t10  { background-image: url(faces/tarot10.jpg); }
-.playingCards.faceImages .card.tarot.t11  { background-image: url(faces/tarot11.jpg); }
-.playingCards.faceImages .card.tarot.t12  { background-image: url(faces/tarot12.jpg); }
-.playingCards.faceImages .card.tarot.t13  { background-image: url(faces/tarot13.jpg); }
-.playingCards.faceImages .card.tarot.t14  { background-image: url(faces/tarot14.jpg); }
-.playingCards.faceImages .card.tarot.t15  { background-image: url(faces/tarot15.jpg); }
-.playingCards.faceImages .card.tarot.t16  { background-image: url(faces/tarot16.jpg); }
-.playingCards.faceImages .card.tarot.t17  { background-image: url(faces/tarot17.jpg); }
-.playingCards.faceImages .card.tarot.t18  { background-image: url(faces/tarot18.jpg); }
-.playingCards.faceImages .card.tarot.t19  { background-image: url(faces/tarot19.jpg); }
-.playingCards.faceImages .card.tarot.t20  { background-image: url(faces/tarot20.jpg); }
-.playingCards.faceImages .card.tarot.t21  { background-image: url(faces/tarot21.jpg); }
+.playingCards.faceImages .card.tarot.hairy-potato-cat1  { background-image: url(original/hairy-potato-cat.jpeg); }
+.playingCards.faceImages .card.tarot.hairy-potato-cat2  { background-image: url(original/hairy-potato-cat.jpeg); }
+.playingCards.faceImages .card.tarot.hairy-potato-cat3  { background-image: url(original/hairy-potato-cat.jpeg); }
+.playingCards.faceImages .card.tarot.hairy-potato-cat4  { background-image: url(original/hairy-potato-cat.jpeg); }
 
-.playingCards.faceImages .card.joker         { background-image: url(faces/joker.gif); }
-.playingCards.simpleCards .card.rank-j,
-.playingCards.simpleCards .card.rank-c,
-.playingCards.simpleCards .card.rank-q,
-.playingCards.simpleCards .card.rank-k       { background-image: none !important; }
+.playingCards.faceImages .card.tarot.kit1  { background-image: url(original/kit1.jpeg); }
+.playingCards.faceImages .card.tarot.kit2  { background-image: url(original/kit2.jpeg); }
+.playingCards.faceImages .card.tarot.kit3  { background-image: url(original/kit3.jpeg); }
+.playingCards.faceImages .card.tarot.kit4  { background-image: url(original/kit4.jpeg); }
+.playingCards.faceImages .card.tarot.kit5  { background-image: url(original/kit5.jpeg); }
+.playingCards.faceImages .card.tarot.kit6  { background-image: url(original/kit6.jpeg); }
 
-/*____________ symbols in the middle (faces as dingbat symbols) ____________*/
+.playingCards.faceImages .card.tarot.nope1  { background-image: url(original/nope1.jpeg); }
+.playingCards.faceImages .card.tarot.nope2  { background-image: url(original/nope2.jpeg); }
+.playingCards.faceImages .card.tarot.nope3  { background-image: url(original/nope3.jpeg); }
+.playingCards.faceImages .card.tarot.nope4  { background-image: url(original/nope4.jpeg); }
+.playingCards.faceImages .card.tarot.nope5  { background-image: url(original/nope5.jpeg); }
 
-.playingCards.simpleCards .card .suit:after,
-.playingCards .card.rank-j .suit:after,
-.playingCards .card.rank-c .suit:after,
-.playingCards .card.rank-q .suit:after,
-.playingCards .card.rank-k .suit:after,
-.playingCards .card.rank-a .suit:after,
-.playingCards .card.joker .rank:after {
-    font-family: Georgia, serif;
-    position: absolute;
-    font-size: 3em;
-    right: .1em;
-    bottom: .25em;
-    word-spacing: normal;
-    letter-spacing: normal;
-    line-height: 1;
-}
-.playingCards .card.rank-j .suit:after {
-    content: "\265F";
-    right: .15em;
-}
-.playingCards .card.rank-c .suit:after {
-    content: "\265F";
-    right: .15em;
-}
-.playingCards .card.rank-q .suit:after {
-    content: "\265B";
-}
-.playingCards .card.rank-k .suit:after {
-    content: "\265A";
-}
-/* joker (inner symbol) */
-.playingCards.faceImages .card.joker .rank:after {
-    content: "";
-}
-.playingCards .card.joker .rank:after {
-    position: absolute;
-    content: "\2766";
-    top: .4em;
-    left: .1em;
-}
+.playingCards.faceImages .card.tarot.rainbow-ralphing-cat1  { background-image: url(original/rainbow-ralphing-cat.jpeg); }
+.playingCards.faceImages .card.tarot.rainbow-ralphing-cat2  { background-image: url(original/rainbow-ralphing-cat.jpeg); }
+.playingCards.faceImages .card.tarot.rainbow-ralphing-cat3  { background-image: url(original/rainbow-ralphing-cat.jpeg); }
+.playingCards.faceImages .card.tarot.rainbow-ralphing-cat4  { background-image: url(original/rainbow-ralphing-cat.jpeg); }
 
-/* big suits in middle */
-.playingCards.simpleCards .card .suit:after,
-.playingCards .card.rank-a .suit:after {
-    font-family: Arial, sans-serif;
-    line-height: .9;
-    bottom: .35em;
-}
-.playingCards.simpleCards .card.diams .suit:after,
-.playingCards .card.rank-a.diams .suit:after {
-    content: "\2666";
-    right: .2em;
-}
-.playingCards.simpleCards .card.hearts .suit:after,
-.playingCards .card.rank-a.hearts .suit:after {
-    content: "\2665";
-    right: .2em;
-}
-.playingCards.simpleCards .card.spades .suit:after,
-.playingCards .card.rank-a.spades .suit:after {
-    content: "\2660";
-    right: .2em;
-}
-.playingCards.simpleCards .card.clubs .suit:after,
-.playingCards .card.rank-a.clubs .suit:after {
-    content: "\2663";
-    right: .2em;
-}
+.playingCards.faceImages .card.tarot.see-the-future1  { background-image: url(original/see-the-future1.jpeg); }
+.playingCards.faceImages .card.tarot.see-the-future2  { background-image: url(original/see-the-future2.jpeg); }
+.playingCards.faceImages .card.tarot.see-the-future3  { background-image: url(original/see-the-future3.jpeg); }
+.playingCards.faceImages .card.tarot.see-the-future4  { background-image: url(original/see-the-future4.jpeg); }
+.playingCards.faceImages .card.tarot.see-the-future5  { background-image: url(original/see-the-future5.jpeg); }
 
-/*____________ smaller cards for use inside text ____________*/
+.playingCards.faceImages .card.tarot.shuffle1  { background-image: url(original/shuffle1.jpeg); }
+.playingCards.faceImages .card.tarot.shuffle2  { background-image: url(original/shuffle2.jpeg); }
+.playingCards.faceImages .card.tarot.shuffle3  { background-image: url(original/shuffle3.jpeg); }
+.playingCards.faceImages .card.tarot.shuffle4  { background-image: url(original/shuffle4.jpeg); }
 
-.playingCards.inText .card {
-    font-size: .4em;
-    vertical-align: middle;
-}
-.playingCards.inText .card span.rank,
-.playingCards.inText .card span.suit {
-    text-align: center;
-}
-.playingCards.inText .card span.rank {
-    font-size: 2em;
-    margin-top: .2em;
-}
-.playingCards.inText .card span.suit {
-    font-size: 2.5em;
-}
-.playingCards.inText .card .suit:after,
-.playingCards.inText .card.joker .rank:after {
-    content: "" !important;
-}
-.playingCards.inText .card .rank:after {
-    left: .5em;
-    padding: 0 .1em;
-}
+.playingCards.faceImages .card.tarot.skip1  { background-image: url(original/skip1.jpeg); }
+.playingCards.faceImages .card.tarot.skip2  { background-image: url(original/skip2.jpeg); }
+.playingCards.faceImages .card.tarot.skip3  { background-image: url(original/skip3.jpeg); }
+.playingCards.faceImages .card.tarot.skip4  { background-image: url(original/skip4.jpeg); }
+
+.playingCards.faceImages .card.tarot.tacocat1  { background-image: url(original/tacocat.jpeg); }
+.playingCards.faceImages .card.tarot.tacocat2  { background-image: url(original/tacocat.jpeg); }
+.playingCards.faceImages .card.tarot.tacocat3  { background-image: url(original/tacocat.jpeg); }
+.playingCards.faceImages .card.tarot.tacocat4  { background-image: url(original/tacocat.jpeg); }
 
 
 /* hand (in your hand or on table or as a deck)

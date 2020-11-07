@@ -564,21 +564,9 @@ function newDeck(options) {
   var cards = [];
   var numberOfdecks = options.number_decks
   for (var d = 0; d < numberOfdecks; d++) {
-    for (var s = 0; s < SUITS.length; s++) {
-      for (var r = 0; r < RANK.length; r++) {
-        if(!options.cavaliers && RANK[r] == "C")  {
-          continue;
-        }
-        var card = { rank: RANK[r], suit: SUITS[s] };
-        cards.push(card);
-      }
-    }
-
-    if(options.atouts) {
-      for (var a = 0; a < ATOUTS.length; a++) {
-        var card = { rank: ATOUTS[a], suit: "atouts" };
-        cards.push(card);
-      }
+    for (var a = 0; a < ATOUTS.length; a++) {
+      var card = { rank: ATOUTS[a], suit: "atouts" };
+      cards.push(card);
     }
   }
   return cards;

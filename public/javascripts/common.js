@@ -1,9 +1,18 @@
-const RANK = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "C", "Q", "K", "A"];
-const RANK_ATOUTS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "C", "Q", "K"] 
-const ATOUTS = ["T0", "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8" , "T9" , "T10" , "T11", "T12", "T13", "T14", "T15", "T16", "T17", "T18", "T19", "T20", "T21" ] 
-
-const SUITS = ["clubs", "diams", "spades", "hearts"];
-const SUITS_ATOUTS = ["clubs", "diams", "spades", "hearts", "atouts"];
+const ATOUTS = [
+    "kit1", "kit2", "kit3", "kit4", "kit5", "kit6",
+    "exploding1", "exploding2", "exploding3", "exploding4", 
+    "nope1", "nope2", "nope3", "nope4", "nope5",
+    "attack1", "attack2", "attack3", "attack4",
+    "favor1", "favor2", "favor3", "favor4",
+    "shuffle1", "shuffle2", "shuffle3", "shuffle4",
+    "skip1", "skip2", "skip3", "skip4",
+    "see-the-future1", "see-the-future2", "see-the-future3", "see-the-future4", "see-the-future5",
+    "beard-cat1", "beard-cat2", "beard-cat3", "beard-cat4",
+    "cattermelon1", "cattermelon2", "cattermelon3", "cattermelon4",
+    "hairy-potato-cat1", "hairy-potato-cat2", "hairy-potato-cat3", "hairy-potato-cat4",
+    "rainbow-ralphing-cat1", "rainbow-ralphing-cat2", "rainbow-ralphing-cat3", "rainbow-ralphing-cat4",
+    "tacocat1", "tacocat2", "tacocat3", "tacocat4"
+] 
 
 const EMOJIS = ['😄','😃','😀','😊','☺','😉','😍','😘','😚','😗','😙','😜','😝','😛','😳','😁','😔',
     '😌','😒','😞','😣','😢','😂','😭','😪','😥','😰','😅','😓','😩','😫','😨','😱','😠','😡','😤','😖',
@@ -89,59 +98,15 @@ const actions = {
 }
 
 const configs = {
-    escalier : { 
-        tricks: true,
-        cards_distribute: 2,
-        cavaliers: true,
-        turn: true,
-        all_cards: false,
-        block_get_cards: true,
-        block_action: true,
-        end_turn_draw: true,
-        stack_visible: true,
-    },
-    ratatouille : { 
-        tricks: true,
-        cards_distribute: -1,
-        cavaliers: true,
-        turn: false,
-        all_cards: true,
-        block_get_cards: true,
-        block_action: true,
-        end_turn_draw: true,
-        stack_visible: true,
-        preparation: true
-    }, 
-    yaniv : { 
+    exploding : { 
         tricks: false,
-        cards_distribute: 4,
-        cavaliers: true,
+        cards_distribute: 8,
+        cavaliers: false,
         turn: false,
         all_cards: false,
         block_get_cards: false,
-        block_action: true,
-        end_turn_draw: false,
-        stack_visible: true
+        block_action: false,
+        end_turn_play: false,
+        stack_visible: false,
     },
-    tarot : { 
-        tricks: true,
-        cards_distribute: -1,
-        cavaliers: true,
-        atouts: true,
-        turn: false,
-        all_cards: true,
-        block_get_cards: true,
-        block_action: true,
-        end_turn_draw: true,
-        stack_visible: true,
-        preparation: true
-    },
-    poker: {
-        cards_distribute: 2,
-        stack_visible: true,
-        tricks: false,
-        end_turn_draw:false,
-        block_get_cards: true,
-    }
-
 }

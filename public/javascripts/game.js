@@ -1,4 +1,5 @@
 var state;
+var DEFAULT_NUM_CARD = 8;
 var cardAside = -1;
 var users = [];
 var players = [];
@@ -37,7 +38,7 @@ function main(roomName, lang) {
 
     putCardOnPileFromHand(this)
     // If we are playing and if there is to end the turn on draw, end the turn
-    if(state == states.PLAYING && options.end_turn_draw) {
+    if(state == states.PLAYING && options.end_turn_play) {
       endTurn();
     }
     
@@ -429,7 +430,7 @@ function start() {
   });
 
   if(options.cards_distribute == undefined) {
-    options.cards_distribute = 1;
+    options.cards_distribute = DEFAULT_NUM_CARD;
   }
   
   updateOptions()
@@ -494,7 +495,7 @@ function init() {
   createMenu(".card_in_hand", {
     [actions.SHUFFLE_HAND]: {name: translate("shuffle"), icon: "fa-hand-lizard"},
     [actions.SORT_VALUE]: {name: translate("sort by value"), icon: "fa-hand-lizard", visible: function(key, opt){return !options.atouts}},
-    [actions.PLAY_ALL_CARDS]: {name: translate(actions.PLAY_ALL_CARDS), icon: "fa-hand-lizard", visible: function(key, opt){return options.preparation;}},
+    [actions.PLAY_ALL_CARDS]: {name: translate(actions.PLAY_ALL_CARDS), icon: "fa-hand-lizard"},
     [actions.INCREASE_SIZE]: {name: translate(actions.INCREASE_SIZE), icon: "fa-search-plus"},
     [actions.DECREASE_SIZE]: {name: translate(actions.DECREASE_SIZE), icon: "fa-search-minus"}
   });
@@ -801,23 +802,13 @@ function drawCard(card, clazz, type="div", needToClean=true, back=false) {
   if(needToClean) {
     cleanCard(card)
   }
-  var suit = card.suit.toLowerCase();
   var rank = card.rank.toLowerCase();
   var fontSize = cardSizes[clazz] != undefined? cardSizes[clazz]: 1.2;
 
   if(back) {
     return `<div class="card back card_in_pile" style='font-size: ${fontSize}em'>*</div>`;
   }
-  if(suit == "atouts") {
-    var $rank = rank == "t0" ? "" : rank.substring(1);
-    return `<${type} class="card tarot ${rank} ${clazz}" style='font-size: ${fontSize}em'>
-                <span class="rank">${$rank}</span>
-            </${type}>`
-  }
-  return `<${type} class="card rank-${card.rank.toLowerCase()} ${card.suit} ${clazz}" style='font-size: ${fontSize}em'>
-            <span class="rank">${translate(card.rank)}</span>
-            <span class="suit">&${card.suit};</span>
-          </${type}>`
+  return `<${type} class="card tarot ${rank} ${clazz}" style='font-size: ${fontSize}em'></${type}>`
 }
 
 function createBooleanOption(name, title, descriptionChecked=undefined, description=undefined) {
@@ -870,27 +861,9 @@ function syncNumberOption(name) {
 
 function drawOptionList() {
   return `
-  ${createBooleanOption("cavaliers", translate("Include cavaliers"), "56 "+translate("cards"), "52 "+translate("cards"))}
-  <br />
-  ${createBooleanOption("atouts", translate("Include atouts cards"), getDeckSize()+" "+translate("cards"), getDeckSize()+" "+translate("cards"))}
-  <br />
-  ${createNumberOption("hidden_card_aside", "Hidden cards aside", defaultHiddenCards())}
-  <br />
-  ${createBooleanOption("tricks", translate("Claim tricks 🂠")+" <b> X </b>", translate("tricks won"), translate("cards in hand"))}
-  <br />
-  ${createBooleanOption("turn", translate("Turn change"), translate("turn change each round"), translate("turn order stay the same"))}
-  <br />
-  ${createBooleanOption("all_cards", translate("All cards"), translate("Distribute all cards"), translate("Distribute a specific number"))}
-  <br />
   ${createBooleanOption("block_action", translate("Block actions"), translate("Only the player whose turn can do things"), translate("Action can be done by anyone at any moment"))}
   <br />
-  ${createBooleanOption("block_get_cards", translate("Block cards taken"), translate("Prevent to take cards from playing area"), translate("Cards can be taken from playing area"))}
-  <br />
-  ${createBooleanOption("end_turn_draw", translate("End turn after playing"), translate("Play a card to end turn"), translate("You have to specifically end you turn"))}
-  <br />
   ${createBooleanOption("stack_visible", translate("View all cards"), translate("View all cards played"), translate("View only the last one"))} 
-  <br />
-  ${createBooleanOption("preparation", translate("Preparation phase"), translate("Moment to exchange or put card aside before playing"), translate("Players play directly after distribution"))} 
   <br />
   ${createBooleanOption("inverse_pile", 
                         translate("Inverse discard pile display"), 
@@ -1040,7 +1013,7 @@ function drawDeckPlay() {
   }
   if(!isMyTurn()) {
     content += `${createMessage("Wait for your turn!", "info")}`;
-  } else if(!options.end_turn_draw) {
+  } else if(!options.end_turn_play) {
     content += `${createButton("End turn", "endTurn()")} </br>`;
   } else {
     content += `${createMessage("This is your turn!", "success")}`
@@ -1212,7 +1185,7 @@ function drawPile() {
   var content = `
       <h2>${translate("Playing Area (discard pile)")}</h2>
       <div class = "col-10 form-group">
-        ${createBooleanOption("end_turn_draw", translate("End turn after playing"))} <br>
+        ${createBooleanOption("end_turn_play", translate("End turn after playing"))} <br>
         ${createBooleanOption("back_card", translate("Hide card value"))} <br>
       </div>`;
 
@@ -1284,30 +1257,14 @@ function drawPileRevealCards(hands) {
 
 function sortCard() {
   my_hand.sort(function (a, b) {
-    if(options.atouts) {
-      if (SUITS_ATOUTS.indexOf(a.suit) < SUITS_ATOUTS.indexOf(b.suit)) return -1;
-      if (SUITS_ATOUTS.indexOf(a.suit) > SUITS_ATOUTS.indexOf(b.suit)) return 1;
-
-      if(a.suit == "atouts" && b.suit == "atouts") {
-        return ATOUTS.indexOf(a.rank) - ATOUTS.indexOf(b.rank);
-      }
-      else {
-        return RANK_ATOUTS.indexOf(a.rank) - RANK_ATOUTS.indexOf(b.rank);
-      }
-    } else {
-      if (SUITS.indexOf(a.suit) < SUITS.indexOf(b.suit)) return -1;
-      if (SUITS.indexOf(a.suit) > SUITS.indexOf(b.suit)) return 1;
-
-      return RANK.indexOf(a.rank) - RANK.indexOf(b.rank);
-    }
-
+      return ATOUTS.indexOf(a.rank) - ATOUTS.indexOf(b.rank);
   });
   drawHand();
 }
 
 function sortCardByValue() {
   my_hand.sort(function (a, b) {
-    return RANK.indexOf(a.rank) - RANK.indexOf(b.rank);
+    // return RANK.indexOf(a.rank) - RANK.indexOf(b.rank);
   });
   drawHand();
 }
@@ -1379,7 +1336,7 @@ $(document).on("keypress", function (event) {
       switch(state) {
         case states.DISTRIBUTION : distributeCards(); break;
         case states.PLAYING: {
-          if(!options.end_turn_draw) {
+          if(!options.end_turn_play) {
             endTurn();
           }
           break;
