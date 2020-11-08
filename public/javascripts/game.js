@@ -869,7 +869,12 @@ function drawCard(card, clazz, type="div", needToClean=true, back=false) {
   if(back) {
     return `<div class="card back card_in_pile" style='font-size: ${fontSize}em'>*</div>`;
   }
-  return `<${type} class="card tarot ${card.value} ${card.type} ${clazz}" style='font-size: ${fontSize}em'></${type}>`
+  var cardName = card.value;
+  if(card.type == CAT_CARD) {
+    cardName = cardName.replace(/[0-9]/g, '');
+  }
+  return `<${type} class="card tarot ${card.type} ${clazz}" 
+                    style='background-image: url(images/original/${cardName}.jpeg); font-size: ${fontSize}em'></${type}>`
 }
 
 function createBooleanOption(name, title, descriptionChecked=undefined, description=undefined) {

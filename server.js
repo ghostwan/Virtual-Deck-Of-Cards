@@ -650,7 +650,11 @@ function newDeck(options) {
   var numberOfdecks = options.number_decks
   for (var d = 0; d < numberOfdecks; d++) {
     for (var a = 0; a < CARDS_IN_DECK.length; a++) {
-      var card = { value: CARDS_IN_DECK[a], type: CARDS_IN_DECK[a].replace(/[0-9]/g, '') };
+      var type = CARDS_IN_DECK[a].replace(/[0-9]/g, '');
+      if(CAT_CARDS.includes(type)) {
+        type = CAT_CARD;
+      }
+      var card = { value: CARDS_IN_DECK[a], type: type };
       cards.push(card);
     }
   }

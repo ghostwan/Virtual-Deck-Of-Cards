@@ -12,7 +12,10 @@ const CARDS_IN_DECK = [
     "hairy-potato-cat1", "hairy-potato-cat2", "hairy-potato-cat3", "hairy-potato-cat4",
     "rainbow-ralphing-cat1", "rainbow-ralphing-cat2", "rainbow-ralphing-cat3", "rainbow-ralphing-cat4",
     "tacocat1", "tacocat2", "tacocat3", "tacocat4"
-] 
+]
+
+const CAT_CARDS = ["beard-cat", "cattermelon", "hairy-potato-cat", "rainbow-ralphing-cat", "tacocat" ]
+const CAT_CARD = "cat_card"
 
 const EXTRA_KITS = 3;
 
