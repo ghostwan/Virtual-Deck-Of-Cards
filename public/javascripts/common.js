@@ -1,6 +1,6 @@
 const CARDS_IN_DECK = [
-    "kit1", "kit2", "kit3", "kit4", "kit5", "kit6",
-    "exploding1", "exploding2", "exploding3", "exploding4", 
+    // "kit1", "kit2", "kit3", "kit4", "kit5", "kit6", // Those cards a generated depending on player number 
+    // "exploding1", "exploding2", "exploding3", "exploding4" // Those cards a generated depending on player number 
     "nope1", "nope2", "nope3", "nope4", "nope5",
     "attack1", "attack2", "attack3", "attack4",
     "favor1", "favor2", "favor3", "favor4",
@@ -13,6 +13,8 @@ const CARDS_IN_DECK = [
     "rainbow-ralphing-cat1", "rainbow-ralphing-cat2", "rainbow-ralphing-cat3", "rainbow-ralphing-cat4",
     "tacocat1", "tacocat2", "tacocat3", "tacocat4"
 ] 
+
+const EXTRA_KITS = 3;
 
 const CARDS_ACTION = {
     "shuffle" : "shuffleDeck",
@@ -119,3 +121,4 @@ const configs = {
         stack_visible: true,
     },
 }
+

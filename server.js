@@ -115,9 +115,9 @@ io.on("connection", socket => {
       }
 
       if(isOwnerExist) {
-        // user.status = user_status.GUEST;
+        user.status = user_status.GUEST;
         //FIXME DEV MODE
-        user.status = user_status.PLAYER;
+        // user.status = user_status.PLAYER;
       } else {
         user.status = user_status.OWNER;
       }
@@ -197,9 +197,16 @@ io.on("connection", socket => {
     users.set(user.id, user);
     storeData("users", users);
 
+    var deck = createFullDeck();
+
     emitToUser(user.id, actions.UPDATE_DATA, {my_user: user});
 
-    emitUpdateToRoom(actions.USER_CONNECTED, { users: getUserList(), players: getPlayerList()})
+    emitUpdateToRoom(actions.USER_CONNECTED, { 
+      users: getUserList(), 
+      players: getPlayerList(),
+      deckOriginalLength: storeData("deckOriginalLength", deck.length),
+      remainingCards: deck.length
+    })
   });
 
   socket.on(actions.REMOVE_USER, userID => {
@@ -337,8 +344,10 @@ io.on("connection", socket => {
   socket.on(actions.DISTRIBUTE, data => {
     if(socketNotAvailble()) {return}
     
-    var deck = getDeck();
+    var deck = newDeck(getOptions());
+    deck = shuffle(deck)
     var options = getOptions();
+
     var numCards = data.numCards;
     options.cards_distribute = numCards;
     var players = getPlayerList();
@@ -347,17 +356,15 @@ io.on("connection", socket => {
     if (numCards == -1) {
       numCards = Math.trunc(deck.length / players.length);
     }
-    
-    //Removing exploding before distribution
-    result = takeSpecificCards("exploding", deck, []);
-    var exploding_cards = result.to;
-    deck = result.from;
 
-    if(options.at_least_one_kit) {
-      //Removing kits before distribution
-      result = takeSpecificCards("kit", deck, []);
-      var kit_cards = result.to;
-      deck = result.from;
+    // If the option at least one kit is not activated, put all the kits in the deck and let's luck for distriubtion
+    if(!options.at_least_one_kit) {
+      for (var i = 0; i < players.length + EXTRA_KITS; i++) {
+        var index = (i % 6)+1; 
+        console(index);
+        deck.push({ value: "kit"+index, type: "kit" })
+      }
+      deck = shuffle(deck)
     }
 
     for (var p = 0; p < players.length; p++) {
@@ -367,29 +374,40 @@ io.on("connection", socket => {
       hand = result.to;
       var player = players[p];
 
+      // If the option at least one kit is activated, give a kit in each hand
       if(options.at_least_one_kit) {
-        result = takeCards(1, kit_cards, hand);
-        kit_cards = result.from;
-        hand = result.to;
+        var index = (p % 6)+1; 
+        hand.push({ value: "kit"+index, type: "kit" })
       }
       
       emitToUser(player.id, actions.UPDATE_HAND, hand);
       updateHand(player.id, hand, false)
     }
 
-    //Add back exploding kittens
-    deck = deck.concat(exploding_cards)
+    // And add the rest in the deck
     if(options.at_least_one_kit) {
-      //Add back kits
-      deck = deck.concat(kit_cards)
+      for (var i = 0; i < EXTRA_KITS; i++) {
+        var index = (i % 6)+1; 
+        deck.push({ value: "kit"+index, type: "kit" })
+      }
     }
+    //Add exploding kittens (player - 1)
+    for (var i = 0; i < players.length-1; i++) {
+      var index = (i % 4)+1; 
+      deck.push({ value: "exploding"+index, type: "exploding" })
+    }
+
     // And shuffle
     deck = shuffle(deck)
+    // And really shuffle
     deck = shuffle(deck)
-    deck = shuffle(deck)
+
+    var deckOriginalLength = CARDS_IN_DECK.length + (players.length - 1) + (players.length + EXTRA_KITS);
+
     storeData("deck", deck)
     emitUpdateToRoom(actions.DISTRIBUTE, {
       remainingCards: deck.length, 
+      deckOriginalLength: storeData("deckOriginalLength", deckOriginalLength),
       options: options, 
       state: state(states.PLAYING), 
       gameData: getGameData()
@@ -459,23 +477,34 @@ io.on("connection", socket => {
     });
   })
 
+  function createFullDeck () {
+    var deck = newDeck(getOptions());
+    var players = getPlayerList();
+
+    // Add kits
+    for (var i = 0; i < players.length + EXTRA_KITS; i++) {
+      deck.push({ value: "kit1", type: "kit" })
+    }
+
+    // Add kittens
+    for (var i = 0; i < players.length-1; i++) {
+      deck.push({ value: "exploding1", type: "exploding" })
+    }
+    
+    deck = shuffle(deck);
+    return storeData("deck", deck);
+  }
+
   socket.on(actions.RESET_ROUND, () => {
     if(socketNotAvailble()) {return}
 
-    var deck = newDeck(getOptions());
-    deck = shuffle(deck);
-    storeData("deck", deck)
     var options = getOptions();
-    var player = 0;
     storeData("hands", {})
 
-    if(options.turn) {
-      options.turn++;
-      if(options.turn > getPlayerList().length+1) {
-        options.turn = 2
-      }
-      player = options.turn-2
-    }
+    // Create a fake deck but with the options enable 
+    // the real deck will be creaated during distribution
+    // Since exploding kitten distribution is specific
+    var deck = createFullDeck();
 
     emitUpdateToRoom(actions.RESET_ROUND, {
       instruction: false,
@@ -489,7 +518,7 @@ io.on("connection", socket => {
       options: storeData("options", options),
       hand: [],
       gameData: storeData("gameData", {}) ,
-      playerNumber : storeData("playerNumber", player)
+      playerNumber : storeData("playerNumber", 0)
     });
 
   });

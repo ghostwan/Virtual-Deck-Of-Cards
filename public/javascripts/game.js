@@ -959,7 +959,6 @@ function drawDeckDistribute() {
 
   if (!isSpectatorOrGuest() && (!options.block_action || isMyTurn())) {
     content += `
-    ${createButton("Shuffle cards", "shuffleDeck()")} </br>
     ${createButton("Distribute", "distributeCards()")} </br>
     <div class="control-group form-inline">`
       if (!options.all_cards) {

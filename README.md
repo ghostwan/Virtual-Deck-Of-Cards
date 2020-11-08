@@ -17,6 +17,7 @@ Current supported Languages: English, French
 ![Original version rules]()
 
 # What's new 
+- Add number of exploding depends on number of player
 
 # What you can currently do
 - Play card from hand
@@ -35,7 +36,6 @@ Current supported Languages: English, French
 - Missing actions
   - Steal a card from player hand (combo 2 card)
   - See the future
-- Add number of exploding depends on number of player
 - Improve favor action
 - Translations
 - Add rules reminder
