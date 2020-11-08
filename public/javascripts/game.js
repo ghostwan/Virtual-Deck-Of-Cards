@@ -43,6 +43,18 @@ function main(roomName, lang) {
     }
   });
 
+  $("body").on("mouseover", ".card_in_hand", function () {
+    var card = my_hand[$(".card_in_hand").index($(this))];
+    $("#help").text(translate("rule-"+card.type));
+  });
+  $("body").on("mouseover", ".card_in_pile", function () {
+    var card = pile[$(".card_in_pile").index($(this))];
+    $("#help").text(translate("rule-"+card.type));
+  });
+  $("body").on("mouseout", ".card", function () {
+    $("#help").text(HELP_TEXT);
+  });
+
   // Move card from the pile to your hand
   $("body").on("click", ".card_in_pile", function () {
     if(isGameDisconnected() || isSpectatorOrGuest()) return; 
@@ -96,8 +108,9 @@ function main(roomName, lang) {
 
 function createSpectatorModeMessage() {
   if(isGuest())  {
-    return `<div class="alert alert-primary" role="alert">
-            ${translate("Your are on the guest list")}
+    var url = `onclick="window.open('${translate("url-rule")}','mywindow');"`;
+    return `<div class="alert alert-primary" role="alert" ${url}>
+            ${translate("Your are on the guest list, click here to know game rules")}
           </div>`;  
   }
   return `<div class="alert alert-warning" role="alert">
@@ -105,20 +118,20 @@ function createSpectatorModeMessage() {
           </div>`;
 }
 
-function createMessage(message, type="primary") {
+function createMessage(message, type="primary", id="", url="") {
   if(isSpectatorOrGuest()) return createSpectatorModeMessage();
-  
-  return `<div class="alert alert-${type}" role="alert">
+  if(id) {
+    id = `id="${id}"`;
+  }
+  if(url) {
+    url = `onclick="window.open('${url}','mywindow');"`;
+  } 
+  return `<div ${id} ${url} class="alert alert-${type}" role="alert">
             ${translate(message)}
           </div>`;
 }
 
 function createActionMessage(message, card) {
-
-  console.log(card)
-  console.log(isMyTurn())
-  console.log(my_user.name)
-
   if(isMyTurn() && card.username == my_user.name) {
     return `<div class="alert alert-info" role="alert">
               ${translate(message)}
@@ -131,9 +144,6 @@ function createActionMessage(message, card) {
 }
 
 function createActionButton(title, jsAction, card) {
-  console.log(card.username)
-  console.log(isMyTurn())
-  console.log(my_user.name)
   if(isMyTurn() && card.username == my_user.name) {
     return `<button onclick = '${jsAction}' class = 'btn btn-outline-dark btn-lg btn-block margin_bottom'>
               ${translate(title)}
@@ -543,7 +553,7 @@ function init() {
     [actions.EXPULSE_USER]: {name: translate("expel"), icon: "fa-ban", visible: function(key, opt){return isOwner()}}
   });
   createMenu(".card_in_pile.exploding", {
-    [actions.PUT_BACK_CARD_DECK]: {name: translate("put back on deck"), icon: "fa-hand-lizard", visible: function(key, opt){return isMyTurn() && isActionAvailable;}}
+    [actions.PUT_BACK_CARD_DECK]: {name: translate("defuse"), icon: "fa-hand-lizard", visible: function(key, opt){return isMyTurn() && isActionAvailable;}}
   });
   createMenu(".card_in_pile", {
     [actions.PILE_UP_AREA]: {name: translate("pile up"), icon: "fa-align-justify", visible: function(key, opt){return !options.inverse_pile && isPlayer();}},
@@ -873,7 +883,7 @@ function drawCard(card, clazz, type="div", needToClean=true, back=false) {
   if(card.type == CAT_CARD) {
     cardName = cardName.replace(/[0-9]/g, '');
   }
-  return `<${type} class="card tarot ${card.type} ${clazz}" 
+  return `<${type} class="card figure ${card.type} ${clazz}" 
                     style='background-image: url(images/original/${cardName}.jpeg); font-size: ${fontSize}em'></${type}>`
 }
 
@@ -1037,6 +1047,9 @@ function drawDeckPlay() {
   } else if (isSpectator()) {
     content += `<div class="alert alert-warning" role="alert">${translate("Refresh to go on guest list")}</div>`;
   }
+  if(isPlayer()) {
+    content += `${createMessage(HELP_TEXT, "info", "help", translate("url-rule"))}`
+  }
   content += "</div>"
 
   if (remainingCards == 0 && cardAside == -1) {
@@ -1101,12 +1114,6 @@ function canDisplayTricks(state) {
 
 function drawHand(instruction = false) {
   $("#your_hand").empty();
-
-  if(isSpectatorOrGuest()) { 
-    var message = createSpectatorModeMessage();
-    $("#your_hand").append(message);
-    return;
-  }
 
   var content = "";
 

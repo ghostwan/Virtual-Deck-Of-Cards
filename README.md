@@ -18,6 +18,7 @@ Current supported Languages: English, French
 
 # What's new 
 - Add number of exploding depends on number of player
+- Add rules on card hover
 
 # What you can currently do
 - Play card from hand
@@ -37,8 +38,7 @@ Current supported Languages: English, French
   - Steal a card from player hand (combo 2 card)
   - See the future
 - Improve favor action
-- Translations
-- Add rules reminder
+- Check translations
 - Add extentions
   - imploding kittens
   - streaking kittens
