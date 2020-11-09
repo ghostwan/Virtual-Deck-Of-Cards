@@ -197,16 +197,19 @@ io.on("connection", socket => {
     users.set(user.id, user);
     storeData("users", users);
 
-    var deck = createFullDeck();
-
     emitToUser(user.id, actions.UPDATE_DATA, {my_user: user});
 
-    emitUpdateToRoom(actions.USER_CONNECTED, { 
-      users: getUserList(), 
-      players: getPlayerList(),
-      deckOriginalLength: storeData("deckOriginalLength", deck.length),
-      remainingCards: deck.length
-    })
+    if(state() == states.PLAYING) {
+      resetRound();
+    } else {
+      var deck = createFullDeck();
+      emitUpdateToRoom(actions.USER_CONNECTED, { 
+        users: getUserList(), 
+        players: getPlayerList(),
+        deckOriginalLength: storeData("deckOriginalLength", deck.length),
+        remainingCards: deck.length
+      })
+    }
   });
 
   socket.on(actions.REMOVE_USER, userID => {
@@ -496,6 +499,10 @@ io.on("connection", socket => {
   }
 
   socket.on(actions.RESET_ROUND, () => {
+    resetRound();
+  });
+
+  function resetRound() {
     if(socketNotAvailble()) {return}
 
     var options = getOptions();
@@ -517,11 +524,12 @@ io.on("connection", socket => {
       cardsCleared: storeData("cardsCleared", []).length,
       options: storeData("options", options),
       hand: [],
+      users: getUserList(), 
+      players: getPlayerList(),
       gameData: storeData("gameData", {}) ,
       playerNumber : storeData("playerNumber", 0)
     });
-
-  });
+  }
 
   // Broadcast function, sync datas a cross all client from a room
   socket.on(actions.BROADCAST_UPDATE, data => {
@@ -652,7 +660,7 @@ function newDeck(options) {
     for (var a = 0; a < CARDS_IN_DECK.length; a++) {
       var type = CARDS_IN_DECK[a].replace(/[0-9]/g, '');
       if(CAT_CARDS.includes(type)) {
-        type = CAT_CARD;
+        type = CARD.CAT;
       }
       var card = { value: CARDS_IN_DECK[a], type: type };
       cards.push(card);

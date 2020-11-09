@@ -31,13 +31,12 @@ Current supported Languages: English, French
   - shuffle
   - explode
   - defuse
-  - favor (not action but possible)
+  - favor
+  - steal a card (combo 2 card)
 
 # What's next 
-- Missing actions
-  - Steal a card from player hand (combo 2 card)
+- Missing actions  
   - See the future
-- Improve favor action
 - Check translations
 - Add extentions
   - imploding kittens

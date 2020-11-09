@@ -15,8 +15,13 @@ const CARDS_IN_DECK = [
 ]
 
 const CAT_CARDS = ["beard-cat", "cattermelon", "hairy-potato-cat", "rainbow-ralphing-cat", "tacocat" ]
-const CAT_CARD = "cat-card"
 const HELP_TEXT = "Mouse hover on a card to know its rule (or click here)";
+
+const CARD = {
+    KIT: "kit",
+    FAVOR: "favor",
+    CAT: "cat"
+}
 
 const EXTRA_KITS = 3;
 

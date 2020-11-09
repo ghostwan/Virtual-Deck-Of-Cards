@@ -21,6 +21,7 @@ var translate;
 var animationID;
 var cardsCleared = 0;
 var isActionAvailable=false;
+var pileTemp = undefined;
 
 var cardSizes = {card_in_pile: 2, card_in_trick:1.2, card_in_hand:1.2};
 
@@ -132,7 +133,7 @@ function createMessage(message, type="primary", id="", url="") {
 }
 
 function createActionMessage(message, card) {
-  if(isMyTurn() && card.username == my_user.name) {
+  if((isMyTurn() && card == undefined) ||  (isMyTurn() && card.username == my_user.name)) {
     return `<div class="alert alert-info" role="alert">
               ${translate(message)}
             </div>`;
@@ -144,7 +145,7 @@ function createActionMessage(message, card) {
 }
 
 function createActionButton(title, jsAction, card) {
-  if(isMyTurn() && card.username == my_user.name) {
+  if((isMyTurn() && card == undefined) ||  (isMyTurn() && card.username == my_user.name)) {
     return `<button onclick = '${jsAction}' class = 'btn btn-outline-dark btn-lg btn-block margin_bottom'>
               ${translate(title)}
             </button>`;
@@ -559,7 +560,7 @@ function init() {
     [actions.PILE_UP_AREA]: {name: translate("pile up"), icon: "fa-align-justify", visible: function(key, opt){return !options.inverse_pile && isPlayer();}},
     [actions.DISPERSE_AREA]: {name: translate("disperse"), icon: "fa-columns", visible: function(key, opt){return !options.inverse_pile && options.stack_visible && isPlayer();}},
     [actions.TAKE_BACK_CARD]: {name: translate("take this card"), icon: "fa-hand-lizard", visible: function(key, opt){return isPlayer();}},
-    [actions.TAKE_BACK_ALL_CARDS]: {name: translate(actions.TAKE_BACK_ALL_CARDS), icon: "fa-hand-lizard", visible: function(key, opt){isPlayer();}},
+    [actions.TAKE_BACK_ALL_CARDS]: {name: translate(actions.TAKE_BACK_ALL_CARDS), icon: "fa-hand-lizard", visible: function(key, opt){return isPlayer();}},
     [actions.INCREASE_SIZE]: {name: translate(actions.INCREASE_SIZE), icon: "fa-search-plus"},
     [actions.DECREASE_SIZE]: {name: translate(actions.DECREASE_SIZE), icon: "fa-search-minus"},
     [actions.CLAIM_TRICK]: {name: translate("claim trick"), icon: "fa-hand-lizard", visible: function(key, opt){return options.tricks && isPlayer();}},
@@ -880,7 +881,7 @@ function drawCard(card, clazz, type="div", needToClean=true, back=false) {
     return `<div class="card back card_in_pile" style='font-size: ${fontSize}em'>*</div>`;
   }
   var cardName = card.value;
-  if(card.type == CAT_CARD) {
+  if(card.type == CARD.CAT) {
     cardName = cardName.replace(/[0-9]/g, '');
   }
   return `<${type} class="card figure ${card.type} ${clazz}" 
@@ -982,6 +983,10 @@ function drawDeckDistribute() {
                   value="${options["cards_distribute"]}"} />`
       }
     content += `</div>`
+  }
+
+  if(isSpectatorOrGuest()) {
+    content += createSpectatorModeMessage();
   }
 
   if (options.block_action && !isMyTurn()) {
@@ -1196,13 +1201,12 @@ function drawPile() {
     return
   }
   $("#playArea").empty();
-  var content = `
-      <h2>${translate("Playing Area (discard pile)")}</h2>
-      <div class = "col-10 form-group">
-        ${createBooleanOption("back_card", translate("Hide card value"))} <br>
-      </div>`;
+  var content = `<h2>${translate("Playing Area (discard pile)")}</h2>`;
 
-  if(pile.length != 0 && !options.back_card) {
+  if(options.back_card){
+    content += createActionButton("Display pile and disable exchange mode", "exchangeMode(false)")
+  }
+  else if(pile.length != 0) {
     let card = pile[pile.length-1]
 
     if(isMyTurn()) {
@@ -1210,7 +1214,22 @@ function drawPile() {
     }
     if(isActionAvailable) {
         switch(card.type) {
-          case "kit": content += createActionMessage("Right click on exploding kitten to put it back", card); break;
+          case CARD.KIT: content += createActionMessage("Right click on exploding kitten to put it back", card); break;
+          case CARD.FAVOR: 
+            content += createActionButton("Hide pile and enable exchange mode", "exchangeMode(true)");
+            break
+            case CARD.CAT: 
+              if(pile.length > 1) {
+                var card1 = pile[pile.length-1];
+                var card2 = pile[pile.length-2];
+                var card1type = card1.value.replace(/[0-9]/g, '');
+                var card2type = card2.value.replace(/[0-9]/g, '');
+                if(card1.username == card2.username && card1type == card2type) {
+                  content += createActionButton("Hide pile and enable exchange mode", "exchangeMode(true)");
+                }
+              }
+              break
+            break;
           default:
             if(card.type in CARDS_ACTION) {
               content += createActionButton(`action-${card.type}`, `cardAction("${card.type}")`, card);
@@ -1364,3 +1383,20 @@ $(document).on("keypress", function (event) {
       }
     }
 });
+
+function exchangeMode(exchangeActivated) {
+  if(exchangeActivated) {
+    pileTemp = [...pile];
+    options.back_card=true;
+    pile = [];
+    broadcastUpdate({ pile: pile, options: options});
+  } else if( pile.length == 0 ){
+    pile = [...pileTemp];
+    options.back_card=false;
+    pileTemp=undefined
+    isActionAvailable = false
+    broadcastUpdate({ pile: pile, options: options, isActionAvailable:isActionAvailable});
+  } else {
+    alert(translate("Ask the other user to get back its cards before displaying pile (right click)!")); 
+  }
+}
