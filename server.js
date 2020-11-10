@@ -364,7 +364,6 @@ io.on("connection", socket => {
     if(!options.at_least_one_kit) {
       for (var i = 0; i < players.length + EXTRA_KITS; i++) {
         var index = (i % 6)+1; 
-        console(index);
         deck.push({ value: "kit"+index, type: "kit" })
       }
       deck = shuffle(deck)
@@ -410,6 +409,7 @@ io.on("connection", socket => {
     storeData("deck", deck)
     emitUpdateToRoom(actions.DISTRIBUTE, {
       remainingCards: deck.length, 
+      playerNumber : storeData("playerNumber", Math.floor(Math.random() * players.length)),
       deckOriginalLength: storeData("deckOriginalLength", deckOriginalLength),
       options: options, 
       state: state(states.PLAYING), 
@@ -523,6 +523,7 @@ io.on("connection", socket => {
       pile: storeData("pile", []),
       cardsCleared: storeData("cardsCleared", []).length,
       options: storeData("options", options),
+      isActionAvailable:false,
       hand: [],
       users: getUserList(), 
       players: getPlayerList(),

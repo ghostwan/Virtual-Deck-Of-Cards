@@ -53,7 +53,12 @@ function main(roomName, lang) {
     $("#help").text(translate("rule-"+card.type));
   });
   $("body").on("mouseout", ".card", function () {
-    $("#help").text(HELP_TEXT);
+    $("#help").text(translate(HELP_TEXT));
+  });
+  $("body").on("click", ".guest_effect", function () { 
+    if(isOwner()) {
+      acceptUser($(this).attr("userid")) ; 
+    }
   });
 
   // Move card from the pile to your hand
@@ -111,7 +116,7 @@ function createSpectatorModeMessage() {
   if(isGuest())  {
     var url = `onclick="window.open('${translate("url-rule")}','mywindow');"`;
     return `<div class="alert alert-primary" role="alert" ${url}>
-            ${translate("Your are on the guest list, click here to know game rules")}
+            ${translate("Your are on the guest list")}. ${translate("Click here to read the rules")}
           </div>`;  
   }
   return `<div class="alert alert-warning" role="alert">
@@ -550,11 +555,14 @@ function init() {
   });
   createMenu(".user_profil_menu", {
     [actions.CHANGE_TURN]: {name: translate("your turn"), icon: "fa-hand-paper", visible: function(key, opt){return isPlayer() && state != states.CONFIGURATION;}},
-    [actions.ACCEPT_USER]: {name: translate("accept"), icon: "fa-user-check", visible: function(key, opt){return isOwner();}},
     [actions.EXPULSE_USER]: {name: translate("expel"), icon: "fa-ban", visible: function(key, opt){return isOwner()}}
   });
   createMenu(".card_in_pile.exploding", {
-    [actions.PUT_BACK_CARD_DECK]: {name: translate("defuse"), icon: "fa-hand-lizard", visible: function(key, opt){return isMyTurn() && isActionAvailable;}}
+    [actions.PUT_BACK_CARD_DECK]: {name: translate("defuse"), icon: "fa-hand-lizard", visible: function(key, opt){return isMyTurn() && isActionAvailable;}},
+    [actions.PILE_UP_AREA]: {name: translate("pile up"), icon: "fa-align-justify", visible: function(key, opt){return !options.inverse_pile && isPlayer();}},
+    [actions.DISPERSE_AREA]: {name: translate("disperse"), icon: "fa-columns", visible: function(key, opt){return !options.inverse_pile && options.stack_visible && isPlayer();}},
+    [actions.INCREASE_SIZE]: {name: translate(actions.INCREASE_SIZE), icon: "fa-search-plus"},
+    [actions.DECREASE_SIZE]: {name: translate(actions.DECREASE_SIZE), icon: "fa-search-minus"},
   });
   createMenu(".card_in_pile", {
     [actions.PILE_UP_AREA]: {name: translate("pile up"), icon: "fa-align-justify", visible: function(key, opt){return !options.inverse_pile && isPlayer();}},
@@ -563,21 +571,12 @@ function init() {
     [actions.TAKE_BACK_ALL_CARDS]: {name: translate(actions.TAKE_BACK_ALL_CARDS), icon: "fa-hand-lizard", visible: function(key, opt){return isPlayer();}},
     [actions.INCREASE_SIZE]: {name: translate(actions.INCREASE_SIZE), icon: "fa-search-plus"},
     [actions.DECREASE_SIZE]: {name: translate(actions.DECREASE_SIZE), icon: "fa-search-minus"},
-    [actions.CLAIM_TRICK]: {name: translate("claim trick"), icon: "fa-hand-lizard", visible: function(key, opt){return options.tricks && isPlayer();}},
   });
   createMenu(".card_in_hand", {
     [actions.SHUFFLE_HAND]: {name: translate("shuffle"), icon: "fa-hand-lizard"},
     [actions.PLAY_ALL_CARDS]: {name: translate(actions.PLAY_ALL_CARDS), icon: "fa-hand-lizard"},
     [actions.INCREASE_SIZE]: {name: translate(actions.INCREASE_SIZE), icon: "fa-search-plus"},
     [actions.DECREASE_SIZE]: {name: translate(actions.DECREASE_SIZE), icon: "fa-search-minus"}
-  });
-  createMenu(".deck_stack", {
-    [actions.PUT_DISCARD_CARDS_PILE]: {name: translate("put discard cards on the pile"), icon: "fa-hand-lizard", visible: function(key, opt){return isPlayer();}},
-  });
-  createMenu(".card_in_trick", {
-    [actions.INCREASE_SIZE]: {name: translate(actions.INCREASE_SIZE), icon: "fa-search-plus"},
-    [actions.DECREASE_SIZE]: {name: translate(actions.DECREASE_SIZE), icon: "fa-search-minus"},
-    [actions.GIVE_CARD_PILE]: {name: translate("put a card on the pile"), icon: "fa-hand-lizard"},
   });
   
   $("#show_tricks").text(translate("Show my tricks"));
@@ -602,7 +601,7 @@ function onOptionMenu(name, op) {
     case actions.CHANGE_TURN: changeTurn(op); break;
     case actions.RANDOM_FIRST_PLAYER: randomFirstPlayer(); break;
     case actions.REVEAL_PLAYERS_CARDS: revealCards(); break;
-    case actions.ACCEPT_USER: acceptUser(op); break;
+    case actions.ACCEPT_USER: acceptUser(op.$trigger.attr("userid")); break;
     case actions.EXPULSE_USER: expulseUser(op); break;
     case actions.CLEAR_AREA: clearPlayingArea(); break;
     case actions.CLAIM_TRICK: claimTrick(); break;
@@ -639,11 +638,10 @@ function expulseUser(op) {
   }
 }
 
-function acceptUser(op) {
-  const userid = op.$trigger.attr("userid");
+function acceptUser(userid) {
   const user = getUser(userid);
 
-  if (confirm(translate(`Are you sure, you want to add to the game ${user.name} ?`))) {
+  if (confirm(translate("Are you sure, you want to add to the game")+` ${user.name} ? `+translate("This will restart the game"))) {
     emitToServer(actions.ACCEPT_USER, userid);
   }
 }
@@ -775,6 +773,7 @@ function updateMyHand(){
 
 function endTurn() {
   if(isMyTurn()) {
+    pileUpPlayingArea()
     emitToServer(actions.END_TURN);
   }
 }
@@ -859,7 +858,6 @@ function drawUsersInfos() {
     $("#user_container").append(content);
   });
 
-  $("body").on("click", ".color_effect", function () {  $(".color_effect").removeClass("color_effect"); });
   $(".player_number").text(translate("Players") + players.length);
 }
 
@@ -964,33 +962,31 @@ function drawDeckConfig() {
 
 function drawDeckDistribute() {
   var content = "";
-  var message = players.length == 1
-        ? translate("Your are the only player connected! ")
-        : translate("Card to distribute to each player ") +`( ${players.length} ${translate("players")})`;
   content = `<div class = 'col-6'><h2>${translate("Deck")}: ${remainingCards} / ${deckOriginalLength} ${translate("cards")}</h2><br>`;
 
   var message = players.length == 1 ? translate("Your are the only player connected!") : `${players.length} ${translate("players")}`;
 
   content = `<div class = 'col-6'><h2>${translate("Deck")}: ${remainingCards} / ${deckOriginalLength} ${translate("cards")}</h2><br>`;
 
-  if (!isSpectatorOrGuest() && (!options.block_action || isMyTurn())) {
+  if(isOwner()) {
     content += `
     ${createButton("Distribute", "distributeCards()")} </br>
     <div class="control-group form-inline">`
-      if (!options.all_cards) {
-        content+= `<label class="mb-2" for="distribute_card">${translate("Card to distribute to each player ")} ( ${message} )</label>
-        <input  class= "mb-2 w-100" type = "number" id = "distribute_card" min="1" max="${Math.floor(deckOriginalLength/players.length)}" placeholder = "${translate("number of cards")}"
-                  value="${options["cards_distribute"]}"} />`
+      content+= `<label class="mb-2" for="distribute_card">${translate("Card to distribute to each player ")} ( ${message} )`
+      if(options.at_least_one_kit) {
+        content += translate(" + 1 kit ")
       }
+      content += `</label>
+      <input  class= "mb-2 w-100" type = "number" id = "distribute_card" min="1" max="${Math.floor(deckOriginalLength/players.length)}" placeholder = "${translate("number of cards")}"
+                value="${options["cards_distribute"]}"} />`
     content += `</div>`
-  }
-
-  if(isSpectatorOrGuest()) {
+  } else if(!isSpectatorOrGuest()){
+    var url = `onclick="window.open('${translate("url-rule")}','mywindow');"`;
+    content += `<div class="alert alert-info" role="alert" ${url}>
+            ${translate("Wait for the dealer to give you cards")}. ${translate("Click here to read the rules")}
+          </div>`;  
+  } else {
     content += createSpectatorModeMessage();
-  }
-
-  if (options.block_action && !isMyTurn()) {
-    content += createMessage("Wait for the dealer to give you cards", "info");
   }
 
   content += "</div>"
@@ -1204,19 +1200,16 @@ function drawPile() {
   var content = `<h2>${translate("Playing Area (discard pile)")}</h2>`;
 
   if(options.back_card){
-    content += createActionButton("Display pile and disable exchange mode", "exchangeMode(false)")
+    content += createActionButton("Disable exchange mode", "exchangeMode(false)")
   }
   else if(pile.length != 0) {
     let card = pile[pile.length-1]
 
-    if(isMyTurn()) {
-      content += createButton("Pile up cards", "pileUpPlayingArea()", "margin_bottom");
-    }
     if(isActionAvailable) {
         switch(card.type) {
           case CARD.KIT: content += createActionMessage("Right click on exploding kitten to put it back", card); break;
           case CARD.FAVOR: 
-            content += createActionButton("Hide pile and enable exchange mode", "exchangeMode(true)");
+            content += createActionButton("Enable exchange mode", "exchangeMode(true)");
             break
             case CARD.CAT: 
               if(pile.length > 1) {
@@ -1225,7 +1218,7 @@ function drawPile() {
                 var card1type = card1.value.replace(/[0-9]/g, '');
                 var card2type = card2.value.replace(/[0-9]/g, '');
                 if(card1.username == card2.username && card1type == card2type) {
-                  content += createActionButton("Hide pile and enable exchange mode", "exchangeMode(true)");
+                  content += createActionButton("Enable exchange mode", "exchangeMode(true)");
                 }
               }
               break
@@ -1397,6 +1390,6 @@ function exchangeMode(exchangeActivated) {
     isActionAvailable = false
     broadcastUpdate({ pile: pile, options: options, isActionAvailable:isActionAvailable});
   } else {
-    alert(translate("Ask the other user to get back its cards before displaying pile (right click)!")); 
+    alert(translate("Ask the other player to get back its cards for continuing (right click to get back)!")); 
   }
 }
