@@ -3,8 +3,6 @@
 
 A virtual deck of cards! Play anything anywhere, with anyone!
 
-**Work in progress, not playable yet**
-
 This branch is for the Exploding Kittens card game
 If you want to play with a normal deck of cards go to master branch
 
@@ -26,17 +24,16 @@ Current supported Languages: English, French
 - Exploding kittens original deck
 - Specific EK distribution with kits and exploding kittens aside
 
-- Availble actions:
+- Availble actions (all from original game):
   - attack
   - shuffle
   - explode
   - defuse
   - favor
   - steal a card (combo 2 card)
-
-# What's next 
-- Missing actions  
   - See the future
+
+# What's next   
 - Check translations
 - Add extentions
   - imploding kittens

@@ -249,6 +249,14 @@ io.on("connection", socket => {
     io.sockets.in(socket.room).emit(actions.REVEAL_PLAYERS_CARDS, hands);
   });
 
+
+  socket.on(actions.REVEAL_DECK_CARDS, cardNumber => {
+    var result = getCards(cardNumber, getDeck());
+    emitToUser(socket.id, actions.UPDATE_DATA, {cardReveal : result, state: states.REVEAL });
+    emitUpdateToRoom(actions.REVEAL_DECK_CARDS)
+  });
+  
+
   function updateHand(userID, hand, emitToRoom=true) {
     var hands = getData("hands") ;
     hands[userID] = hand;
@@ -681,6 +689,17 @@ function takeCards(numcards, from, to) {
   }
   data = { to: to, from: from };
   return data;
+}
+
+function getCards(numcards, from) {
+  var to = [];
+  if(numcards > from.length) {
+    numcards = from.length;
+  }
+  for (var i = 0; i < numcards; i++) {
+    to.push(from[i]);
+  }
+  return to;
 }
 
 function takeSpecificCards(pattern, from, to) {

@@ -22,6 +22,7 @@ var animationID;
 var cardsCleared = 0;
 var isActionAvailable=false;
 var pileTemp = undefined;
+var cardReveal = undefined
 
 var cardSizes = {card_in_pile: 2, card_in_trick:1.2, card_in_hand:1.2};
 
@@ -34,14 +35,11 @@ function main(roomName, lang) {
     // If reorder possible do nothing
     if ($("#option_reorder").prop("checked")) return;
 
-    // If we are playing and in action blocked mode and it's not my turn do nothing
-    if (state == states.PLAYING && options.block_action && !isMyTurn()) return;
-
-    putCardOnPileFromHand(this)
-    // If we are playing and if there is to end the turn on draw, end the turn
-    if(state == states.PLAYING && options.end_turn_play) {
-      endTurn();
+    var card = my_hand[$(".card_in_hand").index($(this))];
+    if (isMyTurn() || card.type == CARD.NOPE || options.back_card) {
+      putCardOnPileFromHand(this)
     }
+
   });
 
   $("body").on("mouseover", ".card_in_hand", function () {
@@ -65,13 +63,11 @@ function main(roomName, lang) {
   $("body").on("click", ".card_in_pile", function () {
     if(isGameDisconnected() || isSpectatorOrGuest()) return; 
 
-    // If we are playing abd take card from pile is disabled
-    if(state == states.PLAYING && options.block_get_cards) return;
-
     // If we are playing and in action blocked mode and it's not my turn do nothing
-    if (state == states.PLAYING && options.block_action && !isMyTurn()) return;
+    if (isMyTurn() && options.back_card) {
+      takeCardFromPileToHand(this);
+    }
 
-    takeCardFromPileToHand(this);
   });
 
 
@@ -332,8 +328,12 @@ socket.on(actions.UPDATE_DATA, function (data) {
     cardsCleared = data.cardsCleared;
     reDrawPile = true;
   }
-  if ( isExist(data.actionAvailable) ) {
-    isActionAvailable = data.actionAvailable;
+  if ( isExist(data.cardReveal) ) {
+    cardReveal = data.cardReveal;
+    reDrawDeck = true;
+  }
+  if ( isExist(data.isActionAvailable) ) {
+    isActionAvailable = data.isActionAvailable;
     reDrawPile = true;
   }
 
@@ -476,7 +476,7 @@ function putCardOnPileFromHand(item=undefined) {
     updateMyHand();
   }
 
-  broadcastUpdate({ action: action, pile: pile, actionAvailable: true })
+  broadcastUpdate({ action: action, pile: pile, isActionAvailable: true })
   drawHand();
 }
 
@@ -1025,6 +1025,22 @@ function drawStack() {
   return `<ul class="deck_stack deck">${cardsContent}</ul>`;
 }
 
+function drawDeckReveal() {
+  var content = "";
+  content = `<div class = 'col-6'><h2>${translate("See the future!")}</h2><br>`
+
+  content += `${translate("Cards from the top to the bottom of the pile")}<br><br>`
+
+  content += `<div class="playingCards faceImages">`
+  for (var i = 0; i < cardReveal.length; i++) {
+    card = cardReveal[i];
+    content += drawCard(card, "card_on_deck");
+  }
+  content += "</div>";
+  content += "</div>";
+  return content;
+}
+
 function drawDeckPlay() {
   var content = "";
 
@@ -1057,13 +1073,7 @@ function drawDeckPlay() {
     content += `<div class = 'col-6'><span class="card_deck">∅</span></div>`;
   } else {
     content += `<div class = 'col-6 playingCards faceImages'>`;
-
-    if(cardAside != -1) {
-      content += drawCard(cardAside, "card_aside", "span");
-    }
-    else {
-      content += drawStack();
-    }
+    content += drawStack();
 
     if (isMyTurn()) {
       content += createButton("Draw a card", "takeCard()", "margin_top")
@@ -1097,6 +1107,12 @@ function drawDeck() {
     case states.PLAYING: {
       $("#game_controls").visible();
       deckContent = drawDeckPlay();
+      drawPile();
+      break;
+    }
+    case states.REVEAL: {
+      $("#game_controls").visible();
+      deckContent = drawDeckReveal();
       drawPile();
       break;
     }
@@ -1202,31 +1218,30 @@ function drawPile() {
   if(options.back_card){
     content += createActionButton("Disable exchange mode", "exchangeMode(false)")
   }
+  else if(cardReveal != undefined){
+    content += createActionButton("Disable future mode", "revealMode(false)")
+  }
   else if(pile.length != 0) {
     let card = pile[pile.length-1]
 
     if(isActionAvailable) {
         switch(card.type) {
           case CARD.KIT: content += createActionMessage("Right click on exploding kitten to put it back", card); break;
-          case CARD.FAVOR: 
-            content += createActionButton("Enable exchange mode", "exchangeMode(true)");
-            break
-            case CARD.CAT: 
-              if(pile.length > 1) {
-                var card1 = pile[pile.length-1];
-                var card2 = pile[pile.length-2];
-                var card1type = card1.value.replace(/[0-9]/g, '');
-                var card2type = card2.value.replace(/[0-9]/g, '');
-                if(card1.username == card2.username && card1type == card2type) {
-                  content += createActionButton("Enable exchange mode", "exchangeMode(true)");
-                }
+          case CARD.CAT: 
+            if(pile.length > 1) {
+              var card1 = pile[pile.length-1];
+              var card2 = pile[pile.length-2];
+              var card1type = card1.value.replace(/[0-9]/g, '');
+              var card2type = card2.value.replace(/[0-9]/g, '');
+              if(card1.username == card2.username && card1type == card2type) {
+                content += createActionButton("Enable exchange mode", "exchangeMode(true)");
               }
-              break
-            break;
-          default:
-            if(card.type in CARDS_ACTION) {
-              content += createActionButton(`action-${card.type}`, `cardAction("${card.type}")`, card);
             }
+            break;
+            default:
+              if(card.type in CARDS_ACTION) {
+                content += createActionButton(`action-${card.type}`, `cardAction("${card.type}")`, card);
+              }
         }
     }
   }
@@ -1257,8 +1272,13 @@ function drawPile() {
 }
 
 function cardAction(name) {
-  broadcastUpdate({ actionAvailable: false })
-  window[CARDS_ACTION[name]]();
+  broadcastUpdate({ isActionAvailable: false })
+  var data = CARDS_ACTION[name];
+  if(data instanceof Object) {
+    window[data.func](data.param);
+  } else {
+    window[data]();
+  }
 }
 
 function getUser(id) {
@@ -1377,8 +1397,8 @@ $(document).on("keypress", function (event) {
     }
 });
 
-function exchangeMode(exchangeActivated) {
-  if(exchangeActivated) {
+function exchangeMode(value) {
+  if(value) {
     pileTemp = [...pile];
     options.back_card=true;
     pile = [];
@@ -1391,5 +1411,18 @@ function exchangeMode(exchangeActivated) {
     broadcastUpdate({ pile: pile, options: options, isActionAvailable:isActionAvailable});
   } else {
     alert(translate("Ask the other player to get back its cards for continuing (right click to get back)!")); 
+  }
+}
+
+function revealMode(value){
+  if(value) {
+    emitToServer(actions.REVEAL_DECK_CARDS, 3);
+  } else {
+    state = states.PLAYING
+    isActionAvailable = false;
+    cardReveal = undefined;
+    drawDeck();
+    drawPile()
+    broadcastUpdate({ isActionAvailable:false, cardReveal:undefined});
   }
 }

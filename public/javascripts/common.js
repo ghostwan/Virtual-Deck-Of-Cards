@@ -19,8 +19,8 @@ const HELP_TEXT = "Mouse hover on a card to know its rule (or click here)";
 
 const CARD = {
     KIT: "kit",
-    FAVOR: "favor",
-    CAT: "cat"
+    CAT: "cat",
+    NOPE: "nope"
 }
 
 const EXTRA_KITS = 3;
@@ -28,7 +28,9 @@ const EXTRA_KITS = 3;
 const CARDS_ACTION = {
     "shuffle" : "shuffleDeck",
     "kit" : "putCardInDeck",
-    "exploding" : "userLost"
+    "exploding" : "userLost",
+    "see-the-future": {func: "revealMode", param: true},
+    "favor": {func: "exchangeMode", param:true}
 }
 
 const EMOJIS = ['😄','😃','😀','😊','☺','😉','😍','😘','😚','😗','😙','😜','😝','😛','😳','😁','😔',
@@ -40,7 +42,8 @@ const EMOJIS = ['😄','😃','😀','😊','☺','😉','😍','😘','😚','�
 const states = {
     CONFIGURATION : "configuration",
     DISTRIBUTION: "distribution",
-    PLAYING: "playing"
+    PLAYING: "playing",
+    REVEAL: "reveal"
 }
 
 const user_status = {
@@ -83,6 +86,7 @@ const actions = {
     PUT_CARD_ASIDE: "put a card aside",
     TAKE_CARD_ASIDE: "take card aside",
     REMOVE_CARD_ASIDE: "remove card aside",
+    REVEAL_DECK_CARDS: "reveal deck cards",
     
     /* Hand actions */
     PLAY_CARD: "play a card",
