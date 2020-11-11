@@ -16,7 +16,7 @@ const CARDS_IN_DECK = [
 
 const CAT_CARDS = ["beard-cat", "cattermelon", "hairy-potato-cat", "rainbow-ralphing-cat", "tacocat" ]
 const HELP_TEXT = "Mouse hover on a card to know its rule (or click here)";
-
+const SIDE_NAV_WIDTH = 700
 const CARD = {
     KIT: "kit",
     CAT: "cat",
@@ -132,6 +132,7 @@ const configs = {
         block_action: false,
         end_turn_play: false,
         stack_visible: true,
+        visio: false,
     },
 }
 

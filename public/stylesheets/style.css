@@ -28,10 +28,9 @@
   margin-bottom: 20px;
   line-height: 50px;
 }
-#show_tricks{
+#show_visio{
   position: absolute;
   right: 5px;
-  visibility: hidden;
 }
 #sideArea {
   margin-left: 5px;

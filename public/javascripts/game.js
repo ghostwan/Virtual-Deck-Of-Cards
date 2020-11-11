@@ -23,6 +23,9 @@ var cardsCleared = 0;
 var isActionAvailable=false;
 var pileTemp = undefined;
 var cardReveal = undefined
+const jitsiDomain = 'meet.jit.si';
+var jitsiOptions;
+var jitsiApi;
 
 var cardSizes = {card_in_pile: 2, card_in_trick:1.2, card_in_hand:1.2};
 
@@ -47,8 +50,10 @@ function main(roomName, lang) {
     $("#help").text(translate("rule-"+card.type));
   });
   $("body").on("mouseover", ".card_in_pile", function () {
-    var card = pile[$(".card_in_pile").index($(this))];
-    $("#help").text(translate("rule-"+card.type));
+    if(!options.back_card){ 
+      var card = pile[$(".card_in_pile").index($(this))];
+      $("#help").text(translate("rule-"+card.type));
+    }
   });
   $("body").on("mouseout", ".card", function () {
     $("#help").text(translate(HELP_TEXT));
@@ -104,6 +109,12 @@ function main(roomName, lang) {
     .init(config, (err, t) => {
       translate = t
       emitToServer(actions.CONNECT_ROOM, roomName)
+      jitsiOptions = {
+          roomName: 'Virtual-Deck-Of-Cards_'+roomName,
+          width: SIDE_NAV_WIDTH,
+          height: 500,
+          parentNode: document.querySelector('#mySidenav')
+      };
       init()
     });
 }
@@ -261,13 +272,20 @@ socket.on(actions.UPDATE_DATA, function (data) {
   var reDrawPile = false;
   var reDrawDeck = false;
   var reDrawUsersInfo = false;
-  var reDrawTricks = false;
 
   if ( isExist(data.options) ) {
     options = data.options;
     reDrawDeck = true;
     reDrawPile = true;
     reDrawUsersInfo = true
+    if(options.visio) {
+      if(jitsiApi == undefined) {
+        jitsiApi = new JitsiMeetExternalAPI(jitsiDomain, jitsiOptions);
+      }
+      $("#show_visio").visible()
+    } else {
+      $("#show_visio").invisible()
+    }
   }
   if ( isExist(data.hand) ) {
     my_hand = data.hand;
@@ -303,9 +321,6 @@ socket.on(actions.UPDATE_DATA, function (data) {
   if ( isExist(data.gameData) ) {
     gameData = data.gameData;
     reDrawUsersInfo = true;
-    if(options.tricks) {
-      reDrawTricks = true;
-    }
   }
   if ( isExist(data.state) ) {
     state = data.state;
@@ -341,7 +356,6 @@ socket.on(actions.UPDATE_DATA, function (data) {
   if (reDrawHand) drawHand(data.instruction == true);
   if (reDrawPile) drawPile();
   if (reDrawUsersInfo) drawUsersInfos();
-  if (reDrawTricks) drawTricks();
   
   if(isExist(data.action)) {
     playAction(data.action);
@@ -354,7 +368,6 @@ function refresh() {
   drawHand();
   drawPile();
   drawUsersInfos();
-  drawTricks();
 }
 
 function emitToServer(action, param=undefined) {
@@ -579,7 +592,7 @@ function init() {
     [actions.DECREASE_SIZE]: {name: translate(actions.DECREASE_SIZE), icon: "fa-search-minus"}
   });
   
-  $("#show_tricks").text(translate("Show my tricks"));
+  $("#show_visio").text(translate("Show visio"));
   $("#reset_button").text(translate("Reset"))
   $("#sort_button").text(translate("Sort"))
   $("#instruction").append(translate("instruction"))
@@ -786,37 +799,21 @@ function changeCardColor() {
     $(".playingCards").removeClass(fourColorsclass);
   }
 }
+var isNavOpen = false;
 
 function openNav() {
-  document.getElementById("mySidenav").style.width = "250px";
+  document.getElementById("mySidenav").style.width = SIDE_NAV_WIDTH+"px";
+  isNavOpen = true;
+  drawDeck()
 }
 
 /* Set the width of the side navigation to 0 */
 function closeNav() {
   document.getElementById("mySidenav").style.width = "0";
+  isNavOpen = false;
+  drawDeck()
 }
 
-
-function drawTricks(userid=my_user.id) {
-  $("#sideArea").empty()
-  var tricks = getTricks(userid);
-  var $content = ''
-  if(tricks != undefined && tricks.length > 0) {
-    $("#sideArea").append(`<h4>${translate("Your tricks")}</h4>`);
-    for (var t = 0; t < tricks.length; t++) {
-      var trick = tricks[t];
-      $content += `<ul class='hand tricks'>`;
-      for (var c = 0; c < trick.length; c++) {
-        var card = trick[c];
-        $content += `<li trickNumber="${t}" cardNumber="${c}">${drawCard(card, "card_in_trick", "a")}</li>`;
-      }
-      $content += `</ul>`;
-    }
-  } else {
-    $("#sideArea").append(`<h4>${translate("You don't have tricks")}</h4>`);
-  }
-  $("#sideArea").append($content);
-}
 
 function drawUsersInfos() {
   $("#user_container").empty();
@@ -935,8 +932,9 @@ function syncNumberOption(name) {
 }
 
 function drawOptionList() {
-  return `
-  ${createBooleanOption("block_action", translate("Block actions"), translate("Only the player whose turn can do things"), translate("Action can be done by anyone at any moment"))}
+  return ` 
+  ${createBooleanOption("visio", "Use room visio", 1)}
+  <br />
   ${createBooleanOption("at_least_one_kit", translate("At lease one kit"), translate("Everyone starts with one kit"), translate("You could start without a kit (more difficult)"))}
   <br />
   ${createBooleanOption("inverse_pile", 
@@ -946,6 +944,7 @@ function drawOptionList() {
   <br />
   ${createNumberOption("number_decks", "decks of cards", 1)}
   `;
+  
 }
 
 function drawDeckConfig() {
@@ -1056,9 +1055,11 @@ function drawDeckPlay() {
     content += `${createMessage("Wait for your turn!", "info")}`;
   } else if(!options.end_turn_play) {
     content += `${createButton("End turn", "endTurn()")} </br>`;
-  } else {
-    content += `${createMessage("This is your turn!", "success")}`
+    if (isNavOpen) {
+      content += createButton("Draw a card", "takeCard()")
+    }
   }
+
   if(isGuest()){
     content += `<div class="alert alert-info" role="alert">${translate("Wait to be add to the game")}</div>`;
   } else if (isSpectator()) {
@@ -1075,7 +1076,7 @@ function drawDeckPlay() {
     content += `<div class = 'col-6 playingCards faceImages'>`;
     content += drawStack();
 
-    if (isMyTurn()) {
+    if (isMyTurn() && !isNavOpen) {
       content += createButton("Draw a card", "takeCard()", "margin_top")
     }
     content += "</div>";
@@ -1088,11 +1089,9 @@ function drawDeck() {
   $("#playArea").empty();
   var deckContent = "";
   var playContent = "";
-  canDisplayTricks(state)
   switch(state) {
     case states.CONFIGURATION: {
       $("#game_controls").invisible();
-      $("#sideArea").empty();
       deckContent = drawDeckConfig();
       playContent = drawPileConfig();
       $("#playArea").append(playContent);
@@ -1118,15 +1117,6 @@ function drawDeck() {
     }
   }
   $("#mainDeck").append(deckContent);
-}
-
-function canDisplayTricks(state) {
-  if(state != states.CONFIGURATION 
-    && options.tricks  ) {
-    $("#show_tricks").visible()
-  } else {
-    $("#show_tricks").invisible()
-  }
 }
 
 function drawHand(instruction = false) {

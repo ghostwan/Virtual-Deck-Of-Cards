@@ -15,8 +15,7 @@ Current supported Languages: English, French
 [Original game rules](https://explodingkittens.com/how-to-play/exploding-kittens)
 
 # What's new 
-- Add number of exploding depends on number of player
-- Add rules on card hover
+- add webRTC audio / video chat. To test if your browser is compatible check here https://test.webrtc.org/
 
 # What you can currently do
 - Play card from hand
@@ -49,6 +48,8 @@ Current supported Languages: English, French
 
 # Bugs
 
+ - actions disparaissent après non
+ - désactiver aide en mode carte cacher
  ---
 
 # How to play locally
