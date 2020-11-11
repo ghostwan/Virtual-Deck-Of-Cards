@@ -42,7 +42,11 @@ function main(roomName, lang) {
     }
     
   });
-
+  $("body").on("click", ".guest_effect", function () { 
+    if(isOwner()) {
+      acceptUser($(this).attr("userid")) ; 
+    }
+  });
   // Move card from the pile to your hand
   $("body").on("click", ".card_in_pile", function () {
     if(isGameDisconnected() || isSpectatorOrGuest()) return; 
@@ -478,7 +482,6 @@ function init() {
   });
   createMenu(".user_profil_menu", {
     [actions.CHANGE_TURN]: {name: translate("your turn"), icon: "fa-hand-paper", visible: function(key, opt){return isPlayer() && state != states.CONFIGURATION;}},
-    [actions.ACCEPT_USER]: {name: translate("accept"), icon: "fa-user-check", visible: function(key, opt){return isOwner();}},
     [actions.EXPULSE_USER]: {name: translate("expel"), icon: "fa-ban", visible: function(key, opt){return isOwner()}}
   });
   createMenu(".card_in_pile", {
@@ -534,7 +537,7 @@ function onOptionMenu(name, op) {
     case actions.CHANGE_TURN: changeTurn(op); break;
     case actions.RANDOM_FIRST_PLAYER: randomFirstPlayer(); break;
     case actions.REVEAL_PLAYERS_CARDS: revealCards(); break;
-    case actions.ACCEPT_USER: acceptUser(op); break;
+    case actions.ACCEPT_USER: acceptUser(op.$trigger.attr("userid")); break;
     case actions.EXPULSE_USER: expulseUser(op); break;
     case actions.CLEAR_AREA: clearPlayingArea(); break;
     case actions.CLAIM_TRICK: claimTrick(); break;
@@ -565,8 +568,8 @@ function expulseUser(op) {
   }
 }
 
-function acceptUser(op) {
-  const userid = op.$trigger.attr("userid");
+function acceptUser(userid) {
+  
   const user = getUser(userid);
 
   if (confirm(translate(`Are you sure, you want to add to the game ${user.name} ?`))) {
