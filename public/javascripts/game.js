@@ -1263,8 +1263,8 @@ function drawPile() {
     var $owner = $('<div class="card_owner"/>').text(card.username != undefined ? card.username : ".");
     $layer.append($item);
     $layer.append($owner);
+    $layer.draggable({ containment: "parent" });
     if (!options.stack_visible || card.pile_up) {
-      $layer.draggable({ containment: "parent" });
       $layer.css({ position: "absolute" });
     }
     $("#playArea").append($layer);
