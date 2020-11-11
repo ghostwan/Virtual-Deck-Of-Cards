@@ -576,6 +576,8 @@ function init() {
     [actions.PUT_BACK_CARD_DECK]: {name: translate("defuse"), icon: "fa-hand-lizard", visible: function(key, opt){return isMyTurn() && isActionAvailable;}},
     [actions.PILE_UP_AREA]: {name: translate("pile up"), icon: "fa-align-justify", visible: function(key, opt){return !options.inverse_pile && isPlayer();}},
     [actions.DISPERSE_AREA]: {name: translate("disperse"), icon: "fa-columns", visible: function(key, opt){return !options.inverse_pile && options.stack_visible && isPlayer();}},
+    [actions.TAKE_BACK_CARD]: {name: translate("take this card"), icon: "fa-hand-lizard", visible: function(key, opt){return isPlayer();}},
+    [actions.TAKE_BACK_ALL_CARDS]: {name: translate(actions.TAKE_BACK_ALL_CARDS), icon: "fa-hand-lizard", visible: function(key, opt){return isPlayer();}},
     [actions.INCREASE_SIZE]: {name: translate(actions.INCREASE_SIZE), icon: "fa-search-plus"},
     [actions.DECREASE_SIZE]: {name: translate(actions.DECREASE_SIZE), icon: "fa-search-minus"},
   });
@@ -1214,15 +1216,25 @@ function drawPile() {
     content += createActionButton("Disable future mode", "revealMode(false)")
   }
   else if(pile.length != 0) {
-    let card = pile[pile.length-1]
+    var card = pile[pile.length -1]
+    var currentPlayer = players[playerNumber]
+    // IF the last card is a nope and is from current player
+    if(card.type == CARD.NOPE && card.username == currentPlayer.name) {
+      var index = pile.length
+      do {
+        index--
+        card = pile[index]
+        console.log(card)
+      } while(card.type == CARD.NOPE && index >= 0 )
+    }
 
     if(isActionAvailable) {
         switch(card.type) {
           case CARD.KIT: content += createActionMessage("Right click on exploding kitten to put it back", card); break;
           case CARD.CAT: 
             if(pile.length > 1) {
-              var card1 = pile[pile.length-1];
-              var card2 = pile[pile.length-2];
+              var card1 = pile[index];
+              var card2 = pile[index-1];
               var card1type = card1.value.replace(/[0-9]/g, '');
               var card2type = card2.value.replace(/[0-9]/g, '');
               if(card1.username == card2.username && card1type == card2type) {

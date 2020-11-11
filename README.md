@@ -16,6 +16,7 @@ Current supported Languages: English, French
 
 # What's new 
 - add webRTC audio / video chat. To test if your browser is compatible check here https://test.webrtc.org/
+- Fix nope issue : if I nope a nope I should be ablet to do the action
 
 # What you can currently do
 - Play card from hand
@@ -48,7 +49,6 @@ Current supported Languages: English, French
 
 # Bugs
 
- - actions disparaissent après non
  ---
 
 # How to play locally
