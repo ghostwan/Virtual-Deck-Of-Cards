@@ -53,6 +53,8 @@ function main(roomName, lang) {
     if(!options.back_card){ 
       var card = pile[$(".card_in_pile").index($(this))];
       $("#help").text(translate("rule-"+card.type));
+    } else {
+      $("#help").text(translate("Card exchange in progress"));
     }
   });
   $("body").on("mouseout", ".card", function () {
@@ -933,7 +935,7 @@ function syncNumberOption(name) {
 
 function drawOptionList() {
   return ` 
-  ${createBooleanOption("visio", "Use room visio", 1)}
+  ${createBooleanOption("visio", "Use room visio [beta]", 1)}
   <br />
   ${createBooleanOption("at_least_one_kit", translate("At lease one kit"), translate("Everyone starts with one kit"), translate("You could start without a kit (more difficult)"))}
   <br />

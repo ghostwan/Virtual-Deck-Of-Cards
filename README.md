@@ -49,7 +49,6 @@ Current supported Languages: English, French
 # Bugs
 
  - actions disparaissent après non
- - désactiver aide en mode carte cacher
  ---
 
 # How to play locally
