@@ -12,7 +12,7 @@ Fear no more, as the virtual deck of exploding kittens cards is here! Simply cre
 
 Current supported Languages: English, French
 
-![Original version rules]()
+[Original game rules](https://explodingkittens.com/how-to-play/exploding-kittens)
 
 # What's new 
 - Add number of exploding depends on number of player
@@ -39,45 +39,15 @@ Current supported Languages: English, French
   - imploding kittens
   - streaking kittens
   - barking kittens
-  
 
+# Screenshot
 
-  
-
-
-
-
+![Guest mode](misc/screen-guest.png)
+![Deck adpats to number of user](misc/screen-deck-adapatation.png)
+![Playing with card action](misc/screen-playing.png)
+![Server](misc/server.png)
 
 # Bugs
-
-
-# Game features status
-
-Original deck:
-
-- 
-- Draw a card from people hands : T
-- See the future
-- give card
-
-
-- Add extention : T
-- Add rules : T
-- Alter the future
-- Imploding
-- mark
-- swap to the bottom
-- garbage collection
-- catomic bomb
-- draw from bottom
-
-
-D = DONE: you can play easily to this game  
-N = NOT OPTIMAL: you can play but it's not optimal features are missing  
-W = WIP:  you can't currently play important features are missing  
-T = TODO: Most of the minimum needed features to play are missing  
-
-
 
  ---
 
