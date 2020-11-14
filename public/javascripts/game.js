@@ -569,7 +569,7 @@ function init() {
     [actions.REFRESH_BOARD]: {name: translate(actions.REFRESH_BOARD), icon: "fas fa-sync", visible: function(key, opt){return isPlayer();}},
   });
   createMenu(".user_profil_menu", {
-    [actions.CHANGE_TURN]: {name: translate("your turn"), icon: "fa-hand-paper", visible: function(key, opt){return isPlayer() && state != states.CONFIGURATION;}},
+    [actions.CHANGE_TURN]: {name: translate("your turn"), icon: "fa-hand-paper", visible: function(key, opt){return isOwner() || isMyTurn();}},
     [actions.EXPULSE_USER]: {name: translate("expel"), icon: "fa-ban", visible: function(key, opt){return isOwner()}}
   });
   createMenu(".card_in_pile.exploding", {
@@ -884,7 +884,7 @@ function drawCard(card, clazz, type="div", needToClean=true, back=false) {
     cardName = cardName.replace(/[0-9]/g, '');
   }
   return `<${type} class="card figure ${card.type} ${clazz}" 
-                    style='background-image: url(images/original/${cardName}.jpeg); font-size: ${fontSize}em'></${type}>`
+                    style='background-image: url(images/${card.deck_type}/${cardName}.jpeg); font-size: ${fontSize}em'></${type}>`
 }
 
 function createBooleanOption(name, title, descriptionChecked=undefined, description=undefined) {
@@ -1319,9 +1319,25 @@ function drawPileRevealCards(hands) {
 }
 
 function sortCard() {
-  my_hand.sort(function (a, b) {
-      return  CARDS_IN_DECK.indexOf(a.value) - CARDS_IN_DECK.indexOf(b.value);
-  });
+  my_hand.sort(function(a, b){
+    if(a.type == CARD.CAT) { 
+      a.strengh = 1; 
+    } else {
+      a.strengh = 0; 
+    }
+    if(b.type == CARD.CAT) { 
+      b.strengh = 1; 
+    } else {
+      b.strengh = 0; 
+    }
+
+    if(a.strengh < b.strengh) { return -1; }
+    if(a.strengh > b.strengh) { return 1; }
+
+    if(a.value < b.value) { return -1; }
+    if(a.value > b.value) { return 1; }
+    return 0;
+})
   drawHand();
 }
 

@@ -33,6 +33,16 @@ Current supported Languages: English, French
   - steal a card (combo 2 card)
   - See the future
 
+
+# What's in progress
+imploding kittens extentions
+  - imploding (1)
+  - inversion (4)
+  - revirement (4)
+  - chat gouttière (4)
+  - alteration du future (4)
+  - attaque ciblée
+
 # What's next   
 - Check translations
 - Add extentions

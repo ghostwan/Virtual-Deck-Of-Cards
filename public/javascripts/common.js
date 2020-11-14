@@ -1,29 +1,37 @@
-const CARDS_IN_DECK = [
-    // "kit1", "kit2", "kit3", "kit4", "kit5", "kit6", // Those cards a generated depending on player number 
-    // "exploding1", "exploding2", "exploding3", "exploding4" // Those cards a generated depending on player number 
-    "nope1", "nope2", "nope3", "nope4", "nope5",
-    "attack1", "attack2", "attack3", "attack4",
-    "favor1", "favor2", "favor3", "favor4",
-    "shuffle1", "shuffle2", "shuffle3", "shuffle4",
-    "skip1", "skip2", "skip3", "skip4",
-    "see-the-future1", "see-the-future2", "see-the-future3", "see-the-future4", "see-the-future5",
-    "beard-cat1", "beard-cat2", "beard-cat3", "beard-cat4",
-    "cattermelon1", "cattermelon2", "cattermelon3", "cattermelon4",
-    "hairy-potato-cat1", "hairy-potato-cat2", "hairy-potato-cat3", "hairy-potato-cat4",
-    "rainbow-ralphing-cat1", "rainbow-ralphing-cat2", "rainbow-ralphing-cat3", "rainbow-ralphing-cat4",
-    "tacocat1", "tacocat2", "tacocat3", "tacocat4"
-]
 
-const CAT_CARDS = ["beard-cat", "cattermelon", "hairy-potato-cat", "rainbow-ralphing-cat", "tacocat" ]
-const HELP_TEXT = "Mouse hover on a card to know its rule (or click here)";
-const SIDE_NAV_WIDTH = 700
+
+
+
 const CARD = {
     KIT: "kit",
     CAT: "cat",
-    NOPE: "nope"
+    NOPE: "nope",
+    EXPLODING: "exploding"
 }
 
+const DECK_TYPE = {
+    ORIGINAL: "original"
+}
+// Without kit and exploding which are dynamic
+const ORIGINAL_DECK = {
+  nope: 5,
+  attack: 4,
+  favor: 4,
+  shuffle: 4,
+  skip: 4,
+  "see-the-future": 5,
+  "beard-cat": {number: 4, type: CARD.CAT},
+  "cattermelon": {number: 4, type: CARD.CAT},
+  "hairy-potato-cat": {number: 4, type: CARD.CAT},
+  "rainbow-ralphing-cat": {number: 4, type: CARD.CAT},
+  "tacocat": {number: 4, type: CARD.CAT}
+};
+const ORIGINAL_DECK_SIZE = 46;
 const EXTRA_KITS = 3;
+
+const HELP_TEXT = "Mouse hover on a card to know its rule (or click here)";
+const SIDE_NAV_WIDTH = 700
+
 
 const CARDS_ACTION = {
     "shuffle" : "shuffleDeck",

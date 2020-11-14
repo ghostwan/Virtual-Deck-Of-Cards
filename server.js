@@ -116,8 +116,6 @@ io.on("connection", socket => {
 
       if(isOwnerExist) {
         user.status = user_status.GUEST;
-        //FIXME DEV MODE
-        // user.status = user_status.PLAYER;
       } else {
         user.status = user_status.OWNER;
       }
@@ -286,6 +284,7 @@ io.on("connection", socket => {
     var deck = result.from;
     var hand = result.to;
 
+    console.log("Deck length"+deck.length)
     var gameData = getGameData()
     if(gameData == undefined) {
       gameData = {}
@@ -372,7 +371,7 @@ io.on("connection", socket => {
     if(!options.at_least_one_kit) {
       for (var i = 0; i < players.length + EXTRA_KITS; i++) {
         var index = (i % 6)+1; 
-        deck.push({ value: "kit"+index, type: "kit" })
+        deck.push({ value: CARD.KIT+index, type: CARD.KIT, deck_type: DECK_TYPE.ORIGINAL })
       }
       deck = shuffle(deck)
     }
@@ -387,7 +386,7 @@ io.on("connection", socket => {
       // If the option at least one kit is activated, give a kit in each hand
       if(options.at_least_one_kit) {
         var index = (p % 6)+1; 
-        hand.push({ value: "kit"+index, type: "kit" })
+        hand.push({ value: CARD.KIT+index, type: CARD.KIT, deck_type: DECK_TYPE.ORIGINAL })
       }
       
       emitToUser(player.id, actions.UPDATE_HAND, hand);
@@ -398,13 +397,13 @@ io.on("connection", socket => {
     if(options.at_least_one_kit) {
       for (var i = 0; i < EXTRA_KITS; i++) {
         var index = (i % 6)+1; 
-        deck.push({ value: "kit"+index, type: "kit" })
+        deck.push({ value: CARD.KIT+index, type: CARD.KIT, deck_type: DECK_TYPE.ORIGINAL })
       }
     }
     //Add exploding kittens (player - 1)
     for (var i = 0; i < players.length-1; i++) {
       var index = (i % 4)+1; 
-      deck.push({ value: "exploding"+index, type: "exploding" })
+      deck.push({ value: CARD.EXPLODING+index, type: CARD.EXPLODING, deck_type: DECK_TYPE.ORIGINAL })
     }
 
     // And shuffle
@@ -412,7 +411,8 @@ io.on("connection", socket => {
     // And really shuffle
     deck = shuffle(deck)
 
-    var deckOriginalLength = CARDS_IN_DECK.length + (players.length - 1) + (players.length + EXTRA_KITS);
+    var deckLength = 0
+    var deckOriginalLength = ORIGINAL_DECK_SIZE + (players.length - 1) + (players.length + EXTRA_KITS);
 
     storeData("deck", deck)
     emitUpdateToRoom(actions.DISTRIBUTE, {
@@ -665,15 +665,24 @@ io.on("connection", socket => {
 function newDeck(options) {
   var cards = [];
   var numberOfdecks = options.number_decks
+
   for (var d = 0; d < numberOfdecks; d++) {
-    for (var a = 0; a < CARDS_IN_DECK.length; a++) {
-      var type = CARDS_IN_DECK[a].replace(/[0-9]/g, '');
-      if(CAT_CARDS.includes(type)) {
-        type = CARD.CAT;
+    forEach(ORIGINAL_DECK, function (value, card_type, collection) {
+      var type = card_type;
+      var number = value;
+      if(value instanceof Object) {
+        type = value.type
+        number = value.number
       }
-      var card = { value: CARDS_IN_DECK[a], type: type };
-      cards.push(card);
-    }
+      for (var c = 1; c <= number; c++) {
+        var card = { 
+          value: `${card_type}${c}`, 
+          type: type, 
+          deck_type: DECK_TYPE.ORIGINAL
+        };
+        cards.push(card);
+      }
+    });
   }
   return cards;
 }
