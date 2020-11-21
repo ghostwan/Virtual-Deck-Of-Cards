@@ -947,8 +947,9 @@ function drawOptionList() {
                         translate("The last card played in the last display (can pile up cards)"))} 
   <br />
   ${createNumberOption("number_decks", "decks of cards", 1)}
+  <br/> 
+  ${createBooleanOption("extention_imploding", "Add imploding extention deck (wip)  ", 1)}
   `;
-  
 }
 
 function drawDeckConfig() {

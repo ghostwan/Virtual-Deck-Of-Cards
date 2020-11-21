@@ -666,8 +666,17 @@ function newDeck(options) {
   var cards = [];
   var numberOfdecks = options.number_decks
 
+  cards = addDeck(cards, numberOfdecks, ORIGINAL_DECK, DECK_TYPE.ORIGINAL)
+  if(options.extention_imploding) {
+    cards = addDeck(cards, numberOfdecks, IMPLODING_DECK, DECK_TYPE.IMPLODING)
+  }
+
+  return cards;
+}
+
+function addDeck(cardList, numberOfdecks, deckTemplate, deckType) {
   for (var d = 0; d < numberOfdecks; d++) {
-    forEach(ORIGINAL_DECK, function (value, card_type, collection) {
+    forEach(deckTemplate, function (value, card_type, collection) {
       var type = card_type;
       var number = value;
       if(value instanceof Object) {
@@ -678,13 +687,15 @@ function newDeck(options) {
         var card = { 
           value: `${card_type}${c}`, 
           type: type, 
-          deck_type: DECK_TYPE.ORIGINAL
+          deck_type: deckType
         };
-        cards.push(card);
+        cardList.push(card);
       }
     });
+    return cardList;
+
   }
-  return cards;
+
 }
 
 function takeCards(numcards, from, to) {

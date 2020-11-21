@@ -10,7 +10,8 @@ const CARD = {
 }
 
 const DECK_TYPE = {
-    ORIGINAL: "original"
+    ORIGINAL: "original",
+    IMPLODING: "imploding"
 }
 // Without kit and exploding which are dynamic
 const ORIGINAL_DECK = {
@@ -28,6 +29,17 @@ const ORIGINAL_DECK = {
 };
 const ORIGINAL_DECK_SIZE = 46;
 const EXTRA_KITS = 3;
+
+
+const IMPLODING_DECK = {
+    // imploding: 1,
+    // reverse: 4,
+    // "draw-from-the-bottom": 4,
+    // "alter-the-future": 4,
+    // "feral-cat": 4,
+    // "target-attack": 3,
+}
+
 
 const HELP_TEXT = "Mouse hover on a card to know its rule (or click here)";
 const SIDE_NAV_WIDTH = 700
@@ -141,6 +153,7 @@ const configs = {
         end_turn_play: false,
         stack_visible: true,
         visio: false,
+        extention_imploding: true,
     },
 }
 
