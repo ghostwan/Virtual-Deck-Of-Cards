@@ -692,9 +692,9 @@ function addDeck(cardList, numberOfdecks, deckTemplate, deckType) {
         cardList.push(card);
       }
     });
-    return cardList;
 
   }
+  return cardList;
 
 }
 

@@ -123,7 +123,7 @@ function main(roomName, lang) {
 
 function createSpectatorModeMessage() {
   if(isGuest())  {
-    var url = `onclick="window.open('${translate("url-rule")}','mywindow');"`;
+    var url = `onclick="openRules()"`;
     return `<div class="alert alert-primary" role="alert" ${url}>
             ${translate("Your are on the guest list")}. ${translate("Click here to read the rules")}
           </div>`;  
@@ -143,6 +143,14 @@ function createMessage(message, type="primary", id="", url="") {
   } 
   return `<div ${id} ${url} class="alert alert-${type}" role="alert">
             ${translate(message)}
+          </div>`;
+}
+
+function createHelpMessage() {
+  // ${createMessage(HELP_TEXT, "info", "help", translate("url-rule"))}
+  if(isSpectatorOrGuest()) return createSpectatorModeMessage();
+  return `<div id="help" onclick="openRules()" class="alert alert-info" role="alert">
+            ${translate(HELP_TEXT)}
           </div>`;
 }
 
@@ -964,6 +972,13 @@ function drawDeckConfig() {
     `;
 }
 
+function openRules() {
+  window.open(translate("url-rule-original"))
+  if(options.extention_imploding) {
+    window.open(translate("url-rule-imploding"))
+  }
+}
+
 function drawDeckDistribute() {
   var content = "";
   content = `<div class = 'col-6'><h2>${translate("Deck")}: ${remainingCards} / ${deckOriginalLength} ${translate("cards")}</h2><br>`;
@@ -985,7 +1000,7 @@ function drawDeckDistribute() {
                 value="${options["cards_distribute"]}"} />`
     content += `</div>`
   } else if(!isSpectatorOrGuest()){
-    var url = `onclick="window.open('${translate("url-rule")}','mywindow');"`;
+    var url = `onclick="openRules()','mywindow');"`;
     content += `<div class="alert alert-info" role="alert" ${url}>
             ${translate("Wait for the dealer to give you cards")}. ${translate("Click here to read the rules")}
           </div>`;  
@@ -1071,7 +1086,7 @@ function drawDeckPlay() {
     content += `<div class="alert alert-warning" role="alert">${translate("Refresh to go on guest list")}</div>`;
   }
   if(isPlayer()) {
-    content += `${createMessage(HELP_TEXT, "info", "help", translate("url-rule"))}`
+    content += `${createHelpMessage()}`
   }
   content += "</div>"
 
