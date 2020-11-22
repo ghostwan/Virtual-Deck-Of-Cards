@@ -133,12 +133,14 @@
   "You are in spectator mode": "Tu es en mode spectateur",
   "expel":"expulser",
   "accept":"accepter",
+  "reverse": "inverser",
   "Right click on exploding kitten to put it back": "Clique droit sur le chat explosif pour le désamorcer",
   "defuse": "désamorcer",
   "Mouse hover on a card to know its rule (or click here)": "Survole une carte avec ta souris pour connaitre sa règle (ou clic ici)" ,
   "Card exchange in progress": "Echange de carte en cours",
   "Enable exchange mode": "Activer mode échange",
   "Disable exchange mode": "Désactiver mode échange",
+  "pile up the playing area": "à rassemblé les cartes de défausse",
   "Disable future mode": "Désactiver mode divination",
   "Cards from the top to the bottom of the pile": "Cartes du haut de la pile au bas",
   "Ask the other player to get back its cards for continuing (right click to get back)!": "Demandes à l'autre joueur de récupérer ses cartes pour pouvoir poursuivre (clicques droit récupéré)",
@@ -150,6 +152,7 @@
   "action-shuffle":"Mélanger le deck",
   "action-exploding":"Mourrir!",
   "action-favor":"Demander une faveur!",
+  "action-reverse": "inversion tour",
   "url-rule-original":"https://explodingkittens.com/downloads/rules/translations/Exploding-Kittens_Rules_FR.pdf",
   "url-rule-imploding":"https://explodingkittens.com/downloads/rules/translations/Imploding-Kittens_Rules_FR.pdf",
   "rule-exploding": "Exploding kitten: montre la carte immédiatement après l'avoir piocher. Si tu n'as pas de kit tu es mort",
@@ -160,5 +163,6 @@
   "rule-shuffle": "Mélange: Mélange la pioche",
   "rule-attack": "Attaque: Finis ton tour sans piocher et force le prochain joueur a jouer 2 fois. Une attaque en stop une autre et oblige le prochain a jouer 2 fois",
   "rule-favor": "Faveur: Oblige un joueur a te donner une carte",
-  "rule-see-the-future": "Divination: Regarder discretement les 3 premières cartes de la pioche"
+  "rule-see-the-future": "Divination: Regarder discretement les 3 premières cartes de la pioche",
+  "rule-reverse" : "Inversez le sens du jeu et terminez votre tour sans tirer de carte."
 }

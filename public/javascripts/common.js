@@ -33,7 +33,7 @@ const EXTRA_KITS = 3;
 
 const IMPLODING_DECK = {
     // imploding: 1,
-    // reverse: 4,
+    reverse: 4,
     // "draw-from-the-bottom": 4,
     // "alter-the-future": 4,
     // "feral-cat": 4,
@@ -50,7 +50,8 @@ const CARDS_ACTION = {
     "kit" : "putCardInDeck",
     "exploding" : "userLost",
     "see-the-future": {func: "revealMode", param: true},
-    "favor": {func: "exchangeMode", param:true}
+    "favor": {func: "exchangeMode", param:true},
+    "reverse": "reverseTurnOrder"
 }
 
 const EMOJIS = ['😄','😃','😀','😊','☺','😉','😍','😘','😚','😗','😙','😜','😝','😛','😳','😁','😔',
@@ -98,6 +99,7 @@ const actions = {
     RESET_GAME: "reset the game",
     RESET_ROUND: "reset the round",
     READY_TO_PLAY: "ready to play",
+    REVERSE: "reverse",
     END_TURN: "end turn",    
 
     /* Deck Actions */

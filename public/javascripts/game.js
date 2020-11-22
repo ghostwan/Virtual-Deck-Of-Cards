@@ -779,6 +779,11 @@ function shuffleDeck() {
   emitToServer(actions.SHUFFLE_DECK);
 }
 
+function reverseTurnOrder(){
+  options.clockwise = !options.clockwise;
+  broadcastUpdate({ action: actions.REVERSE, options: options})
+}
+
 function resetRound() {
   emitToServer(actions.RESET_ROUND);
 }
@@ -1231,8 +1236,8 @@ function drawPile() {
   else if(cardReveal != undefined){
     content += createActionButton("Disable future mode", "revealMode(false)")
   }
-  else if(pile.length != 0) {
-    var card = pile[pile.length -1]
+  else if(pile.length >= 1) {
+    var card = pile[pile.length-1]
     var currentPlayer = players[playerNumber]
     // IF the last card is a nope and is from current player
     if(card.type == CARD.NOPE && card.username == currentPlayer.name) {
@@ -1248,9 +1253,9 @@ function drawPile() {
         switch(card.type) {
           case CARD.KIT: content += createActionMessage("Right click on exploding kitten to put it back", card); break;
           case CARD.CAT: 
-            if(pile.length > 1) {
-              var card1 = pile[index];
-              var card2 = pile[index-1];
+            if(pile.length >= 2) {
+              var card1 = pile[pile.length-1];
+              var card2 = pile[pile.length-2];
               var card1type = card1.value.replace(/[0-9]/g, '');
               var card2type = card2.value.replace(/[0-9]/g, '');
               if(card1.username == card2.username && card1type == card2type) {

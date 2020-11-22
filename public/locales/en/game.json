@@ -3,6 +3,7 @@
     "action-shuffle":"Shuffle the deck",
     "action-exploding":"Die!",
     "action-see-the-future":"See the future!",
+    "action-reverse": "reverse",
     "url-rule-original":"https://explodingkittens.com/how-to-play/exploding-kittens",
     "url-rule-imploding":"https://explodingkittens.com/how-to-play/imploding-kittens",
     "rule-kit" : "Kit: Defuse an exploding kitten and put it back in the deck",
@@ -12,5 +13,6 @@
     "rule-shuffle": "Shuffle: Shuffle the deck",
     "rule-attack": "Attack: Do not draw any cards. Instead, immediately force the next player to take 2 turns in a row. An attack stop an attack and force next player to take 2 turns",
     "rule-favor": "Force any other player to give you 1 card from their hand. They choose which card to give you.",
-    "rule-see-the-future": "See the future: Privately view the top 3 cards from the Draw Pile"
+    "rule-see-the-future": "See the future: Privately view the top 3 cards from the Draw Pile",
+    "rule-reverse" : "Reverse the order of play and end your turn without drawing a card."
 }

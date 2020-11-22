@@ -331,9 +331,15 @@ io.on("connection", socket => {
 
   socket.on(actions.END_TURN, () => {
     if(socketNotAvailble()) {return}
+
+    var options = getOptions()
     
     var playerNumber = getData("playerNumber")
-    playerNumber = (playerNumber+1) % getPlayerList().length
+    if(options.clockwise) {
+      playerNumber = (playerNumber+1).mod(getPlayerList().length)
+    } else {
+      playerNumber = (playerNumber-1).mod(getPlayerList().length)
+    }
     emitUpdateToRoom(actions.END_TURN, { playerNumber : storeData("playerNumber", playerNumber)})
   })
 
@@ -354,9 +360,9 @@ io.on("connection", socket => {
   socket.on(actions.DISTRIBUTE, data => {
     if(socketNotAvailble()) {return}
     
-    var deck = newDeck(getOptions());
-    deck = shuffle(deck)
     var options = getOptions();
+    var deck = newDeck(options);
+    deck = shuffle(deck)
 
     var numCards = data.numCards;
     options.cards_distribute = numCards;
@@ -514,6 +520,7 @@ io.on("connection", socket => {
     if(socketNotAvailble()) {return}
 
     var options = getOptions();
+    options.clockwise = true;
     storeData("hands", {})
 
     // Create a fake deck but with the options enable 
@@ -692,7 +699,6 @@ function addDeck(cardList, numberOfdecks, deckTemplate, deckType) {
         cardList.push(card);
       }
     });
-
   }
   return cardList;
 

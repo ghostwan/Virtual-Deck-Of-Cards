@@ -40,3 +40,7 @@ function debug(what, object) {
 Array.prototype.insert = function ( index, item ) {
     this.splice( index, 0, item );
 };
+
+Number.prototype.mod = function(n) {
+    return ((this % n) + n) % n;
+}
