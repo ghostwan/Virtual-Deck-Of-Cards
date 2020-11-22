@@ -10,7 +10,7 @@
     "url-rule-original":"https://explodingkittens.com/how-to-play/exploding-kittens",
     "url-rule-imploding":"https://explodingkittens.com/how-to-play/imploding-kittens",
     "rule-kit" : "Kit: Defuse an exploding kitten and put it back in the deck",
-    "rule-cat-card" : "Combo cards: 2 cards identical to steal a card, 3 to ask a card, 5 to choose a card from discard pile",
+    "rule-cat" : "Combo cards: 2 cards identical to steal a card, 3 to ask a card, 5 to choose a card from discard pile",
     "rule-nope" : "Nope: Stop any action except for an Exploding Kitten or a Defuse Card",
     "rule-skip" : "Skip: Immediately end your turn without drawing a card. (2 skips needed for an attack)",
     "rule-shuffle": "Shuffle: Shuffle the deck",
