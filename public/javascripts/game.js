@@ -676,6 +676,10 @@ function acceptUser(userid) {
 }
 
 function changeTurn(op) {
+  if(options.back_card) {
+    alert(translate("Restore pile before ending turn!")); 
+    return
+  }
   const userid = op.$trigger.attr("userid");
   const num = getPlayerPlace(userid)
   if(options.turn) {
@@ -807,6 +811,10 @@ function updateMyHand(){
 
 function endTurn() {
   if(isMyTurn()) {
+    if(options.back_card) {
+      alert(translate("Restore pile before ending turn!")); 
+      return
+    }
     pileUpPlayingArea()
     emitToServer(ACTIONS.END_TURN);
   }
@@ -1082,7 +1090,7 @@ function drawDeckPlay() {
   }
   if(!isMyTurn()) {
     content += `${createMessage("Wait for your turn!", "info")}`;
-  } else if(!options.end_turn_play) {
+  } else {
     content += `${createButton("End turn", "endTurn()")} </br>`;
     if (isNavOpen) {
       content += createButton("Draw a card", "takeCard()")
@@ -1443,9 +1451,7 @@ $(document).on("keypress", function (event) {
       switch(state) {
         case STATES.DISTRIBUTION : distributeCards(); break;
         case STATES.PLAYING: {
-          if(!options.end_turn_play) {
             endTurn();
-          }
           break;
         }
       }

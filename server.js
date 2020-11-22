@@ -560,6 +560,7 @@ io.on("connection", socket => {
 
     var options = getOptions();
     options.clockwise = true;
+    options.back_card = false;
     storeData("hands", {})
 
     // Create a fake deck but with the options enable 

@@ -42,10 +42,10 @@ Current supported Languages: English, French
 # What's in progress
 imploding kittens extentions
   - imploding (1)
+  - alteration du future (4)
   - inversion (4) DONE
   - revirement (4) DONE
   - chat gouttière (4)
-  - alteration du future (4)
   - attaque ciblée (3) DONE
 
 # What's next   
