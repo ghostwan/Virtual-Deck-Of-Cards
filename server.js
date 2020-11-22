@@ -31,14 +31,14 @@ app.get("/connectroom/", (req, res) => {
 
 io.on("connection", socket => {
 
-  socket.on(actions.CONNECT_ROOM, room => {
+  socket.on(ACTIONS.CONNECT_ROOM, room => {
     console.log(`[${room}] ==> User is ${socket.id} connecting...`);
     socket.join(room);
     socket.room = room
-    emitToUser(socket.id, actions.ASK_USER_INFO)
+    emitToUser(socket.id, ACTIONS.ASK_USER_INFO)
   });
 
-  socket.on(actions.RECONNECT_ROOM, (room, user) => {
+  socket.on(ACTIONS.RECONNECT_ROOM, (room, user) => {
     console.log(`[${room}] ==> User is ${socket.id} reconnecting...`);
     socket.join(room);
     socket.room = room
@@ -60,7 +60,7 @@ io.on("connection", socket => {
       var deck = getDeck();
       var cardsCleared = getCardsCleared();
 
-      emitToUser(user.id, actions.UPDATE_DATA, {
+      emitToUser(user.id, ACTIONS.UPDATE_DATA, {
         my_user: user,
         users: getUserList(),
         players: getPlayerList(),
@@ -75,7 +75,7 @@ io.on("connection", socket => {
         playerNumber : getData("playerNumber")
       });
   
-      emitUpdateToRoom(actions.USER_CONNECTED, { users: getUserList(), players: getPlayerList(), gameData : getGameData()})
+      emitUpdateToRoom(ACTIONS.USER_CONNECTED, { users: getUserList(), players: getPlayerList(), gameData : getGameData()})
       console.log(`[${socket.room}] <===  User ${user.name} reconnected!`)
     } catch(exception) { // If data is not retrivable reconnect the user
       if(gameData != undefined) {
@@ -84,7 +84,7 @@ io.on("connection", socket => {
         sendInfo(user)
         console.log(`[${socket.room}] <===  User ${user.name} reconnected by emergency procedure!`)
       } else {
-        emitToUser(socket.id, actions.USER_RECONNECTION_FAILED)
+        emitToUser(socket.id, ACTIONS.USER_RECONNECTION_FAILED)
       }
     }
     
@@ -95,7 +95,7 @@ io.on("connection", socket => {
       // If we are the first user to connect create the room
       logRoom("No other user connected")
       var users = new Map();
-      user.status = user_status.OWNER;
+      user.status = USER_STATUS.OWNER;
       users.set(user.id, user);
       storeData("users", users);
       createNewGame();
@@ -108,16 +108,20 @@ io.on("connection", socket => {
       var userList = getUserList();
       for (var p = 0; p < userList.length; p++) {
         var existingUser = userList[p];
-        if(existingUser.status == user_status.OWNER) {
+        if(existingUser.status == USER_STATUS.OWNER) {
           isOwnerExist = true;
           break;
         }
       }
 
       if(isOwnerExist) {
-        user.status = user_status.GUEST;
+        if(DEBUG) {
+          user.status = USER_STATUS.PLAYER;
+        } else {
+          user.status = USER_STATUS.GUEST;
+        }
       } else {
-        user.status = user_status.OWNER;
+        user.status = USER_STATUS.OWNER;
       }
 
       users.set(user.id, user);
@@ -127,7 +131,7 @@ io.on("connection", socket => {
     var deck = getDeck();
     var cardsCleared = getOptions("cardsCleared");
 
-    emitToUser(user.id, actions.UPDATE_DATA, {
+    emitToUser(user.id, ACTIONS.UPDATE_DATA, {
       my_user: user,
       users: getUserList(),
       players: getPlayerList(),
@@ -144,20 +148,20 @@ io.on("connection", socket => {
       playerNumber: getData("playerNumber"),
     });
 
-    emitUpdateToRoom(actions.USER_CONNECTED, { users: getUserList(), players: getPlayerList(), gameData: getGameData() });
+    emitUpdateToRoom(ACTIONS.USER_CONNECTED, { users: getUserList(), players: getPlayerList(), gameData: getGameData() });
   }
 
-  socket.on(actions.SEND_USER_INFO, (user) => {
+  socket.on(ACTIONS.SEND_USER_INFO, (user) => {
     console.log(`[${socket.room}] <===  User ${user.name} connected!`);
     socket.user_name = user.name;
     sendInfo(user)
   });
 
   function createNewGame() {
-    storeData("state", states.CONFIGURATION)
+    storeData("state", STATES.CONFIGURATION)
     storeData("pile", [])
     storeData("hands", {})
-    storeData("options", configs.exploding)
+    storeData("options", CONFIGS.exploding)
     storeData("gameData", {})
     storeData("deckOriginalLength", -1)
     storeData("cardAside", -1)
@@ -166,7 +170,7 @@ io.on("connection", socket => {
     storeData("cardsCleared", [])
   }
 
-  socket.on(actions.DISCONNECT,function(reason) {
+  socket.on(ACTIONS.DISCONNECT,function(reason) {
     if(socketNotAvailble() ) {
       var id = socket.user_name !== undefined? socket.user_name: socket.id;
       console.log(`!! Can't retrieve room ID !! ${id} client disconnect because ${reason}`)
@@ -185,23 +189,23 @@ io.on("connection", socket => {
       gameData[userID].user_disconnected = true;
     }
 
-    emitUpdateToRoom(actions.EXPULSE_USER, { users: getUserList(), players: getPlayerList(), gameData: getGameData()});
+    emitUpdateToRoom(ACTIONS.EXPULSE_USER, { users: getUserList(), players: getPlayerList(), gameData: getGameData()});
   }
 
-  socket.on(actions.ACCEPT_USER, userID => {
+  socket.on(ACTIONS.ACCEPT_USER, userID => {
     var users = getUsers();
     var user = users.get(userID)
-    user.status = user_status.PLAYER;
+    user.status = USER_STATUS.PLAYER;
     users.set(user.id, user);
     storeData("users", users);
 
-    emitToUser(user.id, actions.UPDATE_DATA, {my_user: user});
+    emitToUser(user.id, ACTIONS.UPDATE_DATA, {my_user: user});
 
-    if(state() == states.PLAYING) {
+    if(state() == STATES.PLAYING) {
       resetRound();
     } else {
       var deck = createFullDeck();
-      emitUpdateToRoom(actions.USER_CONNECTED, { 
+      emitUpdateToRoom(ACTIONS.USER_CONNECTED, { 
         users: getUserList(), 
         players: getPlayerList(),
         deckOriginalLength: storeData("deckOriginalLength", deck.length),
@@ -210,21 +214,21 @@ io.on("connection", socket => {
     }
   });
 
-  socket.on(actions.REMOVE_USER, userID => {
+  socket.on(ACTIONS.REMOVE_USER, userID => {
     var users = getUsers();
     var user = users.get(userID)
-    user.status = user_status.GUEST;
+    user.status = USER_STATUS.GUEST;
     users.set(user.id, user);
     storeData("users", users);
 
-    emitToUser(user.id, actions.UPDATE_DATA, {my_user: user});
+    emitToUser(user.id, ACTIONS.UPDATE_DATA, {my_user: user});
 
-    emitUpdateToRoom(actions.USER_CONNECTED, { users: getUserList(), players: getPlayerList()})
+    emitUpdateToRoom(ACTIONS.USER_CONNECTED, { users: getUserList(), players: getPlayerList()})
   });
 
-  socket.on(actions.EXPULSE_USER, userID => {
+  socket.on(ACTIONS.EXPULSE_USER, userID => {
     expulseUser(userID)
-    emitToUser(userID, actions.UPDATE_DATA, {
+    emitToUser(userID, ACTIONS.UPDATE_DATA, {
       instruction: false,
       my_user: -1,
       gameData : getGameData(),
@@ -234,7 +238,7 @@ io.on("connection", socket => {
 
   });
 
-  socket.on(actions.REVEAL_PLAYERS_CARDS, () => {
+  socket.on(ACTIONS.REVEAL_PLAYERS_CARDS, () => {
     var hands = getData("hands");
     const gameData = getGameData();
     forEach(hands, function (value, prop, obj) {
@@ -244,14 +248,14 @@ io.on("connection", socket => {
       }
     });
 
-    io.sockets.in(socket.room).emit(actions.REVEAL_PLAYERS_CARDS, hands);
+    io.sockets.in(socket.room).emit(ACTIONS.REVEAL_PLAYERS_CARDS, hands);
   });
 
 
-  socket.on(actions.REVEAL_DECK_CARDS, cardNumber => {
+  socket.on(ACTIONS.REVEAL_DECK_CARDS, cardNumber => {
     var result = getCards(cardNumber, getDeck());
-    emitToUser(socket.id, actions.UPDATE_DATA, {cardReveal : result, state: states.REVEAL });
-    emitUpdateToRoom(actions.REVEAL_DECK_CARDS)
+    emitToUser(socket.id, ACTIONS.UPDATE_DATA, {cardReveal : result, state: STATES.REVEAL });
+    emitUpdateToRoom(ACTIONS.REVEAL_DECK_CARDS)
   });
   
 
@@ -267,24 +271,23 @@ io.on("connection", socket => {
     gameData[userID].numberCards = hand.length;
 
     if(emitToRoom) {
-      emitUpdateToRoom(actions.HAND_CHANGE, { gameData: storeData("gameData", gameData)});
+      emitUpdateToRoom(ACTIONS.HAND_CHANGE, { gameData: storeData("gameData", gameData)});
     } else {
       storeData("gameData", gameData)
     }
   }
 
-  socket.on(actions.HAND_CHANGE, hand => {
+  socket.on(ACTIONS.HAND_CHANGE, hand => {
     updateHand(socket.id, hand);
   });
 
-  socket.on(actions.DRAW_CARD, data => {
+  socket.on(ACTIONS.DRAW_CARD, data => {
     if(socketNotAvailble()) {return}
     
     var result = takeCards(1, getDeck(), data.hand, data.fromTheTop);
     var deck = result.from;
     var hand = result.to;
 
-    console.log("Deck length"+deck.length)
     var gameData = getGameData()
     if(gameData == undefined) {
       gameData = {}
@@ -295,41 +298,41 @@ io.on("connection", socket => {
     updateHand(socket.id, hand, false);
 
     storeData("deck", deck)
-    emitUpdateToRoom(actions.DRAW_CARD, {
+    emitUpdateToRoom(ACTIONS.DRAW_CARD, {
       remainingCards: deck.length, 
       gameData: getGameData()
     })
-    emitToUser(socket.id, actions.UPDATE_HAND, hand)
+    emitToUser(socket.id, ACTIONS.UPDATE_HAND, hand)
   });
 
-  socket.on(actions.PUT_BACK_CARD_DECK, data => {
+  socket.on(ACTIONS.PUT_BACK_CARD_DECK, data => {
       if(socketNotAvailble() && data.position != null) {return}
 
       var deck = getDeck();
       deck.insert(data.position-1, data.card);
 
       storeData("deck", deck)
-      emitUpdateToRoom(actions.PUT_BACK_CARD_DECK, {
+      emitUpdateToRoom(ACTIONS.PUT_BACK_CARD_DECK, {
         remainingCards: deck.length,
         pile: storeData("pile", data.pile) 
       })
   });
 
-  socket.on(actions.PUT_CARD_PILE, numCards => {
+  socket.on(ACTIONS.PUT_CARD_PILE, numCards => {
     if(socketNotAvailble()) {return}
 
     var result = takeCards(numCards, getDeck(), getPile());
     var deck = result.from;
     var pile = result.to;
 
-    emitUpdateToRoom(actions.PUT_CARD_PILE, {
+    emitUpdateToRoom(ACTIONS.PUT_CARD_PILE, {
       remainingCards: deck.length, 
       pile: storeData("pile", pile)
     })
 
   });
 
-  socket.on(actions.END_TURN, () => {
+  socket.on(ACTIONS.END_TURN, () => {
     if(socketNotAvailble()) {return}
 
     var options = getOptions()
@@ -340,10 +343,10 @@ io.on("connection", socket => {
     } else {
       playerNumber = (playerNumber-1).mod(getPlayerList().length)
     }
-    emitUpdateToRoom(actions.END_TURN, { playerNumber : storeData("playerNumber", playerNumber)})
+    emitUpdateToRoom(ACTIONS.END_TURN, { playerNumber : storeData("playerNumber", playerNumber), isActionAvailable:false})
   })
 
-  socket.on(actions.PUT_CARD_ASIDE, () => {
+  socket.on(ACTIONS.PUT_CARD_ASIDE, () => {
     if(socketNotAvailble()) {return}
     
     var result = takeCards(1, getDeck(), []);
@@ -351,13 +354,13 @@ io.on("connection", socket => {
     var hand = result.to;
 
     storeData("deck", deck)
-    emitUpdateToRoom(actions.PUT_CARD_ASIDE, {
+    emitUpdateToRoom(ACTIONS.PUT_CARD_ASIDE, {
       remainingCards: deck.length, 
       cardAside: storeData("cardAside", hand[0])
     });
   });
 
-  socket.on(actions.DISTRIBUTE, data => {
+  socket.on(ACTIONS.DISTRIBUTE, data => {
     if(socketNotAvailble()) {return}
     
     var options = getOptions();
@@ -395,7 +398,7 @@ io.on("connection", socket => {
         hand.push({ value: CARD.KIT+index, type: CARD.KIT, deck_type: DECK_TYPE.ORIGINAL })
       }
       
-      emitToUser(player.id, actions.UPDATE_HAND, hand);
+      emitToUser(player.id, ACTIONS.UPDATE_HAND, hand);
       updateHand(player.id, hand, false)
     }
 
@@ -421,30 +424,30 @@ io.on("connection", socket => {
     var deckOriginalLength = ORIGINAL_DECK_SIZE + (players.length - 1) + (players.length + EXTRA_KITS);
 
     storeData("deck", deck)
-    emitUpdateToRoom(actions.DISTRIBUTE, {
+    emitUpdateToRoom(ACTIONS.DISTRIBUTE, {
       remainingCards: deck.length, 
       playerNumber : storeData("playerNumber", Math.floor(Math.random() * players.length)),
       deckOriginalLength: storeData("deckOriginalLength", deckOriginalLength),
       options: options, 
-      state: state(states.PLAYING), 
+      state: state(STATES.PLAYING), 
       gameData: getGameData()
     }, `distribute ${numCards} cards`)
   });
 
-  socket.on(actions.CLEAR_AREA, () => {
+  socket.on(ACTIONS.CLEAR_AREA, () => {
     var pile = getPile();
     var cardsCleared = getData("cardsCleared");
     cardsCleared = cardsCleared.concat(pile);
 
     storeData("cardsCleared", cardsCleared)
 
-    emitUpdateToRoom(actions.CLEAR_AREA, {
+    emitUpdateToRoom(ACTIONS.CLEAR_AREA, {
       pile: storeData("pile", []),
       cardsCleared: cardsCleared.length
     })
   });
 
-  socket.on(actions.GET_DISCARD_PILE, () => {
+  socket.on(ACTIONS.GET_DISCARD_PILE, () => {
     var pile = getPile();
     var cardsCleared = getCardsCleared();
     var numCards = pile.length + cardsCleared.length
@@ -458,28 +461,28 @@ io.on("connection", socket => {
     deck = shuffle(deck)
     storeData("deck", deck);
 
-    emitUpdateToRoom(actions.GET_DISCARD_PILE, {
+    emitUpdateToRoom(ACTIONS.GET_DISCARD_PILE, {
       remainingCards: deck.length, 
       pile: [],
       cardsCleared: 0
     }, `get back ${numCards} cards from discard pile`)
   });
 
-  socket.on(actions.SHUFFLE_DECK, () => {
+  socket.on(ACTIONS.SHUFFLE_DECK, () => {
     if(socketNotAvailble()) {return}
     
     var deck = getDeck()
     deck = shuffle(deck);
     storeData("deck", deck)
-    emitUpdateToRoom(actions.SHUFFLE_DECK, {remainingCards: deck.length})
+    emitUpdateToRoom(ACTIONS.SHUFFLE_DECK, {remainingCards: deck.length})
   });
 
-  socket.on(actions.RESET_GAME, () => {
+  socket.on(ACTIONS.RESET_GAME, () => {
     if(socketNotAvailble()) {return}
     
     createNewGame()
 
-    emitUpdateToRoom(actions.RESET_GAME, {
+    emitUpdateToRoom(ACTIONS.RESET_GAME, {
       instruction: false,
       deckOriginalLength: getData("deckOriginalLength"),
       remainingCards: -1,
@@ -512,7 +515,7 @@ io.on("connection", socket => {
     return storeData("deck", deck);
   }
 
-  socket.on(actions.RESET_ROUND, () => {
+  socket.on(ACTIONS.RESET_ROUND, () => {
     resetRound();
   });
 
@@ -528,12 +531,12 @@ io.on("connection", socket => {
     // Since exploding kitten distribution is specific
     var deck = createFullDeck();
 
-    emitUpdateToRoom(actions.RESET_ROUND, {
+    emitUpdateToRoom(ACTIONS.RESET_ROUND, {
       instruction: false,
       deckOriginalLength: storeData("deckOriginalLength", deck.length),
       remainingCards: deck.length,
       options: getOptions(),
-      state: state(states.DISTRIBUTION),
+      state: state(STATES.DISTRIBUTION),
       cardAside: storeData("cardAside", -1),
       pile: storeData("pile", []),
       cardsCleared: storeData("cardsCleared", []).length,
@@ -548,7 +551,7 @@ io.on("connection", socket => {
   }
 
   // Broadcast function, sync datas a cross all client from a room
-  socket.on(actions.BROADCAST_UPDATE, data => {
+  socket.on(ACTIONS.BROADCAST_UPDATE, data => {
     if(socketNotAvailble()) {return}
     
     if (data.options != undefined) storeData("options", data.options);
@@ -559,7 +562,7 @@ io.on("connection", socket => {
     
     log(data.action)
     data = {who: socket.id, ...data}
-    io.sockets.in(socket.room).emit(actions.UPDATE_DATA, data)
+    io.sockets.in(socket.room).emit(ACTIONS.UPDATE_DATA, data)
   });
 
   function getUserList(){
@@ -577,7 +580,7 @@ io.on("connection", socket => {
     var playerList  = [];
     for (var u = 0; u < users.length; u++) {
       var user = users[u];
-      if(user.status != user_status.GUEST) {
+      if(user.status != USER_STATUS.GUEST) {
         playerList.push(user);
       }
     }
@@ -604,7 +607,7 @@ io.on("connection", socket => {
     const data = `${socket.user_name} ${what}`;
     console.log(`[${socket.room}] ${data}`)
     if(sendLogs) {
-      io.sockets.in(socket.room).emit(actions.LOG_ACTION, socket.user_name, what)
+      io.sockets.in(socket.room).emit(ACTIONS.LOG_ACTION, socket.user_name, what)
     }
   }
   function emitUpdateToRoom(action, data, logs=undefined) {
@@ -614,7 +617,7 @@ io.on("connection", socket => {
       log(action)
     }
     data = {who: socket.id , action: action, ...data}
-    io.sockets.in(socket.room).emit(actions.UPDATE_DATA, data)
+    io.sockets.in(socket.room).emit(ACTIONS.UPDATE_DATA, data)
   }
   function emitToUser(user, event, data) {
     io.to(user).emit(event, data);
@@ -750,7 +753,7 @@ function takeSpecificCards(pattern, from, to) {
 
 function displayDeck(cards) {
   if(!DEBUG) return;
-  
+
   console.log("--- <<<< BEGIN >>>> --- ")
   for (var i = 0; i < cards.length; i++) {
     var c =cards[i];

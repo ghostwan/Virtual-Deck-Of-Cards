@@ -7,7 +7,8 @@ const CARD = {
     KIT: "kit",
     CAT: "cat",
     NOPE: "nope",
-    EXPLODING: "exploding"
+    EXPLODING: "exploding",
+    TARGETED_ATTACK: "targeted-attack"
 }
 
 const DECK_TYPE = {
@@ -38,7 +39,7 @@ const IMPLODING_DECK = {
     "draw-from-the-bottom": 4,
     // "alter-the-future": 4,
     // "feral-cat": 4,
-    // "target-attack": 3,
+    "targeted-attack": 3,
 }
 
 
@@ -62,20 +63,20 @@ const EMOJIS = ['😄','😃','😀','😊','☺','😉','😍','😘','😚','�
     '👲','👳','👮','👷','💂','👶','👦','👧','👨','👩','👴','👵','👱','👼','👸','😺','😸','😻','😽','😼','🙀',
     '😿','😹','😾','👹','👺','🙈','🙉','🙊','💀','👽','💩'];
 
-const states = {
+const STATES = {
     CONFIGURATION : "configuration",
     DISTRIBUTION: "distribution",
     PLAYING: "playing",
     REVEAL: "reveal"
 }
 
-const user_status = {
+const USER_STATUS = {
     OWNER: "owner",
     GUEST: "guest",
     PLAYER: "player"
 }
 
-const actions = {
+const ACTIONS = {
 
     /* Connection actions */
     CONNECT_ROOM: "connect room",
@@ -144,7 +145,7 @@ const actions = {
     DECREASE_SIZE: "decrease size",
 }
 
-const configs = {
+const CONFIGS = {
     exploding : { 
         cards_distribute: 7,
         tricks: false,

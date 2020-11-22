@@ -90,7 +90,7 @@ function main(roomName, lang) {
     e.preventDefault(); // cancel the link behaviour
     var selText = $(this).text();
     $("#gameStyleDrop").text(selText);
-    options = configs[selText]
+    options = CONFIGS[selText]
     options.config_name = selText
     updateOptions();
   });
@@ -110,7 +110,7 @@ function main(roomName, lang) {
   i18next.use(i18nextXHRBackend ).use(i18nextBrowserLanguageDetector)
     .init(config, (err, t) => {
       translate = t
-      emitToServer(actions.CONNECT_ROOM, roomName)
+      emitToServer(ACTIONS.CONNECT_ROOM, roomName)
       jitsiOptions = {
           roomName: 'Virtual-Deck-Of-Cards_'+roomName,
           width: SIDE_NAV_WIDTH,
@@ -189,10 +189,10 @@ function createButton(title, jsAction, clazz="") {
 function reconnect() {
   socket.connect();
   //TODO improve emit by https://stackoverflow.com/questions/3914557/passing-arguments-forward-to-another-javascript-function/3914600
-  socket.emit(actions.RECONNECT_ROOM, room, my_user);  
+  socket.emit(ACTIONS.RECONNECT_ROOM, room, my_user);  
 }
 
-socket.on(actions.USER_RECONNECTION_FAILED, function() {
+socket.on(ACTIONS.USER_RECONNECTION_FAILED, function() {
   $("#mainDeck").empty();
   $content = `
     <div class="row w-100">
@@ -206,7 +206,7 @@ socket.on(actions.USER_RECONNECTION_FAILED, function() {
   $("#mainDeck").append($content);
 })
 
-socket.on(actions.DISCONNECT, function(){
+socket.on(ACTIONS.DISCONNECT, function(){
   $("#mainDeck").empty();
   $content = `
     <div class="row w-100">
@@ -225,7 +225,7 @@ window.onbeforeunload = function (event) {
   event.returnValue = translate('Refreshing the page will make you disconnect from the game!');
 };
 
-socket.on(actions.ASK_USER_INFO, function () {
+socket.on(ACTIONS.ASK_USER_INFO, function () {
   /*First initialisation*/
   if (my_user == -1) {
     var randomRoger = "roger" + Math.floor(Math.random() * 100);
@@ -240,18 +240,18 @@ socket.on(actions.ASK_USER_INFO, function () {
       emoji: EMOJIS[Math.floor(Math.random() * EMOJIS.length)],
     };
   }
-  emitToServer(actions.SEND_USER_INFO, my_user);
+  emitToServer(ACTIONS.SEND_USER_INFO, my_user);
 });
 
-socket.on(actions.UPDATE_HAND, function (data) {
+socket.on(ACTIONS.UPDATE_HAND, function (data) {
   console.log("===== Update Hand =====");
   my_hand = data;
   drawHand();
 });
 
 
-socket.on(actions.LOG_ACTION, function (who, what) {
-  if(what != actions.END_TURN) {
+socket.on(ACTIONS.LOG_ACTION, function (who, what) {
+  if(what != ACTIONS.END_TURN) {
     $("#logMessage").text(`${who} ${translate(what)}`);
   }
 });
@@ -267,11 +267,11 @@ function isMyTurn() {
   return false;
 }
 
-socket.on(actions.REVEAL_PLAYERS_CARDS, function (hands) {
+socket.on(ACTIONS.REVEAL_PLAYERS_CARDS, function (hands) {
   drawPileRevealCards(hands);
 });
 
-socket.on(actions.UPDATE_DATA, function (data) {
+socket.on(ACTIONS.UPDATE_DATA, function (data) {
   console.log(">>>>> New data broadcasted >>>>>");
   console.log(data);
   
@@ -397,20 +397,20 @@ function emitToServer(action, param=undefined) {
 function broadcastUpdate(data) {
   if(isGameDisconnected()) return; 
 
-  emitToServer(actions.BROADCAST_UPDATE, data);
+  emitToServer(ACTIONS.BROADCAST_UPDATE, data);
 }
 
 function updateOptions() {
   if(isGameDisconnected()) return; 
 
-  broadcastUpdate({ action: actions.UPDATE_OPTION, options: options})
+  broadcastUpdate({ action: ACTIONS.UPDATE_OPTION, options: options})
 }
 
 function takeCardAside() {
   my_hand.push(cardAside);
   cardAside = -1;
   updateMyHand();
-  broadcastUpdate({ action: actions.TAKE_CARD_ASIDE, cardAside: cardAside })
+  broadcastUpdate({ action: ACTIONS.TAKE_CARD_ASIDE, cardAside: cardAside })
   drawHand();
 }
 
@@ -418,13 +418,13 @@ function removeCardAside() {
   cardAside.hidden = true
   pile.push(cardAside)
   cardAside = -1;
-  broadcastUpdate({ action: actions.REMOVE_CARD_ASIDE, cardAside: cardAside, pile: pile })
+  broadcastUpdate({ action: ACTIONS.REMOVE_CARD_ASIDE, cardAside: cardAside, pile: pile })
 }
 
 function takeCardFromPileToHand(item=undefined) {
   var action;
   if(item != undefined) {
-    action = actions.TAKE_BACK_CARD;
+    action = ACTIONS.TAKE_BACK_CARD;
     var cardIndex = $(".card_in_pile").index($(item));
     var cardIndex = options.stack_visible && options.inverse_pile ? pile.length - 1 - cardIndex : cardIndex;
     var card = pile[cardIndex];
@@ -434,7 +434,7 @@ function takeCardFromPileToHand(item=undefined) {
   
     updateMyHand();
   } else {
-    action = actions.TAKE_BACK_ALL_CARDS;
+    action = ACTIONS.TAKE_BACK_ALL_CARDS;
     for (c = 0; c < pile.length; c++) {
       var card = pile[c];
       my_hand.push(card);
@@ -462,7 +462,7 @@ function putCardOnDeck(item=undefined) {
       
       pile.splice(cardIndex, 1);
       
-      emitToServer(actions.PUT_BACK_CARD_DECK, { 
+      emitToServer(ACTIONS.PUT_BACK_CARD_DECK, { 
         pile: pile, 
         card: card,
         position: position
@@ -474,7 +474,7 @@ function putCardOnDeck(item=undefined) {
 function putCardOnPileFromHand(item=undefined) {
   var action;
   if(item != undefined) {
-    action = actions.PLAY_CARD;
+    action = ACTIONS.PLAY_CARD;
 
     var cardIndex = $(".card_in_hand").index($(item));
     var card = my_hand[cardIndex];
@@ -486,7 +486,7 @@ function putCardOnPileFromHand(item=undefined) {
 
     updateMyHand();
   } else {
-    action = actions.PLAY_ALL_CARDS;
+    action = ACTIONS.PLAY_ALL_CARDS;
     for (c = 0; c < my_hand.length; c++) {
       var card = my_hand[c];
 
@@ -515,12 +515,13 @@ function putCardOnPileFromTrick(item=undefined) {
     gameData[my_user.id].tricks.splice(trickNumber, 1)
   }
 
-  broadcastUpdate({ action: actions.PLAY_CARD, pile: pile, gameData: gameData })
+  broadcastUpdate({ action: ACTIONS.PLAY_CARD, pile: pile, gameData: gameData })
 }
 
 function userLost(){
   putCardOnPileFromHand()
-  emitToServer(actions.REMOVE_USER, my_user.id);
+  emitToServer(ACTIONS.END_TURN);
+  emitToServer(ACTIONS.REMOVE_USER, my_user.id);
 }
 
 function start() {
@@ -538,7 +539,7 @@ function start() {
 
 function clearPlayingArea() {
   if (confirm(translate("Are you sure, you want to clear the playing area?"))) {
-    emitToServer(actions.CLEAR_AREA)
+    emitToServer(ACTIONS.CLEAR_AREA)
   }
 }
 
@@ -550,14 +551,14 @@ function pileUpPlayingArea() {
     pile.forEach(card => {
       card.pile_up = true
     });
-    broadcastUpdate({ action: actions.PILE_UP_AREA, pile: pile })
+    broadcastUpdate({ action: ACTIONS.PILE_UP_AREA, pile: pile })
 }
 
 function dispersePlayingArea() {
   pile.forEach(card => {
     card.pile_up = false
   });
-  broadcastUpdate({ action: actions.DISPERSE_AREA, pile: pile })
+  broadcastUpdate({ action: ACTIONS.DISPERSE_AREA, pile: pile })
 }
 
 function createMenu(selector, items) {
@@ -572,36 +573,36 @@ function createMenu(selector, items) {
 
 function init() {
   createMenu(".player_number", {
-    [actions.RANDOM_FIRST_PLAYER]: {name: translate("choose randomly"), icon: "fas fa-hand-paper", visible: function(key, opt){return isOwner();}},
-    [actions.REVEAL_PLAYERS_CARDS]: {name: translate(actions.REVEAL_PLAYERS_CARDS), icon: "fas fa-eye", visible: function(key, opt){return isOwner()}},
-    [actions.REFRESH_BOARD]: {name: translate(actions.REFRESH_BOARD), icon: "fas fa-sync", visible: function(key, opt){return isPlayer();}},
+    [ACTIONS.RANDOM_FIRST_PLAYER]: {name: translate("choose randomly"), icon: "fas fa-hand-paper", visible: function(key, opt){return isOwner();}},
+    [ACTIONS.REVEAL_PLAYERS_CARDS]: {name: translate(ACTIONS.REVEAL_PLAYERS_CARDS), icon: "fas fa-eye", visible: function(key, opt){return isOwner()}},
+    [ACTIONS.REFRESH_BOARD]: {name: translate(ACTIONS.REFRESH_BOARD), icon: "fas fa-sync", visible: function(key, opt){return isPlayer();}},
   });
   createMenu(".user_profil_menu", {
-    [actions.CHANGE_TURN]: {name: translate("your turn"), icon: "fa-hand-paper", visible: function(key, opt){return isOwner() || isMyTurn();}},
-    [actions.EXPULSE_USER]: {name: translate("expel"), icon: "fa-ban", visible: function(key, opt){return isOwner()}}
+    [ACTIONS.CHANGE_TURN]: {name: translate("attack!"), icon: "fa-hand-paper", visible: function(key, opt){return isOwner() || actionCard(CARD.TARGETED_ATTACK);}},
+    [ACTIONS.EXPULSE_USER]: {name: translate("expel"), icon: "fa-ban", visible: function(key, opt){return isOwner()}}
   });
   createMenu(".card_in_pile.exploding", {
-    [actions.PUT_BACK_CARD_DECK]: {name: translate("defuse"), icon: "fa-hand-lizard", visible: function(key, opt){return isMyTurn() && isActionAvailable;}},
-    [actions.PILE_UP_AREA]: {name: translate("pile up"), icon: "fa-align-justify", visible: function(key, opt){return !options.inverse_pile && isPlayer();}},
-    [actions.DISPERSE_AREA]: {name: translate("disperse"), icon: "fa-columns", visible: function(key, opt){return !options.inverse_pile && options.stack_visible && isPlayer();}},
-    [actions.TAKE_BACK_CARD]: {name: translate("take this card"), icon: "fa-hand-lizard", visible: function(key, opt){return isPlayer();}},
-    [actions.TAKE_BACK_ALL_CARDS]: {name: translate(actions.TAKE_BACK_ALL_CARDS), icon: "fa-hand-lizard", visible: function(key, opt){return isPlayer();}},
-    [actions.INCREASE_SIZE]: {name: translate(actions.INCREASE_SIZE), icon: "fa-search-plus"},
-    [actions.DECREASE_SIZE]: {name: translate(actions.DECREASE_SIZE), icon: "fa-search-minus"},
+    [ACTIONS.PUT_BACK_CARD_DECK]: {name: translate("defuse"), icon: "fa-hand-lizard", visible: function(key, opt){return isMyTurn() && isActionAvailable;}},
+    [ACTIONS.PILE_UP_AREA]: {name: translate("pile up"), icon: "fa-align-justify", visible: function(key, opt){return !options.inverse_pile && isPlayer();}},
+    [ACTIONS.DISPERSE_AREA]: {name: translate("disperse"), icon: "fa-columns", visible: function(key, opt){return !options.inverse_pile && options.stack_visible && isPlayer();}},
+    [ACTIONS.TAKE_BACK_CARD]: {name: translate("take this card"), icon: "fa-hand-lizard", visible: function(key, opt){return isPlayer();}},
+    [ACTIONS.TAKE_BACK_ALL_CARDS]: {name: translate(ACTIONS.TAKE_BACK_ALL_CARDS), icon: "fa-hand-lizard", visible: function(key, opt){return isPlayer();}},
+    [ACTIONS.INCREASE_SIZE]: {name: translate(ACTIONS.INCREASE_SIZE), icon: "fa-search-plus"},
+    [ACTIONS.DECREASE_SIZE]: {name: translate(ACTIONS.DECREASE_SIZE), icon: "fa-search-minus"},
   });
   createMenu(".card_in_pile", {
-    [actions.PILE_UP_AREA]: {name: translate("pile up"), icon: "fa-align-justify", visible: function(key, opt){return !options.inverse_pile && isPlayer();}},
-    [actions.DISPERSE_AREA]: {name: translate("disperse"), icon: "fa-columns", visible: function(key, opt){return !options.inverse_pile && options.stack_visible && isPlayer();}},
-    [actions.TAKE_BACK_CARD]: {name: translate("take this card"), icon: "fa-hand-lizard", visible: function(key, opt){return isPlayer();}},
-    [actions.TAKE_BACK_ALL_CARDS]: {name: translate(actions.TAKE_BACK_ALL_CARDS), icon: "fa-hand-lizard", visible: function(key, opt){return isPlayer();}},
-    [actions.INCREASE_SIZE]: {name: translate(actions.INCREASE_SIZE), icon: "fa-search-plus"},
-    [actions.DECREASE_SIZE]: {name: translate(actions.DECREASE_SIZE), icon: "fa-search-minus"},
+    [ACTIONS.PILE_UP_AREA]: {name: translate("pile up"), icon: "fa-align-justify", visible: function(key, opt){return !options.inverse_pile && isPlayer();}},
+    [ACTIONS.DISPERSE_AREA]: {name: translate("disperse"), icon: "fa-columns", visible: function(key, opt){return !options.inverse_pile && options.stack_visible && isPlayer();}},
+    [ACTIONS.TAKE_BACK_CARD]: {name: translate("take this card"), icon: "fa-hand-lizard", visible: function(key, opt){return isPlayer();}},
+    [ACTIONS.TAKE_BACK_ALL_CARDS]: {name: translate(ACTIONS.TAKE_BACK_ALL_CARDS), icon: "fa-hand-lizard", visible: function(key, opt){return isPlayer();}},
+    [ACTIONS.INCREASE_SIZE]: {name: translate(ACTIONS.INCREASE_SIZE), icon: "fa-search-plus"},
+    [ACTIONS.DECREASE_SIZE]: {name: translate(ACTIONS.DECREASE_SIZE), icon: "fa-search-minus"},
   });
   createMenu(".card_in_hand", {
-    [actions.SHUFFLE_HAND]: {name: translate("shuffle"), icon: "fa-hand-lizard"},
-    [actions.PLAY_ALL_CARDS]: {name: translate(actions.PLAY_ALL_CARDS), icon: "fa-hand-lizard"},
-    [actions.INCREASE_SIZE]: {name: translate(actions.INCREASE_SIZE), icon: "fa-search-plus"},
-    [actions.DECREASE_SIZE]: {name: translate(actions.DECREASE_SIZE), icon: "fa-search-minus"}
+    [ACTIONS.SHUFFLE_HAND]: {name: translate("shuffle"), icon: "fa-hand-lizard"},
+    [ACTIONS.PLAY_ALL_CARDS]: {name: translate(ACTIONS.PLAY_ALL_CARDS), icon: "fa-hand-lizard"},
+    [ACTIONS.INCREASE_SIZE]: {name: translate(ACTIONS.INCREASE_SIZE), icon: "fa-search-plus"},
+    [ACTIONS.DECREASE_SIZE]: {name: translate(ACTIONS.DECREASE_SIZE), icon: "fa-search-minus"}
   });
   
   $("#show_visio").text(translate("Show visio"));
@@ -623,29 +624,29 @@ function alertSpectatorMode() {
 
 function onOptionMenu(name, op) {
   switch(name) {
-    case actions.CHANGE_TURN: changeTurn(op); break;
-    case actions.RANDOM_FIRST_PLAYER: randomFirstPlayer(); break;
-    case actions.REVEAL_PLAYERS_CARDS: revealCards(); break;
-    case actions.ACCEPT_USER: acceptUser(op.$trigger.attr("userid")); break;
-    case actions.EXPULSE_USER: expulseUser(op); break;
-    case actions.CLEAR_AREA: clearPlayingArea(); break;
-    case actions.CLAIM_TRICK: claimTrick(); break;
-    case actions.PILE_UP_AREA: pileUpPlayingArea(); break;
-    case actions.DISPERSE_AREA: dispersePlayingArea(); break;
-    case actions.TAKE_BACK_CARD: takeCardFromPileToHand(op.$trigger); break;
-    case actions.TAKE_CARD_ASIDE: takeCardAside(); break;
-    case actions.REMOVE_CARD_ASIDE: removeCardAside(); break;
-    case actions.TAKE_BACK_ALL_CARDS: takeCardFromPileToHand(); break;
-    case actions.PLAY_ALL_CARDS: putCardOnPileFromHand(); break;
-    case actions.SHUFFLE_HAND: shuffleHand(); break;
-    case actions.PUT_CARD_PILE: emitToServer(actions.PUT_CARD_PILE, 1); break;
-    case actions.PUT_ALL_CARDS_PILE: emitToServer(actions.PUT_CARD_PILE, remainingCards); break;
-    case actions.PUT_DISCARD_CARDS_PILE: getDiscardPile(); break;
-    case actions.GIVE_CARD_PILE: putCardOnPileFromTrick(op.$trigger); break;
-    case actions.REFRESH_BOARD: refresh(); break;
-    case actions.INCREASE_SIZE: changeCardSize(op, 0.2); break;
-    case actions.DECREASE_SIZE: changeCardSize(op, -0.2); break;
-    case actions.PUT_BACK_CARD_DECK: actionPutBackCard(op.$trigger); break;
+    case ACTIONS.CHANGE_TURN: changeTurn(op); break;
+    case ACTIONS.RANDOM_FIRST_PLAYER: randomFirstPlayer(); break;
+    case ACTIONS.REVEAL_PLAYERS_CARDS: revealCards(); break;
+    case ACTIONS.ACCEPT_USER: acceptUser(op.$trigger.attr("userid")); break;
+    case ACTIONS.EXPULSE_USER: expulseUser(op); break;
+    case ACTIONS.CLEAR_AREA: clearPlayingArea(); break;
+    case ACTIONS.CLAIM_TRICK: claimTrick(); break;
+    case ACTIONS.PILE_UP_AREA: pileUpPlayingArea(); break;
+    case ACTIONS.DISPERSE_AREA: dispersePlayingArea(); break;
+    case ACTIONS.TAKE_BACK_CARD: takeCardFromPileToHand(op.$trigger); break;
+    case ACTIONS.TAKE_CARD_ASIDE: takeCardAside(); break;
+    case ACTIONS.REMOVE_CARD_ASIDE: removeCardAside(); break;
+    case ACTIONS.TAKE_BACK_ALL_CARDS: takeCardFromPileToHand(); break;
+    case ACTIONS.PLAY_ALL_CARDS: putCardOnPileFromHand(); break;
+    case ACTIONS.SHUFFLE_HAND: shuffleHand(); break;
+    case ACTIONS.PUT_CARD_PILE: emitToServer(ACTIONS.PUT_CARD_PILE, 1); break;
+    case ACTIONS.PUT_ALL_CARDS_PILE: emitToServer(ACTIONS.PUT_CARD_PILE, remainingCards); break;
+    case ACTIONS.PUT_DISCARD_CARDS_PILE: getDiscardPile(); break;
+    case ACTIONS.GIVE_CARD_PILE: putCardOnPileFromTrick(op.$trigger); break;
+    case ACTIONS.REFRESH_BOARD: refresh(); break;
+    case ACTIONS.INCREASE_SIZE: changeCardSize(op, 0.2); break;
+    case ACTIONS.DECREASE_SIZE: changeCardSize(op, -0.2); break;
+    case ACTIONS.PUT_BACK_CARD_DECK: actionPutBackCard(op.$trigger); break;
   }
 }
 
@@ -659,7 +660,7 @@ function expulseUser(op) {
   const user = getUser(userid);
 
   if (confirm(translate(`Are you sure, you want to expulse ${user.name} ?`))) {
-    emitToServer(actions.EXPULSE_USER, userid);
+    emitToServer(ACTIONS.EXPULSE_USER, userid);
   }
 }
 
@@ -667,7 +668,7 @@ function acceptUser(userid) {
   const user = getUser(userid);
 
   if (confirm(translate("Are you sure, you want to add to the game")+` ${user.name} ? `+translate("This will restart the game"))) {
-    emitToServer(actions.ACCEPT_USER, userid);
+    emitToServer(ACTIONS.ACCEPT_USER, userid);
   }
 }
 
@@ -677,7 +678,7 @@ function changeTurn(op) {
   if(options.turn) {
     options.turn = num+2;
   }
-  broadcastUpdate({ action: name,  playerNumber:  num, options: options })
+  broadcastUpdate({ action: ACTIONS.CHANGE_TURN,  playerNumber:  num, options: options, isActionAvailable: false })
 }
 
 function randomFirstPlayer() {
@@ -685,12 +686,12 @@ function randomFirstPlayer() {
   if(options.turn) {
     options.turn = num+2;
   }
-  broadcastUpdate({ action: name,  playerNumber: num, options: options  })
+  broadcastUpdate({ action: ACTIONS.RANDOM_FIRST_PLAYER,  playerNumber: num, options: options  })
 }
 
 function revealCards() {
   if (confirm(translate("Are you sure, you want to reveal to everyone players cards?"))) {
-    emitToServer(actions.REVEAL_PLAYERS_CARDS);
+    emitToServer(ACTIONS.REVEAL_PLAYERS_CARDS);
   }
 }
 
@@ -711,7 +712,7 @@ function setOptionToggle(name, label, on="With", off="Without") {
 
 function askResetGame() {
   if (confirm(translate("Are you sure, you want to reset the game?"))) {
-    emitToServer(actions.RESET_GAME);
+    emitToServer(ACTIONS.RESET_GAME);
   }
 }
 
@@ -737,7 +738,7 @@ function claimTrick() {
     gameData[my_user.id].tricks = []
   }
   gameData[my_user.id].tricks.push(pile);
-  broadcastUpdate({ action: actions.CLAIM_TRICK, gameData: gameData, pile: [], playerNumber: getPlayerPlace() })
+  broadcastUpdate({ action: ACTIONS.CLAIM_TRICK, gameData: gameData, pile: [], playerNumber: getPlayerPlace() })
 }
 
 function playAction(action) {
@@ -745,18 +746,18 @@ function playAction(action) {
 
   if ($("#card_sound_option").prop("checked")) {
     switch(action) {
-      case actions.SHUFFLE_DECK: playSound("shuffle"); break;
-      case actions.PUT_CARD_ASIDE: playSound("turn_card"); break;
-      case actions.DISTRIBUTE: playSound("distribute"); break;
-      case actions.DRAW_CARD:  playSound("draw_card"); break;
-      case actions.PLAY_CARD:  playSound("play_card2"); break;
-      case actions.RESET_ROUND: playSound("reset_round"); break;
-      case actions.CLAIM_TRICK: playSound("claim_trick"); break;
+      case ACTIONS.SHUFFLE_DECK: playSound("shuffle"); break;
+      case ACTIONS.PUT_CARD_ASIDE: playSound("turn_card"); break;
+      case ACTIONS.DISTRIBUTE: playSound("distribute"); break;
+      case ACTIONS.DRAW_CARD:  playSound("draw_card"); break;
+      case ACTIONS.PLAY_CARD:  playSound("play_card2"); break;
+      case ACTIONS.RESET_ROUND: playSound("reset_round"); break;
+      case ACTIONS.CLAIM_TRICK: playSound("claim_trick"); break;
     }
   }  
   if ($("#game_sound_option").prop("checked") 
             && isMyTurn() 
-            && action == actions.END_TURN) {
+            && action == ACTIONS.END_TURN) {
     console.log("This is my turn sound");
     setTimeout(function(){ playSound("your_turn3"); }, 500);
   }
@@ -776,35 +777,35 @@ function playSound(name) {
 }
 
 function shuffleDeck() {
-  emitToServer(actions.SHUFFLE_DECK);
+  emitToServer(ACTIONS.SHUFFLE_DECK);
 }
 
 function reverseTurnOrder(){
   options.clockwise = !options.clockwise;
-  broadcastUpdate({ action: actions.REVERSE, options: options})
+  broadcastUpdate({ action: ACTIONS.REVERSE, options: options})
 }
 
 function resetRound() {
-  emitToServer(actions.RESET_ROUND);
+  emitToServer(ACTIONS.RESET_ROUND);
 }
 
 function takeCard(fromTheTop=true) {
   var data = { hand: my_hand, fromTheTop:fromTheTop };
-  emitToServer(actions.DRAW_CARD, data);
+  emitToServer(ACTIONS.DRAW_CARD, data);
 }
 
 function putCardAside() {
-  emitToServer(actions.PUT_CARD_ASIDE);
+  emitToServer(ACTIONS.PUT_CARD_ASIDE);
 }
 
 function updateMyHand(){
-  emitToServer(actions.HAND_CHANGE, my_hand);
+  emitToServer(ACTIONS.HAND_CHANGE, my_hand);
 }
 
 function endTurn() {
   if(isMyTurn()) {
     pileUpPlayingArea()
-    emitToServer(actions.END_TURN);
+    emitToServer(ACTIONS.END_TURN);
   }
 }
 
@@ -837,7 +838,7 @@ function drawUsersInfos() {
   users.forEach((user) => {
     var number = "";
     var data = gameData[user.id];
-    if(state == states.CONFIGURATION) {
+    if(state == STATES.CONFIGURATION) {
       number = `🂠 <b> X </b>`
     } else if(data != undefined) {
       if(options.tricks) {
@@ -932,7 +933,7 @@ function createGameConfigs() {
         ${options.config_name == undefined? translate("Preconfiguration"): options.config_name}
       </button>
       <div class="dropdown-menu" aria-labelledby="gameStyleDrop">`;
-        forEach(configs, function (value, prop, obj) {
+        forEach(CONFIGS, function (value, prop, obj) {
           content += `<a class="dropdown-item" href="#">${prop}</a>`;
         });
       content += `</div>`;
@@ -1034,11 +1035,11 @@ function askResetRound() {
 }
 
 function readyToPlay() {
-  broadcastUpdate({action: actions.READY_TO_PLAY, state: states.PLAYING})
+  broadcastUpdate({action: ACTIONS.READY_TO_PLAY, state: STATES.PLAYING})
 }
 
 function getDiscardPile(){
-  emitToServer(actions.GET_DISCARD_PILE);
+  emitToServer(ACTIONS.GET_DISCARD_PILE);
 }
 
 function drawStack() {
@@ -1051,7 +1052,7 @@ function drawStack() {
 
 function drawDeckReveal() {
   var content = "";
-  content = `<div class = 'col-6'><h2>${translate("See the future!")}</h2><br>`
+  content = `<div class = 'col-6'><h2>${translate("action-see-the-future")}</h2><br>`
 
   content += `${translate("Cards from the top to the bottom of the pile")}<br><br>`
 
@@ -1115,26 +1116,26 @@ function drawDeck() {
   var deckContent = "";
   var playContent = "";
   switch(state) {
-    case states.CONFIGURATION: {
+    case STATES.CONFIGURATION: {
       $("#game_controls").invisible();
       deckContent = drawDeckConfig();
       playContent = drawPileConfig();
       $("#playArea").append(playContent);
       break;
     }
-    case states.DISTRIBUTION: {
+    case STATES.DISTRIBUTION: {
       $("#game_controls").visible();
       deckContent = drawDeckDistribute();
       drawPile();
       break;
     }
-    case states.PLAYING: {
+    case STATES.PLAYING: {
       $("#game_controls").visible();
       deckContent = drawDeckPlay();
       drawPile();
       break;
     }
-    case states.REVEAL: {
+    case STATES.REVEAL: {
       $("#game_controls").visible();
       deckContent = drawDeckReveal();
       drawPile();
@@ -1223,8 +1224,17 @@ function drawPileConfig() {
   `;
 }
 
+function actionCard(cardType){ 
+  if(isMyTurn() && pile.length >= 1) {
+    var card = pile[pile.length-1]
+    var currentPlayer = players[playerNumber]
+    return card.type == cardType && card.username == currentPlayer.name
+  } 
+  return false;
+}
+
 function drawPile() {
-  if(state == states.CONFIGURATION) {
+  if(state == STATES.CONFIGURATION) {
     return
   }
   $("#playArea").empty();
@@ -1251,7 +1261,8 @@ function drawPile() {
 
     if(isActionAvailable) {
         switch(card.type) {
-          case CARD.KIT: content += createActionMessage("Right click on exploding kitten to put it back", card); break;
+          case CARD.KIT: content += createActionMessage("action-kit", card); break;
+          case CARD.TARGETED_ATTACK: content += createActionMessage("action-targeted-attack", card); break;
           case CARD.CAT: 
             if(pile.length >= 2) {
               var card1 = pile[pile.length-1];
@@ -1380,7 +1391,7 @@ function distributeCards() {
   if(numCards > Math.floor(deckOriginalLength/players.length)) {
     numCards = Math.floor(deckOriginalLength/players.length)
   }
-  emitToServer(actions.DISTRIBUTE, { 
+  emitToServer(ACTIONS.DISTRIBUTE, { 
     numCards: numCards, 
     hand: my_hand 
   });
@@ -1396,7 +1407,7 @@ function isSpectatorOrGuest() {
 }
 
 function isGuest(user=my_user) {
-  return user != -1 && user.status == user_status.GUEST;
+  return user != -1 && user.status == USER_STATUS.GUEST;
 }
 
 function isSpectator(user=my_user) {
@@ -1404,11 +1415,11 @@ function isSpectator(user=my_user) {
 }
 
 function isPlayer(user=my_user) {
-  return user != -1 && user.status != user_status.GUEST;
+  return user != -1 && user.status != USER_STATUS.GUEST;
 }
 
 function isOwner(user=my_user) {
-  return user != -1 && user.status == user_status.OWNER;
+  return user != -1 && user.status == USER_STATUS.OWNER;
 }
 
 function isGameDisconnected() {
@@ -1427,8 +1438,8 @@ $(document).on("keypress", function (event) {
     var keycode = event.keyCode ? event.keyCode : event.which;
     if (keycode == "13") {
       switch(state) {
-        case states.DISTRIBUTION : distributeCards(); break;
-        case states.PLAYING: {
+        case STATES.DISTRIBUTION : distributeCards(); break;
+        case STATES.PLAYING: {
           if(!options.end_turn_play) {
             endTurn();
           }
@@ -1457,9 +1468,9 @@ function exchangeMode(value) {
 
 function revealMode(value){
   if(value) {
-    emitToServer(actions.REVEAL_DECK_CARDS, 3);
+    emitToServer(ACTIONS.REVEAL_DECK_CARDS, 3);
   } else {
-    state = states.PLAYING
+    state = STATES.PLAYING
     isActionAvailable = false;
     cardReveal = undefined;
     drawDeck();

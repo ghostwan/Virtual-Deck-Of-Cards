@@ -36,6 +36,7 @@ Current supported Languages: English, French
 - from imploding (wip):
   - reverse
   - draw from the bottom
+  - targeted attack
 
 
 # What's in progress
@@ -45,7 +46,7 @@ imploding kittens extentions
   - revirement (4) DONE
   - chat gouttière (4)
   - alteration du future (4)
-  - attaque ciblée
+  - attaque ciblée (3) DONE
 
 # What's next   
 - Check translations

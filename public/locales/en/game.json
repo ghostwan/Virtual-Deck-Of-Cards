@@ -1,10 +1,12 @@
 {
     "instruction": "To add more user to this room share this page URL with your friends! (if you add some =)) <br> After the game started, once you be add in it and after the dealer give you cards: <br><br>  - Click on a card from your hand (this area) to play it. <br> - Click on a card from the playing area to take it back to your hand (yaniv or if you did a mistake). <br> - You can drag and drop a card from your hand to rearrange them by toggling the play/reorder switch <br> - You can right click on a card to see more action (hand, pile, deck, tricks...) <br> - If you ware expeld, in spectator mode, you can always ask to go back by refreshing the page",
+    "action-kit": "Right click on exploding kitten to put it back",
     "action-shuffle":"Shuffle the deck",
     "action-exploding":"Die!",
     "action-see-the-future":"See the future!",
     "action-reverse": "Reverse turn",
     "action-draw-from-the-bottom" : "Draw from the bottom",
+    "action-targeted-attack" : "Right click on the user you want to attack",
     "url-rule-original":"https://explodingkittens.com/how-to-play/exploding-kittens",
     "url-rule-imploding":"https://explodingkittens.com/how-to-play/imploding-kittens",
     "rule-kit" : "Kit: Defuse an exploding kitten and put it back in the deck",
@@ -16,5 +18,6 @@
     "rule-favor": "Force any other player to give you 1 card from their hand. They choose which card to give you.",
     "rule-see-the-future": "See the future: Privately view the top 3 cards from the Draw Pile",
     "rule-reverse" : "Reverse the order of play and end your turn without drawing a card.",
-    "rule-draw-from-the-bottom" : "End your turn by drawing the bottom card from the Draw Pile."
+    "rule-draw-from-the-bottom" : "End your turn by drawing the bottom card from the Draw Pile.",
+    "rule-targeted-attack" : "Terminez votre tour sans tirer de carte et choisissez un joueur à attaquer : il doit effectuer 2 tours de suite"
 }
