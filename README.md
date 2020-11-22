@@ -33,11 +33,14 @@ Current supported Languages: English, French
   - steal a card (combo 2 card)
   - See the future
 
+- from imploding (wip):
+  - reverse
+
 
 # What's in progress
 imploding kittens extentions
   - imploding (1)
-  - inversion (4)
+  - inversion (4) DONE
   - revirement (4)
   - chat gouttière (4)
   - alteration du future (4)
@@ -46,7 +49,6 @@ imploding kittens extentions
 # What's next   
 - Check translations
 - Add extentions
-  - imploding kittens
   - streaking kittens
   - barking kittens
 
