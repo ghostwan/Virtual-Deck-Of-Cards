@@ -489,11 +489,8 @@ function putCardOnPileFromHand(item=undefined) {
     action = ACTIONS.PLAY_ALL_CARDS;
     for (c = 0; c < my_hand.length; c++) {
       var card = my_hand[c];
-
-      $(".card_in_hand:eq(" + cardIndex + ")").remove();
       card["username"] = my_user.name;
       pile.push(card);
-
     }
     my_hand = [];
     updateMyHand();
@@ -519,9 +516,15 @@ function putCardOnPileFromTrick(item=undefined) {
 }
 
 function userLost(){
-  putCardOnPileFromHand()
-  emitToServer(ACTIONS.END_TURN);
-  emitToServer(ACTIONS.REMOVE_USER, my_user.id);
+  for (c = 0; c < my_hand.length; c++) {
+    var card = my_hand[c];
+    card["username"] = my_user.name;
+    pile.push(card);
+  }
+  my_hand = [];
+  drawHand();
+  updateMyHand();
+  emitToServer(ACTIONS.USER_LOST, {userID: my_user.id , pile: pile});
 }
 
 function start() {

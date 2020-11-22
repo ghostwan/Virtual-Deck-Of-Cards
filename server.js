@@ -17,6 +17,9 @@ app.set('views', path.join(__dirname, 'views'));
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
+  if(DEBUG) {
+    console.log(CCOLORS.FgRed+"!! DEBUG MODE !!  "+CCOLORS.FgWhite)
+  }
   console.log(`VDOC server listenning on ${PORT}`);
 });
 
@@ -332,6 +335,38 @@ io.on("connection", socket => {
 
   });
 
+  socket.on(ACTIONS.USER_LOST, data => {
+
+    var users = getUsers();
+    var user = users.get(data.userID)
+    var options = getOptions()
+    var playerNumber = getData("playerNumber")
+    var playerList = getPlayerList();
+    var lastPositionBeforeRemoval = playerList.length-1;
+
+    user.status = USER_STATUS.GUEST;
+    users.set(user.id, user);
+    storeData("users", users);
+
+    if(options.clockwise && playerNumber == lastPositionBeforeRemoval)  {
+      playerNumber = 0
+    } else if(playerNumber == 0){
+      playerNumber = playerList.length-1
+    }
+
+    updateHand(socket.id, [], false);
+    emitToUser(user.id, ACTIONS.UPDATE_DATA, {my_user: user});
+
+    emitUpdateToRoom(ACTIONS.USER_LOST, { 
+      users: getUserList(), 
+      players: getPlayerList(),
+      pile: data.pile,
+      gameData: getGameData(),
+      playerNumber : storeData("playerNumber", playerNumber),
+      isActionAvailable:false
+    })
+  });
+  
   socket.on(ACTIONS.END_TURN, () => {
     if(socketNotAvailble()) {return}
 
@@ -420,8 +455,9 @@ io.on("connection", socket => {
     // And really shuffle
     deck = shuffle(deck)
 
-    var deckLength = 0
     var deckOriginalLength = ORIGINAL_DECK_SIZE + (players.length - 1) + (players.length + EXTRA_KITS);
+
+    displayDeck(deck)
 
     storeData("deck", deck)
     emitUpdateToRoom(ACTIONS.DISTRIBUTE, {
@@ -709,7 +745,6 @@ function addDeck(cardList, numberOfdecks, deckTemplate, deckType) {
 
 function takeCards(numcards, from, to, fromTheTop=true) {
   // To avoid taking more cards than existing
-  displayDeck(from)
   if(numcards > from.length) {
     numcards = from.length;
   }

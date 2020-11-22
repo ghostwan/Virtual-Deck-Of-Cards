@@ -1,6 +1,6 @@
 
 // Put to false for production // before pushing
-const DEBUG = false
+const DEBUG = true
 
 
 const CARD = {
@@ -103,6 +103,7 @@ const ACTIONS = {
     RESET_ROUND: "reset the round",
     READY_TO_PLAY: "ready to play",
     REVERSE: "reverse",
+    USER_LOST: "user_lost",
     END_TURN: "end turn",    
 
     /* Deck Actions */
