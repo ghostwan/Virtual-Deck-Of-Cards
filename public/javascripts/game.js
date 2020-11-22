@@ -788,8 +788,8 @@ function resetRound() {
   emitToServer(actions.RESET_ROUND);
 }
 
-function takeCard() {
-  var data = { hand: my_hand };
+function takeCard(fromTheTop=true) {
+  var data = { hand: my_hand, fromTheTop:fromTheTop };
   emitToServer(actions.DRAW_CARD, data);
 }
 

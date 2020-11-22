@@ -35,13 +35,14 @@ Current supported Languages: English, French
 
 - from imploding (wip):
   - reverse
+  - draw from the bottom
 
 
 # What's in progress
 imploding kittens extentions
   - imploding (1)
   - inversion (4) DONE
-  - revirement (4)
+  - revirement (4) DONE
   - chat gouttière (4)
   - alteration du future (4)
   - attaque ciblée

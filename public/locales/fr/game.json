@@ -152,7 +152,8 @@
   "action-shuffle":"Mélanger le deck",
   "action-exploding":"Mourrir!",
   "action-favor":"Demander une faveur!",
-  "action-reverse": "inversion tour",
+  "action-reverse": "Inversion tour",
+  "action-draw-from-the-bottom" : "Revirement",
   "url-rule-original":"https://explodingkittens.com/downloads/rules/translations/Exploding-Kittens_Rules_FR.pdf",
   "url-rule-imploding":"https://explodingkittens.com/downloads/rules/translations/Imploding-Kittens_Rules_FR.pdf",
   "rule-exploding": "Exploding kitten: montre la carte immédiatement après l'avoir piocher. Si tu n'as pas de kit tu es mort",
@@ -164,5 +165,6 @@
   "rule-attack": "Attaque: Finis ton tour sans piocher et force le prochain joueur a jouer 2 fois. Une attaque en stop une autre et oblige le prochain a jouer 2 fois",
   "rule-favor": "Faveur: Oblige un joueur a te donner une carte",
   "rule-see-the-future": "Divination: Regarder discretement les 3 premières cartes de la pioche",
-  "rule-reverse" : "Inversez le sens du jeu et terminez votre tour sans tirer de carte."
+  "rule-reverse" : "Inversez le sens du jeu et terminez votre tour sans tirer de carte.",
+  "rule-draw-from-the-bottom" : "Terminez votre tour en tirant la dernière carte de la pioche."
 }

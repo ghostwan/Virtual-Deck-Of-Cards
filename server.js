@@ -280,7 +280,7 @@ io.on("connection", socket => {
   socket.on(actions.DRAW_CARD, data => {
     if(socketNotAvailble()) {return}
     
-    var result = takeCards(1, getDeck(), data.hand);
+    var result = takeCards(1, getDeck(), data.hand, data.fromTheTop);
     var deck = result.from;
     var hand = result.to;
 
@@ -704,16 +704,23 @@ function addDeck(cardList, numberOfdecks, deckTemplate, deckType) {
 
 }
 
-function takeCards(numcards, from, to) {
+function takeCards(numcards, from, to, fromTheTop=true) {
   // To avoid taking more cards than existing
+  displayDeck(from)
   if(numcards > from.length) {
     numcards = from.length;
   }
   for (var i = 0; i < numcards; i++) {
-    to.push(from[0]);
-    from.splice(0, 1);
+    if(fromTheTop) {
+      to.push(from[0]);
+      from.splice(0, 1);
+    } else {
+      to.push(from[from.length-1])
+      from.splice(from.length-1, 1);
+    }
   }
   data = { to: to, from: from };
+  displayDeck(from)
   return data;
 }
 
@@ -739,4 +746,15 @@ function takeSpecificCards(pattern, from, to) {
   }
   data = { to: to, from: from };
   return data;
+}
+
+function displayDeck(cards) {
+  if(!DEBUG) return;
+  
+  console.log("--- <<<< BEGIN >>>> --- ")
+  for (var i = 0; i < cards.length; i++) {
+    var c =cards[i];
+    console.log(`${i} : ${CCOLORS.FgGreen} ${c.value} ${CCOLORS.FgBlue}${c.type} ${CCOLORS.FgYellow}${c.deck_type} ${CCOLORS.FgWhite}`)
+  }
+  console.log("--- <<<< END >>>> --- ")
 }
