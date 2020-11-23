@@ -1,8 +1,4 @@
 
-// Put to false for production // before pushing
-const DEBUG = true
-
-
 const CARD = {
     KIT: "kit",
     CAT: "cat",

@@ -15,6 +15,15 @@ var io = require("socket.io")(server, {'pingTimeout': 20000, 'pingInterval': 300
 app.use(express.static(path.join(__dirname, 'public')));
 app.set('views', path.join(__dirname, 'views'));
 
+// Put to false for production // before pushing
+var DEBUG = false;
+// print process.argv
+process.argv.forEach(function (val, index, array) {
+  if(val == "debug") {
+    DEBUG = true;
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   if(DEBUG) {
