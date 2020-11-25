@@ -189,7 +189,7 @@ function createButton(title, jsAction, clazz="") {
 function reconnect() {
   socket.connect();
   //TODO improve emit by https://stackoverflow.com/questions/3914557/passing-arguments-forward-to-another-javascript-function/3914600
-  socket.emit(ACTIONS.RECONNECT_ROOM, room, my_user);  
+  socket.emit(ACTIONS.RECONNECT_ROOM, room, document.cookie);  
 }
 
 socket.on(ACTIONS.USER_RECONNECTION_FAILED, function() {
@@ -239,6 +239,7 @@ socket.on(ACTIONS.ASK_USER_INFO, function () {
       name: nameTemp,
       emoji: EMOJIS[Math.floor(Math.random() * EMOJIS.length)],
     };
+    document.cookie = socket.id
   }
   emitToServer(ACTIONS.SEND_USER_INFO, my_user);
 });

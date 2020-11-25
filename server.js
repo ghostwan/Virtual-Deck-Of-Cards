@@ -50,15 +50,26 @@ io.on("connection", socket => {
     emitToUser(socket.id, ACTIONS.ASK_USER_INFO)
   });
 
-  socket.on(ACTIONS.RECONNECT_ROOM, (room, user) => {
-    console.log(`[${room}] ==> User is ${socket.id} reconnecting...`);
+  socket.on(ACTIONS.RECONNECT_ROOM, (room, userID) => {
+    console.log(`[${room}] ==> User is ${userID} reconnecting...`);
     socket.join(room);
+    debug("rooms",io.sockets.adapter.rooms)
     socket.room = room
-    socket.user_name = user.name
-
+    
     var gameData = getGameData();
     // Try to retrieve data
     try {
+      var usersExpelled = getData("usersExpelled");
+      var user = usersExpelled.get(userID)
+      if(user == undefined) {
+        throw "Can't find user expelled!"
+      }
+
+      if(gameData == undefined) {
+        throw "Can't find user gameData!"
+      }
+
+      socket.user_name = user.name
       Object.defineProperty(gameData, socket.id, Object.getOwnPropertyDescriptor(gameData, user.id));
       delete gameData[user.id];
       delete gameData[socket.id].user_disconnected
@@ -68,6 +79,9 @@ io.on("connection", socket => {
       var users = getUsers()
       users.set(user.id, user)
       storeData("users", users)
+
+      delete usersExpelled[userID]
+      storeData("usersExpelled", usersExpelled)
   
       var deck = getDeck();
       var cardsCleared = getCardsCleared();
@@ -89,15 +103,8 @@ io.on("connection", socket => {
   
       emitUpdateToRoom(ACTIONS.USER_CONNECTED, { users: getUserList(), players: getPlayerList(), gameData : getGameData()})
       console.log(`[${socket.room}] <===  User ${user.name} reconnected!`)
-    } catch(exception) { // If data is not retrivable reconnect the user
-      if(gameData != undefined) {
-        delete gameData[user.id];
-        user.id = socket.id
-        sendInfo(user)
-        console.log(`[${socket.room}] <===  User ${user.name} reconnected by emergency procedure!`)
-      } else {
-        emitToUser(socket.id, ACTIONS.USER_RECONNECTION_FAILED)
-      }
+    } catch(exception) { 
+      emitToUser(socket.id, ACTIONS.USER_RECONNECTION_FAILED)
     }
     
   })
@@ -107,9 +114,11 @@ io.on("connection", socket => {
       // If we are the first user to connect create the room
       logRoom("No other user connected")
       var users = new Map();
+      var usersExpelled = new Map();
       user.status = USER_STATUS.OWNER;
       users.set(user.id, user);
       storeData("users", users);
+      storeData("usersExpelled", usersExpelled);
       createNewGame();
     } else {
       logRoom("User already connected")
@@ -193,6 +202,12 @@ io.on("connection", socket => {
 
   function expulseUser(userID=socket.id) {
     var users = getUsers();
+    var usersExpelled = getData("usersExpelled");
+    var user = users.get(userID)
+    
+    usersExpelled.set(socket.id, user);
+    storeData("usersExpelled", usersExpelled);
+
     users.delete(userID);
     storeData("users", users);
 
@@ -675,7 +690,9 @@ io.on("connection", socket => {
   }
 
   function getData(key) {
-    return io.sockets.adapter.rooms[socket.room][key]
+    var value = io.sockets.adapter.rooms[socket.room][key]
+    debug("get "+key+ " for room "+socket.room, value)
+    return value
   }
 
   function getDeck() {
@@ -796,6 +813,8 @@ function takeSpecificCards(pattern, from, to) {
   return data;
 }
 
+
+// Tools
 function displayDeck(cards) {
   if(!DEBUG) return;
 
@@ -805,4 +824,12 @@ function displayDeck(cards) {
     console.log(`${i} : ${CCOLORS.FgGreen} ${c.value} ${CCOLORS.FgBlue}${c.type} ${CCOLORS.FgYellow}${c.deck_type} ${CCOLORS.FgWhite}`)
   }
   console.log("--- <<<< END >>>> --- ")
+}
+
+function debug(what, object) {
+  if(!DEBUG) return;
+
+	console.log(`|------ ${what} >>>>> `);
+	console.log(object);
+	console.log(`<<<<<< ${what} ------|`);
 }
