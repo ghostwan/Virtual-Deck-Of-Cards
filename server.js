@@ -189,8 +189,12 @@ io.on("connection", socket => {
   }
 
   socket.on(actions.ACCEPT_USER, userID => {
+    if(socketNotAvailble()) {return}
+
     var users = getUsers();
+    if(users == undefine) {return}
     var user = users.get(userID)
+    if(user == undefine) {return}
     user.status = user_status.PLAYER;
     users.set(user.id, user);
     storeData("users", users);
@@ -201,6 +205,8 @@ io.on("connection", socket => {
   });
 
   socket.on(actions.EXPULSE_USER, userID => {
+    if(socketNotAvailble()) {return}
+
     expulseUser(userID)
     emitToUser(userID, actions.UPDATE_DATA, {
       instruction: false,
@@ -213,6 +219,8 @@ io.on("connection", socket => {
   });
 
   socket.on(actions.REVEAL_PLAYERS_CARDS, () => {
+    if(socketNotAvailble()) {return}
+
     var hands = getData("hands");
     const gameData = getGameData();
     forEach(hands, function (value, prop, obj) {
@@ -244,6 +252,8 @@ io.on("connection", socket => {
   }
 
   socket.on(actions.HAND_CHANGE, hand => {
+    if(socketNotAvailble()) {return}
+
     updateHand(socket.id, hand);
   });
 
@@ -341,6 +351,8 @@ io.on("connection", socket => {
   });
 
   socket.on(actions.CLEAR_AREA, () => {
+    if(socketNotAvailble()) {return}
+
     var pile = getPile();
     var cardsCleared = getData("cardsCleared");
     cardsCleared = cardsCleared.concat(pile);
@@ -354,6 +366,8 @@ io.on("connection", socket => {
   });
 
   socket.on(actions.GET_DISCARD_PILE, () => {
+    if(socketNotAvailble()) {return}
+
     var pile = getPile();
     var cardsCleared = getCardsCleared();
     var numCards = pile.length + cardsCleared.length
